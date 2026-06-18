@@ -2,6 +2,8 @@ import { BrowserWindow, dialog, ipcMain } from 'electron';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
   MetadataUpdate,
+  ApplyMovieMetadataRequest,
+  MovieMetadataSearchRequest,
   ScanLibraryRequest,
   SyncRequest,
   WatchProgressUpdate
@@ -57,6 +59,12 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.updateMetadata, (_event, update: MetadataUpdate) => {
     services.metadata.updateMetadata(update);
   });
+  ipcMain.handle(ipcChannels.searchMovieMetadata, (_event, request: MovieMetadataSearchRequest) =>
+    services.metadata.searchMovieMetadata(request)
+  );
+  ipcMain.handle(ipcChannels.applyMovieMetadata, (_event, request: ApplyMovieMetadataRequest) =>
+    services.metadata.applyMovieMetadata(request)
+  );
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
 

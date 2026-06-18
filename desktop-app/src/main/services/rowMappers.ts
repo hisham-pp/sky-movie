@@ -99,6 +99,8 @@ export function mapMediaFile(row: Row): MediaFile {
 export function defaultSettings(deviceId: string): AppSettings {
   return {
     metadataProvider: 'local',
+    tmdbApiKey: '',
+    tmdbLanguage: 'en-US',
     autoScan: false,
     watchFolders: false,
     defaultSyncIncludesFiles: false,

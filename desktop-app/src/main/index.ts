@@ -66,10 +66,10 @@ app.whenReady().then(() => {
   const catalog = new CatalogService(sqlite);
   const backup = new BackupService(sqlite, paths);
   const scanner = new LibraryScanner(sqlite);
-  const metadata = new MetadataProviderManager(sqlite);
   const player = new PlayerService(sqlite);
   const maintenance = new MaintenanceService(sqlite, paths);
   const settings = new SettingsService(sqlite);
+  const metadata = new MetadataProviderManager(sqlite, paths, settings);
   const sync = new LocalSyncEngine(sqlite, paths, app.getVersion());
 
   player.registerMediaProtocol();
