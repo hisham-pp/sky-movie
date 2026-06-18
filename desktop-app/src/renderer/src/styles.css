@@ -8,14 +8,16 @@
   color: #f4f7f3;
   background: #050607;
   --panel: rgba(18, 20, 22, 0.74);
-  --panel-solid: #111416;
-  --panel-raised: #171b1d;
+  --panel-solid: #101619;
+  --panel-raised: #151d20;
   --line: rgba(255, 255, 255, 0.1);
-  --muted: #9ba39d;
+  --muted: #91a09a;
   --soft: #d7ddd8;
-  --teal: #39c7a4;
-  --coral: #ff765d;
-  --gold: #f5b94a;
+  --teal: #7cf7d4;
+  --cyan: #2dffe1;
+  --coral: #ff7a5c;
+  --gold: #fff3b0;
+  --amber: #f7bc51;
 }
 
 * {
@@ -28,8 +30,9 @@ body {
   min-height: 720px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 34% 0%, rgba(57, 199, 164, 0.18), transparent 28%),
-    linear-gradient(180deg, #101415 0%, #050607 48%, #030404 100%);
+    linear-gradient(120deg, rgba(124, 247, 212, 0.08), transparent 34%),
+    linear-gradient(240deg, rgba(255, 122, 92, 0.08), transparent 36%),
+    linear-gradient(180deg, #0a1113 0%, #050607 48%, #030404 100%);
 }
 
 button,
@@ -46,8 +49,8 @@ button {
 }
 
 button:hover {
-  border-color: rgba(57, 199, 164, 0.5);
-  background: rgba(57, 199, 164, 0.12);
+  border-color: rgba(124, 247, 212, 0.5);
+  background: rgba(124, 247, 212, 0.11);
 }
 
 button:disabled {
@@ -79,16 +82,65 @@ button:disabled {
 }
 
 .brand-mark {
+  position: relative;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   place-items: center;
-  border: 1px solid rgba(57, 199, 164, 0.42);
+  overflow: hidden;
+  border: 1px solid rgba(124, 247, 212, 0.36);
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(57, 199, 164, 0.9), rgba(255, 118, 93, 0.82));
-  box-shadow: 0 14px 35px rgba(57, 199, 164, 0.18);
-  color: white;
-  font-weight: 800;
+  background:
+    linear-gradient(145deg, rgba(124, 247, 212, 0.18), rgba(255, 122, 92, 0.1)),
+    #071112;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 14px 36px rgba(45, 255, 225, 0.12);
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 122, 92, 0.95) 0 4px,
+    transparent 4px 9px
+  );
+  content: "";
+}
+
+.brand-mark::before {
+  left: 8px;
+}
+
+.brand-mark::after {
+  right: 8px;
+}
+
+.logo-crescent {
+  position: absolute;
+  width: 54%;
+  height: 54%;
+  border: 5px solid var(--teal);
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-radius: 50%;
+  transform: rotate(28deg);
+}
+
+.logo-play {
+  position: absolute;
+  left: 42%;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 13px solid var(--gold);
+  filter: drop-shadow(0 0 10px rgba(255, 243, 176, 0.3));
 }
 
 .brand h1,
@@ -114,8 +166,8 @@ button:disabled {
 }
 
 .nav button.active {
-  border-color: rgba(57, 199, 164, 0.68);
-  background: rgba(57, 199, 164, 0.2);
+  border-color: rgba(124, 247, 212, 0.68);
+  background: rgba(124, 247, 212, 0.16);
   color: var(--teal);
 }
 
@@ -233,9 +285,9 @@ select option {
   align-items: center;
   gap: 9px;
   min-height: 40px;
-  border-color: rgba(57, 199, 164, 0.75);
+  border-color: rgba(124, 247, 212, 0.75);
   border-radius: 10px;
-  background: rgba(57, 199, 164, 0.94);
+  background: var(--teal);
   color: #031210;
   font-weight: 700;
   padding: 0 14px;
@@ -277,7 +329,7 @@ select option {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   background:
-    linear-gradient(110deg, rgba(5, 6, 7, 0.88) 0%, rgba(5, 6, 7, 0.58) 48%, rgba(255, 118, 93, 0.14) 100%),
+    linear-gradient(110deg, rgba(5, 6, 7, 0.88) 0%, rgba(5, 6, 7, 0.58) 48%, rgba(255, 122, 92, 0.14) 100%),
     repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 20px),
     #121618;
   padding: 28px;
@@ -347,7 +399,7 @@ select option {
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 14px;
   background:
-    linear-gradient(155deg, rgba(57, 199, 164, 0.94), rgba(245, 185, 74, 0.42) 55%, rgba(255, 118, 93, 0.7)),
+    linear-gradient(155deg, rgba(124, 247, 212, 0.88), rgba(247, 188, 81, 0.42) 55%, rgba(255, 122, 92, 0.7)),
     #20332e;
   color: white;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.34);
@@ -363,7 +415,7 @@ select option {
 
 .show-poster {
   background:
-    linear-gradient(155deg, rgba(255, 118, 93, 0.92), rgba(75, 118, 184, 0.7) 62%, rgba(57, 199, 164, 0.55)),
+    linear-gradient(155deg, rgba(255, 122, 92, 0.9), rgba(45, 255, 225, 0.32) 62%, rgba(124, 247, 212, 0.5)),
     #2a1d1a;
 }
 
@@ -373,7 +425,7 @@ select option {
   bottom: 9px;
   z-index: 1;
   border-radius: 999px;
-  background: rgba(57, 199, 164, 0.92);
+  background: rgba(124, 247, 212, 0.92);
   color: #031210;
   font-size: 11px;
   font-weight: 800;
@@ -490,7 +542,7 @@ select option {
 }
 
 .danger-zone {
-  border-color: rgba(255, 118, 93, 0.44);
+  border-color: rgba(255, 122, 92, 0.44);
 }
 
 .statusbar {

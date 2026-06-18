@@ -2,6 +2,7 @@ node_modules
 .next
 out
 desktop-app/out/*
+desktop-app/dist/*
 website\tsconfig.tsbuildinfo
 website/tsconfig.tsbuildinfo
 website/next-dev.log

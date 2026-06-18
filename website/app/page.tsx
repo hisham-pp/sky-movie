@@ -58,7 +58,10 @@ export default function Home() {
       <header className="site-header">
         <div className="nav-wrap">
           <a className="brand" href="#top" aria-label="Sky Movie home">
-            <span className="brand-mark" aria-hidden="true" />
+            <span className="brand-mark" aria-hidden="true">
+              <span className="logo-crescent" />
+              <span className="logo-play" />
+            </span>
             <span>Sky Movie</span>
           </a>
           <nav className="nav-links" aria-label="Main navigation">
@@ -74,20 +77,72 @@ export default function Home() {
       <main id="top">
         <section className="hero" aria-label="Sky Movie">
           <div className="hero-content">
-            <p className="eyebrow">Local-first desktop library</p>
-            <h1>Sky Movie</h1>
-            <p className="hero-copy">
-              A private movie and TV library manager for scanning local folders,
-              organizing metadata, playing media, keeping progress, and carrying
-              your collection between drives without a backend account.
-            </p>
-            <div className="hero-actions" aria-label="Primary actions">
-              <a className="button primary" href={repoUrl}>
-                View repository
-              </a>
-              <a className="button secondary" href="#features">
-                Explore features
-              </a>
+            <div className="hero-grid">
+              <div className="hero-copy-block">
+                <div className="hero-logo" aria-hidden="true">
+                  <span className="brand-mark large">
+                    <span className="logo-crescent" />
+                    <span className="logo-play" />
+                  </span>
+                </div>
+                <p className="eyebrow">Local-first desktop library</p>
+                <h1>Sky Movie</h1>
+                <p className="hero-copy">
+                  A private movie and TV library manager for scanning local
+                  folders, organizing metadata, playing media, keeping progress,
+                  and carrying your collection between drives without a backend
+                  account.
+                </p>
+                <div className="hero-actions" aria-label="Primary actions">
+                  <a className="button primary" href={repoUrl}>
+                    View repository
+                  </a>
+                  <a className="button secondary" href="#features">
+                    Explore features
+                  </a>
+                </div>
+              </div>
+
+              <div className="hero-showcase" aria-hidden="true">
+                <div className="app-window">
+                  <div className="window-bar">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="window-body">
+                    <div className="window-sidebar">
+                      <span className="nav-pill active" />
+                      <span className="nav-pill" />
+                      <span className="nav-pill short" />
+                    </div>
+                    <div className="window-main">
+                      <div className="search-line" />
+                      <div className="poster-wall">
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                    <div className="now-playing">
+                      <span className="player-box" />
+                      <span className="meta-line" />
+                      <span className="meta-line short" />
+                    </div>
+                  </div>
+                </div>
+                <div className="floating-card sync-card">
+                  <strong>Sync ready</strong>
+                  <span>NAS folder detected</span>
+                </div>
+                <div className="floating-card scan-card">
+                  <strong>342 files</strong>
+                  <span>Matched locally</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>

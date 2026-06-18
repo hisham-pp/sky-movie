@@ -15,7 +15,10 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark">S</div>
+        <div className="brand-mark" aria-hidden="true">
+          <span className="logo-crescent" />
+          <span className="logo-play" />
+        </div>
         <div>
           <h1>Sky Movie</h1>
           <p>Local library</p>
