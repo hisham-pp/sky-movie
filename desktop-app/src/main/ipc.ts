@@ -29,6 +29,10 @@ interface IpcServices {
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
+  ipcMain.handle(ipcChannels.chooseFolder, async (_event, title?: string) =>
+    chooseDirectory(services.getMainWindow(), title ?? 'Choose folder')
+  );
+
   ipcMain.handle(ipcChannels.scanLibrary, async (_event, requestInput?: string | ScanLibraryRequest) => {
     const request = normalizeScanRequest(requestInput);
     const settings = services.settings.getSettings();

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import type { SyncRequest, SyncResult } from '../../shared/ipc';
 import type { AppDataPaths } from '../appPaths';
 import type { SqliteDatabase } from '../database/client';
@@ -33,7 +33,10 @@ export class LocalSyncEngine {
     ];
     await writeFile(metadataPath, `${lines.join('\n')}\n`, 'utf8');
 
-    const totalSize = files.reduce((sum, row) => sum + Number((row as { file_size: number }).file_size), 0);
+    const shouldCopyMediaFiles = request.includeMediaFiles || request.type === 'files' || request.type === 'full';
+    const copiedFiles = shouldCopyMediaFiles
+      ? await this.copyMediaFiles(files, destinationPath, request)
+      : { count: 0, totalSize: 0 };
     const checksumSummary = createHash('sha256').update(lines.join('\n')).digest('hex');
     const manifest = {
       syncVersion: 1,
@@ -43,12 +46,12 @@ export class LocalSyncEngine {
       syncType: request.type,
       includedFilters: request.filters ?? {},
       itemCount: movies.length + shows.length + episodes.length,
-      fileCount: files.length,
-      totalSize,
+      fileCount: copiedFiles.count,
+      totalSize: copiedFiles.totalSize,
       checksumSummary,
       includesPosterCache: Boolean(request.includePosterCache),
       includesBackdropCache: Boolean(request.includeBackdropCache),
-      includesMediaFiles: Boolean(request.includeMediaFiles)
+      includesMediaFiles: shouldCopyMediaFiles
     };
     const manifestPath = join(destinationPath, 'manifest.json');
     await writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
@@ -65,14 +68,14 @@ export class LocalSyncEngine {
         `INSERT INTO sync_history (sync_profile_id, sync_type, destination_path, item_count, file_count, total_size, status, manifest_path, created_at)
          VALUES (NULL, ?, ?, ?, ?, ?, 'complete', ?, ?)`
       )
-      .run(request.type, destinationPath, manifest.itemCount, files.length, totalSize, manifestPath, manifest.syncDate);
+      .run(request.type, destinationPath, manifest.itemCount, copiedFiles.count, copiedFiles.totalSize, manifestPath, manifest.syncDate);
 
     return {
       destinationPath,
       manifestPath,
       itemCount: manifest.itemCount,
-      fileCount: files.length,
-      totalSize,
+      fileCount: copiedFiles.count,
+      totalSize: copiedFiles.totalSize,
       checksumSummary
     };
   }
@@ -159,6 +162,36 @@ export class LocalSyncEngine {
     });
   }
 
+  private async copyMediaFiles(
+    files: Record<string, unknown>[],
+    destinationPath: string,
+    request: SyncRequest
+  ): Promise<{ count: number; totalSize: number }> {
+    const filesRoot = join(destinationPath, 'files');
+    await mkdir(filesRoot, { recursive: true });
+
+    let copiedFileCount = 0;
+    let totalSize = 0;
+    for (const row of files) {
+      const sourcePath = String(row.absolute_path ?? '');
+      const sourceStats = await getFileStats(sourcePath);
+      if (!sourceStats) {
+        continue;
+      }
+
+      const relativePath = request.preserveFolderStructure === false
+        ? uniqueFlatFileName(row, copiedFileCount)
+        : String(row.relative_path ?? basename(sourcePath));
+      const targetPath = safeJoin(filesRoot, relativePath);
+      await mkdir(dirname(targetPath), { recursive: true });
+      await copyFile(sourcePath, targetPath);
+      copiedFileCount += 1;
+      totalSize += sourceStats.size;
+    }
+
+    return { count: copiedFileCount, totalSize };
+  }
+
   private getDeviceId(): string {
     const row = this.db.prepare('SELECT value FROM app_settings WHERE key = ?').get('settings') as
       | { value: string }
@@ -169,4 +202,28 @@ export class LocalSyncEngine {
 
     return JSON.parse(row.value).deviceId ?? 'unknown-device';
   }
+}
+
+async function getFileStats(path: string) {
+  try {
+    const stats = await stat(path);
+    return stats.isFile() ? stats : null;
+  } catch {
+    return null;
+  }
+}
+
+function uniqueFlatFileName(row: Record<string, unknown>, index: number): string {
+  const id = String(row.id ?? index + 1);
+  return `${id}-${basename(String(row.file_name ?? row.absolute_path ?? `media-${index + 1}`))}`;
+}
+
+function safeJoin(root: string, relativePath: string): string {
+  const targetPath = resolve(root, relativePath);
+  const normalizedRoot = resolve(root);
+  if (targetPath !== normalizedRoot && !targetPath.startsWith(`${normalizedRoot}${sep}`)) {
+    throw new Error(`Refusing to copy outside export folder: ${relativePath}`);
+  }
+
+  return targetPath;
 }

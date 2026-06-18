@@ -198,6 +198,7 @@ export interface BackupResult {
 }
 
 export interface SkyMovieApi {
+  chooseFolder(title?: string): Promise<string | null>;
   scanLibrary(request?: ScanLibraryRequest | string): Promise<ScanResult | null>;
   getMovies(query?: string): Promise<Movie[]>;
   getMovieById(id: number): Promise<DetailResult<Movie>>;
@@ -218,6 +219,7 @@ export interface SkyMovieApi {
 }
 
 export const ipcChannels = {
+  chooseFolder: 'dialog:choose-folder',
   scanLibrary: 'library:scan',
   getMovies: 'library:get-movies',
   getMovieById: 'library:get-movie-by-id',

@@ -7,6 +7,11 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit && electron-vite build",
+    "package": "electron-builder",
+    "package:all": "electron-builder --win --mac --linux",
+    "package:current": "electron-builder",
+    "package:linux": "electron-builder --linux",
+    "package:mac": "electron-builder --mac",
     "package:win": "electron-builder --win nsis dir",
     "package:win:dir": "electron-builder --win dir",
     "package:win:installer": "electron-builder --win nsis",
@@ -16,6 +21,7 @@
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit"
   },
+  "author": "Sky Movie",
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
     "better-sqlite3": "^12.2.0",

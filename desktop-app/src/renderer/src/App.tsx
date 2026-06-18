@@ -18,11 +18,13 @@ export function App() {
           scanMode={library.scanMode}
           matcherStrategy={library.matcherStrategy}
           extractFileMetadata={library.extractFileMetadata}
+          selectedFolderPath={library.selectedScanFolder}
           busy={library.busy}
           onQueryChange={library.setQuery}
           onScanModeChange={library.setScanMode}
           onMatcherStrategyChange={library.setMatcherStrategy}
           onExtractFileMetadataChange={library.setExtractFileMetadata}
+          onChooseFolder={library.chooseLibraryFolder}
           onScan={library.scanLibrary}
         />
 
@@ -37,6 +39,7 @@ export function App() {
             onClear={library.clearLocalData}
             onBackup={library.createBackup}
             onRestore={library.restoreBackup}
+            onDownloadLocal={library.downloadLocalFiles}
           />
         ) : (
           <LibraryView

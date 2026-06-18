@@ -167,7 +167,13 @@ export class LibraryScanner {
   }
 
   private async findVideoFiles(rootPath: string): Promise<string[]> {
-    const entries = await readdir(rootPath, { withFileTypes: true });
+    let entries;
+    try {
+      entries = await readdir(rootPath, { withFileTypes: true });
+    } catch {
+      return [];
+    }
+
     const found: string[] = [];
 
     for (const entry of entries) {

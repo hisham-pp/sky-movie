@@ -22,6 +22,7 @@ export function useLibraryController() {
   const [scanMode, setScanMode] = useState<LibraryScanMode>('mixed');
   const [matcherStrategy, setMatcherStrategy] = useState<MatcherStrategy>('auto');
   const [extractFileMetadata, setExtractFileMetadata] = useState(true);
+  const [selectedScanFolder, setSelectedScanFolder] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState('No media selected');
   const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
   const [player, setPlayer] = useState<PlayMediaResult | null>(null);
@@ -62,9 +63,17 @@ export function useLibraryController() {
 
   async function scanLibrary() {
     setBusy(true);
-    setStatus('Scanning selected folder...');
     try {
+      const folderPath = selectedScanFolder ?? (await window.skyMovie.chooseFolder('Choose library folder'));
+      if (!folderPath) {
+        setStatus('Scan cancelled');
+        return;
+      }
+
+      setSelectedScanFolder(folderPath);
+      setStatus('Scanning selected folder...');
       const result = await window.skyMovie.scanLibrary({
+        path: folderPath,
         mediaKind: scanMode,
         matcherStrategy,
         extractFileMetadata
@@ -78,8 +87,20 @@ export function useLibraryController() {
       }
 
       await refreshAll();
+    } catch (error) {
+      setStatus(`Scan failed: ${formatError(error)}`);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function chooseLibraryFolder() {
+    const folderPath = await window.skyMovie.chooseFolder('Choose library folder');
+    if (folderPath) {
+      setSelectedScanFolder(folderPath);
+      setStatus(`Selected ${folderPath}`);
+    } else {
+      setStatus('Folder selection cancelled');
     }
   }
 
@@ -120,15 +141,23 @@ export function useLibraryController() {
       setPlayer(null);
       await refreshAll();
       setStatus(`Cleared ${result.removedRows} local records and cache files`);
+    } catch (error) {
+      setStatus(`Clear failed: ${formatError(error)}`);
     } finally {
       setBusy(false);
     }
   }
 
   async function createBackup() {
-    const result = await window.skyMovie.createBackup();
-    if (result) {
-      setStatus(`Backup saved with ${result.rowCount} rows`);
+    try {
+      const result = await window.skyMovie.createBackup();
+      if (result) {
+        setStatus(`Backup saved with ${result.rowCount} rows`);
+      } else {
+        setStatus('Backup cancelled');
+      }
+    } catch (error) {
+      setStatus(`Backup failed: ${formatError(error)}`);
     }
   }
 
@@ -139,7 +168,34 @@ export function useLibraryController() {
       if (result) {
         await refreshAll();
         setStatus(`Restored backup with ${result.rowCount} rows`);
+      } else {
+        setStatus('Restore cancelled');
       }
+    } catch (error) {
+      setStatus(`Restore failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function downloadLocalFiles() {
+    setBusy(true);
+    setStatus('Preparing local download...');
+    try {
+      const result = await window.skyMovie.exportLibrary({
+        type: 'files',
+        includeMediaFiles: true,
+        preserveFolderStructure: true,
+        mediaKind: scanMode
+      });
+
+      if (result) {
+        setStatus(`Downloaded ${result.fileCount} files to ${result.destinationPath}`);
+      } else {
+        setStatus('Local download cancelled');
+      }
+    } catch (error) {
+      setStatus(`Local download failed: ${formatError(error)}`);
     } finally {
       setBusy(false);
     }
@@ -160,12 +216,14 @@ export function useLibraryController() {
     setMatcherStrategy,
     extractFileMetadata,
     setExtractFileMetadata,
+    selectedScanFolder,
     selectedTitle,
     selectedFiles,
     player,
     lastScan,
     status,
     busy,
+    chooseLibraryFolder,
     scanLibrary,
     selectMovie,
     selectShow,
@@ -173,6 +231,11 @@ export function useLibraryController() {
     saveSettings,
     clearLocalData,
     createBackup,
-    restoreBackup
+    restoreBackup,
+    downloadLocalFiles
   };
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
