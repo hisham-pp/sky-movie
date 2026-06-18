@@ -2,12 +2,13 @@
   "name": "@sky-movie/desktop-app",
   "version": "0.1.0",
   "description": "Local-first desktop movie and TV library manager.",
-  "main": "dist/main/index.js",
+  "main": "out/main/index.js",
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit && electron-vite build",
     "preview": "electron-vite preview",
+    "start": "electron-vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

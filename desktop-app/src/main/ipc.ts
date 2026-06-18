@@ -1,4 +1,5 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron';
+import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
   MetadataUpdate,
   ScanLibraryRequest,
@@ -118,30 +119,33 @@ function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibrar
 }
 
 async function chooseDirectory(window: BrowserWindow | null, title: string): Promise<string | null> {
-  const result = await dialog.showOpenDialog(window ?? undefined, {
+  const options: OpenDialogOptions = {
     title,
     properties: ['openDirectory', 'createDirectory']
-  });
+  };
+  const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
 
   return result.canceled ? null : result.filePaths[0] ?? null;
 }
 
 async function chooseBackupSavePath(window: BrowserWindow | null): Promise<string | null> {
-  const result = await dialog.showSaveDialog(window ?? undefined, {
+  const options: SaveDialogOptions = {
     title: 'Save Sky Movie backup',
     defaultPath: `sky-movie-backup-${new Date().toISOString().slice(0, 10)}.skybackup.json`,
     filters: [{ name: 'Sky Movie Backup', extensions: ['json'] }]
-  });
+  };
+  const result = window ? await dialog.showSaveDialog(window, options) : await dialog.showSaveDialog(options);
 
   return result.canceled ? null : result.filePath ?? null;
 }
 
 async function chooseBackupOpenPath(window: BrowserWindow | null): Promise<string | null> {
-  const result = await dialog.showOpenDialog(window ?? undefined, {
+  const options: OpenDialogOptions = {
     title: 'Restore Sky Movie backup',
     properties: ['openFile'],
     filters: [{ name: 'Sky Movie Backup', extensions: ['json'] }]
-  });
+  };
+  const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
 
   return result.canceled ? null : result.filePaths[0] ?? null;
 }

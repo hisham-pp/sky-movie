@@ -5,11 +5,17 @@
   "packageManager": "pnpm@9.15.0",
   "description": "Sky Movie local-first movie and TV library workspace.",
   "workspaces": [
-    "desktop-app"
+    "desktop-app",
+    "website"
   ],
   "scripts": {
     "dev": "pnpm --filter @sky-movie/desktop-app dev",
+    "start": "pnpm --filter @sky-movie/desktop-app start",
+    "dev:website": "pnpm --filter @sky-movie/website dev",
     "build": "pnpm --filter @sky-movie/desktop-app build",
-    "typecheck": "pnpm --filter @sky-movie/desktop-app typecheck"
+    "build:website": "pnpm --filter @sky-movie/website build",
+    "rebuild:native": "pnpm --filter @sky-movie/desktop-app rebuild better-sqlite3",
+    "typecheck": "pnpm --filter @sky-movie/desktop-app typecheck",
+    "typecheck:website": "pnpm --filter @sky-movie/website typecheck"
   }
 }
