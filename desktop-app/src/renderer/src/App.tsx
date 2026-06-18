@@ -170,7 +170,7 @@ export function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">
-            <Film size={22} />
+            S
           </div>
           <div>
             <h1>Sky Movie</h1>
@@ -249,8 +249,19 @@ export function App() {
         ) : (
           <div className="content-grid">
             <section className="library-list">
+              <div className="hero-strip">
+                <div>
+                  <span>Continue watching</span>
+                  <h2>{player?.title ?? selectedTitle}</h2>
+                  <p>{selectedFiles.length ? `${selectedFiles.length} local files available` : 'Select a title from your local library'}</p>
+                </div>
+                <div className="hero-player">
+                  <PlayerPanel player={player} />
+                </div>
+              </div>
+
               <div className="section-title">
-                <h2>{view === 'movies' ? 'Movies' : 'TV Shows'}</h2>
+                <h2>{view === 'movies' ? 'Current Movies' : 'Current TV Shows'}</h2>
                 <span>{visibleItems.length} items</span>
               </div>
               <div className="poster-grid">
@@ -265,7 +276,6 @@ export function App() {
                 <h2>{selectedTitle}</h2>
                 <span>{selectedFiles.length} files</span>
               </div>
-              <PlayerPanel player={player} />
               <div className="file-list">
                 {selectedFiles.map((file) => (
                   <button key={file.id} onClick={() => play(file)}>
