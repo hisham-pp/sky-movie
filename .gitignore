@@ -1,1 +1,7 @@
 node_modules
+.next
+out
+desktop-app/out/*
+website\tsconfig.tsbuildinfo
+website/tsconfig.tsbuildinfo
+website/next-dev.log
