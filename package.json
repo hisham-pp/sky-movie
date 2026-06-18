@@ -1,0 +1,15 @@
+{
+  "name": "sky-movie",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "description": "Sky Movie local-first movie and TV library workspace.",
+  "workspaces": [
+    "desktop-app"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter @sky-movie/desktop-app dev",
+    "build": "pnpm --filter @sky-movie/desktop-app build",
+    "typecheck": "pnpm --filter @sky-movie/desktop-app typecheck"
+  }
+}
