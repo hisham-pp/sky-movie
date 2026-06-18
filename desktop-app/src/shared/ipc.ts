@@ -120,6 +120,29 @@ export interface MetadataUpdate {
   backdropPath?: string | null;
 }
 
+export interface MovieMetadataSearchRequest {
+  query: string;
+  year?: number | null;
+}
+
+export interface MovieMetadataSearchResult {
+  provider: 'tmdb';
+  providerId: number;
+  title: string;
+  originalTitle: string | null;
+  releaseYear: number | null;
+  overview: string | null;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  rating: number | null;
+}
+
+export interface ApplyMovieMetadataRequest {
+  movieId: number;
+  provider: 'tmdb';
+  providerId: number;
+}
+
 export interface PlayMediaResult {
   mediaFileId: number;
   mediaUrl: string;
@@ -176,6 +199,8 @@ export interface SyncResult {
 
 export interface AppSettings {
   metadataProvider: 'local' | 'tmdb';
+  tmdbApiKey: string;
+  tmdbLanguage: string;
   autoScan: boolean;
   watchFolders: boolean;
   defaultSyncIncludesFiles: boolean;
@@ -205,6 +230,8 @@ export interface SkyMovieApi {
   getShows(query?: string): Promise<TvShow[]>;
   getShowById(id: number): Promise<DetailResult<TvShow>>;
   updateMetadata(update: MetadataUpdate): Promise<void>;
+  searchMovieMetadata(request: MovieMetadataSearchRequest): Promise<MovieMetadataSearchResult[]>;
+  applyMovieMetadata(request: ApplyMovieMetadataRequest): Promise<Movie>;
   playMedia(mediaFileId: number): Promise<PlayMediaResult>;
   updateWatchProgress(update: WatchProgressUpdate): Promise<void>;
   exportLibrary(request?: SyncRequest): Promise<SyncResult | null>;
@@ -226,6 +253,8 @@ export const ipcChannels = {
   getShows: 'library:get-shows',
   getShowById: 'library:get-show-by-id',
   updateMetadata: 'metadata:update',
+  searchMovieMetadata: 'metadata:search-movie',
+  applyMovieMetadata: 'metadata:apply-movie',
   playMedia: 'player:play-media',
   updateWatchProgress: 'watch:update-progress',
   exportLibrary: 'sync:export-library',

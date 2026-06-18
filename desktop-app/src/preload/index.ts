@@ -1,5 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { MetadataUpdate, SkyMovieApi, SyncRequest, WatchProgressUpdate } from '../shared/ipc';
+import type {
+  ApplyMovieMetadataRequest,
+  MetadataUpdate,
+  MovieMetadataSearchRequest,
+  SkyMovieApi,
+  SyncRequest,
+  WatchProgressUpdate
+} from '../shared/ipc';
 import { ipcChannels } from '../shared/ipc';
 
 const api: SkyMovieApi = {
@@ -10,6 +17,8 @@ const api: SkyMovieApi = {
   getShows: (query?: string) => ipcRenderer.invoke(ipcChannels.getShows, query),
   getShowById: (id: number) => ipcRenderer.invoke(ipcChannels.getShowById, id),
   updateMetadata: (update: MetadataUpdate) => ipcRenderer.invoke(ipcChannels.updateMetadata, update),
+  searchMovieMetadata: (request: MovieMetadataSearchRequest) => ipcRenderer.invoke(ipcChannels.searchMovieMetadata, request),
+  applyMovieMetadata: (request: ApplyMovieMetadataRequest) => ipcRenderer.invoke(ipcChannels.applyMovieMetadata, request),
   playMedia: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.playMedia, mediaFileId),
   updateWatchProgress: (update: WatchProgressUpdate) => ipcRenderer.invoke(ipcChannels.updateWatchProgress, update),
   exportLibrary: (request?: SyncRequest) => ipcRenderer.invoke(ipcChannels.exportLibrary, request),

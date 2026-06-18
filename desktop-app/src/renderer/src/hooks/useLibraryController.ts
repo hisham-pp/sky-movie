@@ -6,6 +6,7 @@ import type {
   MatcherStrategy,
   MediaFile,
   Movie,
+  MovieMetadataSearchResult,
   PlayMediaResult,
   ScanResult,
   TvShow
@@ -24,7 +25,10 @@ export function useLibraryController() {
   const [extractFileMetadata, setExtractFileMetadata] = useState(true);
   const [selectedScanFolder, setSelectedScanFolder] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState('No media selected');
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
+  const [metadataQuery, setMetadataQuery] = useState('');
+  const [metadataResults, setMetadataResults] = useState<MovieMetadataSearchResult[]>([]);
   const [player, setPlayer] = useState<PlayMediaResult | null>(null);
   const [lastScan, setLastScan] = useState<ScanResult | null>(null);
   const [status, setStatus] = useState('Ready');
@@ -106,14 +110,19 @@ export function useLibraryController() {
 
   async function selectMovie(movie: Movie) {
     const details = await window.skyMovie.getMovieById(movie.id);
+    setSelectedMovie(movie);
     setSelectedTitle(movie.title);
     setSelectedFiles(details.files);
+    setMetadataQuery(`${movie.title}${movie.releaseYear ? ` ${movie.releaseYear}` : ''}`);
+    setMetadataResults([]);
   }
 
   async function selectShow(show: TvShow) {
     const details = await window.skyMovie.getShowById(show.id);
+    setSelectedMovie(null);
     setSelectedTitle(show.title);
     setSelectedFiles(details.files);
+    setMetadataResults([]);
   }
 
   async function play(file: MediaFile) {
@@ -201,6 +210,53 @@ export function useLibraryController() {
     }
   }
 
+  async function searchSelectedMovieMetadata() {
+    if (!selectedMovie) {
+      setStatus('Select a movie before searching metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const results = await window.skyMovie.searchMovieMetadata({
+        query: metadataQuery || selectedMovie.title,
+        year: selectedMovie.releaseYear
+      });
+      setMetadataResults(results);
+      setStatus(results.length ? `Found ${results.length} metadata matches` : 'No metadata matches found');
+    } catch (error) {
+      setStatus(`Metadata search failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applySelectedMovieMetadata(result: MovieMetadataSearchResult) {
+    if (!selectedMovie) {
+      setStatus('Select a movie before applying metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const updatedMovie = await window.skyMovie.applyMovieMetadata({
+        movieId: selectedMovie.id,
+        provider: result.provider,
+        providerId: result.providerId
+      });
+      setSelectedMovie(updatedMovie);
+      setSelectedTitle(updatedMovie.title);
+      setMetadataQuery(`${updatedMovie.title}${updatedMovie.releaseYear ? ` ${updatedMovie.releaseYear}` : ''}`);
+      setMetadataResults([]);
+      await refreshLists();
+      setStatus(`Applied metadata for ${updatedMovie.title}`);
+    } catch (error) {
+      setStatus(`Apply metadata failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return {
     view,
     setView,
@@ -218,7 +274,11 @@ export function useLibraryController() {
     setExtractFileMetadata,
     selectedScanFolder,
     selectedTitle,
+    selectedMovie,
     selectedFiles,
+    metadataQuery,
+    setMetadataQuery,
+    metadataResults,
     player,
     lastScan,
     status,
@@ -232,7 +292,9 @@ export function useLibraryController() {
     clearLocalData,
     createBackup,
     restoreBackup,
-    downloadLocalFiles
+    downloadLocalFiles,
+    searchSelectedMovieMetadata,
+    applySelectedMovieMetadata
   };
 }
 
