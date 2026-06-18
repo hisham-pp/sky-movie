@@ -1,4 +1,4 @@
-import { FolderSearch, RefreshCw, Search } from 'lucide-react';
+import { FolderOpen, FolderSearch, RefreshCw, Search } from 'lucide-react';
 import type { LibraryScanMode, MatcherStrategy } from '@shared/ipc';
 import { Select } from './ui/Select';
 
@@ -7,22 +7,26 @@ export function Toolbar({
   scanMode,
   matcherStrategy,
   extractFileMetadata,
+  selectedFolderPath,
   busy,
   onQueryChange,
   onScanModeChange,
   onMatcherStrategyChange,
   onExtractFileMetadataChange,
+  onChooseFolder,
   onScan
 }: {
   query: string;
   scanMode: LibraryScanMode;
   matcherStrategy: MatcherStrategy;
   extractFileMetadata: boolean;
+  selectedFolderPath: string | null;
   busy: boolean;
   onQueryChange(value: string): void;
   onScanModeChange(value: LibraryScanMode): void;
   onMatcherStrategyChange(value: MatcherStrategy): void;
   onExtractFileMetadataChange(value: boolean): void;
+  onChooseFolder(): void;
   onScan(): void;
 }) {
   return (
@@ -33,6 +37,13 @@ export function Toolbar({
       </div>
 
       <div className="scan-controls">
+        <button disabled={busy} onClick={onChooseFolder} title="Choose library folder">
+          <FolderOpen size={18} />
+          Folder
+        </button>
+        <span className="scan-folder" title={selectedFolderPath ?? 'No folder selected'}>
+          {selectedFolderPath ?? 'No folder selected'}
+        </span>
         <Select value={scanMode} onChange={(value) => onScanModeChange(value as LibraryScanMode)}>
           <option value="mixed">Mixed</option>
           <option value="movie">Movies only</option>

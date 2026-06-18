@@ -3,6 +3,7 @@ import type { MetadataUpdate, SkyMovieApi, SyncRequest, WatchProgressUpdate } fr
 import { ipcChannels } from '../shared/ipc';
 
 const api: SkyMovieApi = {
+  chooseFolder: (title?: string) => ipcRenderer.invoke(ipcChannels.chooseFolder, title),
   scanLibrary: (request) => ipcRenderer.invoke(ipcChannels.scanLibrary, request),
   getMovies: (query?: string) => ipcRenderer.invoke(ipcChannels.getMovies, query),
   getMovieById: (id: number) => ipcRenderer.invoke(ipcChannels.getMovieById, id),

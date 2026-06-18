@@ -11,7 +11,8 @@ export function SettingsPanel({
   onSave,
   onClear,
   onBackup,
-  onRestore
+  onRestore,
+  onDownloadLocal
 }: {
   settings: AppSettings | null;
   scanMode: LibraryScanMode;
@@ -22,6 +23,7 @@ export function SettingsPanel({
   onClear(): void;
   onBackup(): void;
   onRestore(): void;
+  onDownloadLocal(): void;
 }) {
   return (
     <section className="settings-layout">
@@ -59,13 +61,21 @@ export function SettingsPanel({
 
       <div className="settings-group">
         <h2>Backups</h2>
-        <button onClick={onBackup}>
+        <button disabled={busy} onClick={onBackup}>
           <DatabaseBackup size={18} />
           Download backup file
         </button>
-        <button onClick={onRestore}>
+        <button disabled={busy} onClick={onRestore}>
           <ArchiveRestore size={18} />
           Insert backup file
+        </button>
+      </div>
+
+      <div className="settings-group">
+        <h2>Local Download</h2>
+        <button disabled={busy} onClick={onDownloadLocal}>
+          <Download size={18} />
+          Download files
         </button>
       </div>
 
