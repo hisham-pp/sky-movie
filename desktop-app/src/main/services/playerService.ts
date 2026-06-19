@@ -91,7 +91,10 @@ export class PlayerService {
       throw new Error(`Media file ${mediaFileId} was not found.`);
     }
 
-    await shell.openPath(mediaFile.absolutePath);
+    const error = await shell.openPath(mediaFile.absolutePath);
+    if (error) {
+      throw new Error(error);
+    }
   }
 
   updateWatchProgress(update: WatchProgressUpdate): void {

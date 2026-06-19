@@ -211,6 +211,15 @@ export function useLibraryController() {
     setStatus(`Playing ${result.title}`);
   }
 
+  async function openExternal(mediaFileId: number) {
+    try {
+      await getSkyMovieApi().openMediaExternally(mediaFileId);
+      setStatus('Opened in system player');
+    } catch (error) {
+      setStatus(`External player failed: ${formatError(error)}`);
+    }
+  }
+
   async function saveSettings(update: Partial<AppSettings>) {
     const next = await getSkyMovieApi().updateSettings(update);
     setSettings(next);
@@ -543,6 +552,7 @@ export function useLibraryController() {
     selectMovie,
     selectShow,
     play,
+    openExternal,
     saveSettings,
     clearLocalData,
     createBackup,

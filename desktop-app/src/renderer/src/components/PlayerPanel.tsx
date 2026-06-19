@@ -1,9 +1,15 @@
-import { HardDrive } from 'lucide-react';
+import { ExternalLink, HardDrive } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 
-export function PlayerPanel({ player }: { player: PlayMediaResult | null }) {
+export function PlayerPanel({
+  player,
+  onOpenExternal
+}: {
+  player: PlayMediaResult | null;
+  onOpenExternal(mediaFileId: number): void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const artRef = useRef<Artplayer | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
@@ -52,7 +58,7 @@ export function PlayerPanel({ player }: { player: PlayMediaResult | null }) {
     };
 
     const handlePlaybackError = () => {
-      setPlaybackError('This file could not be played in the built-in player.');
+      setPlaybackError('The built-in player cannot decode this file. HEVC/x265 videos usually need the system player.');
     };
 
     art.on('video:pause', () => void updateProgress());
@@ -89,7 +95,16 @@ export function PlayerPanel({ player }: { player: PlayMediaResult | null }) {
   return (
     <div className="player">
       <div key={player.mediaUrl} ref={containerRef} className="artplayer-host" />
-      {playbackError ? <div className="player-error">{playbackError}</div> : null}
+      <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
+        <ExternalLink size={15} />
+        Open in system player
+      </button>
+      {playbackError ? (
+        <div className="player-error">
+          <span>{playbackError}</span>
+          <button onClick={() => onOpenExternal(player.mediaFileId)}>Open externally</button>
+        </div>
+      ) : null}
     </div>
   );
 }
