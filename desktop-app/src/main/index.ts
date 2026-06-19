@@ -1,4 +1,5 @@
 import { app, BrowserWindow, protocol } from 'electron';
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureAppDataLayout } from './appPaths';
@@ -37,7 +38,7 @@ function createWindow(): BrowserWindow {
     title: 'Sky Movie',
     backgroundColor: '#f7f4ef',
     webPreferences: {
-      preload: join(currentDir, '../preload/index.js'),
+      preload: resolvePreloadPath(),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -57,6 +58,11 @@ function createWindow(): BrowserWindow {
   });
 
   return window;
+}
+
+function resolvePreloadPath(): string {
+  const candidates = ['index.cjs', 'index.mjs', 'index.js'].map((fileName) => join(currentDir, '../preload', fileName));
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
 }
 
 app.whenReady().then(() => {

@@ -98,6 +98,7 @@ export function mapMediaFile(row: Row): MediaFile {
 
 export function defaultSettings(deviceId: string): AppSettings {
   return {
+    theme: 'cinema',
     metadataProvider: 'local',
     tmdbApiKey: '',
     tmdbLanguage: 'en-US',
@@ -107,6 +108,7 @@ export function defaultSettings(deviceId: string): AppSettings {
     defaultScanMode: 'mixed',
     defaultMatcherStrategy: 'auto',
     extractFileMetadata: true,
+    libraryFolders: [],
     deviceId
   };
 }

@@ -53,6 +53,8 @@ export class LibraryScanner {
     let movieMatches = 0;
     let showMatches = 0;
     let unmatchedFiles = 0;
+    const movieIds = new Set<number>();
+    const showIds = new Set<number>();
 
     const transaction = this.db.transaction((videoFiles: string[]) => {
       for (const absolutePath of videoFiles) {
@@ -70,11 +72,13 @@ export class LibraryScanner {
 
         if (parsed.mediaKind === 'movie') {
           matchedMovieId = this.upsertMovie(parsed.title, parsed.year);
+          movieIds.add(matchedMovieId);
           movieMatches += 1;
         } else {
           const match = this.upsertShowEpisode(parsed.title, parsed.seasonNumber ?? 1, parsed.episodeNumber ?? 1);
           matchedShowId = match.showId;
           matchedEpisodeId = match.episodeId;
+          showIds.add(matchedShowId);
           showMatches += 1;
         }
 
@@ -147,7 +151,9 @@ export class LibraryScanner {
       importedFiles,
       movieMatches,
       showMatches,
-      unmatchedFiles
+      unmatchedFiles,
+      movieIds: [...movieIds],
+      showIds: [...showIds]
     };
   }
 
