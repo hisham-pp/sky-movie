@@ -57,6 +57,7 @@ export function App() {
             onSearchMetadata={library.searchSelectedMetadata}
             onApplyMetadata={library.applySelectedMetadata}
             onPlay={library.play}
+            onOpenExternal={library.openExternal}
           />
         )}
 

@@ -555,6 +555,7 @@ select option {
 }
 
 .library-list {
+  padding-top: 0;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--teal) 5%, transparent) 0%, transparent 260px),
     transparent;
@@ -583,20 +584,18 @@ select option {
 .hero-strip {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 42%);
-  gap: 22px;
+  grid-template-columns: minmax(420px, 1fr) minmax(280px, 360px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 22px 26px;
   align-items: end;
-  min-height: 240px;
+  min-height: 430px;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background:
-    linear-gradient(115deg, color-mix(in srgb, var(--panel-solid) 96%, transparent) 0%, color-mix(in srgb, var(--panel-solid) 70%, transparent) 54%, color-mix(in srgb, var(--coral) 12%, transparent) 100%),
-    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--teal) 18%, transparent), transparent 30%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 22px),
-    var(--panel-solid);
-  padding: 28px 30px;
-  box-shadow: var(--shadow);
+  margin: 0 -24px 24px;
+  border: 0;
+  border-radius: 0;
+  background: var(--panel-solid);
+  padding: 34px 32px 30px;
+  box-shadow: none;
 }
 
 .hero-strip::before {
@@ -604,8 +603,10 @@ select option {
   inset: 0;
   pointer-events: none;
   content: "";
-  background: linear-gradient(90deg, color-mix(in srgb, var(--teal) 18%, transparent), transparent 22%);
-  opacity: 0.45;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.64) 0%, rgba(0, 0, 0, 0.24) 44%, rgba(0, 0, 0, 0.78) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.82));
+  opacity: 1;
 }
 
 .hero-backdrop-image {
@@ -614,8 +615,8 @@ select option {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.22;
-  filter: saturate(1.12);
+  opacity: 0.72;
+  filter: saturate(1.08);
 }
 
 .hero-strip > * {
@@ -626,8 +627,11 @@ select option {
 .hero-copy {
   display: grid;
   grid-template-columns: 116px minmax(0, 1fr);
+  grid-column: 2;
+  grid-row: 1 / span 2;
   gap: 20px;
-  align-items: end;
+  align-self: center;
+  align-items: center;
   min-width: 0;
 }
 
@@ -653,9 +657,10 @@ select option {
 }
 
 .hero-strip h2 {
-  max-width: 680px;
+  max-width: 100%;
   margin: 8px 0 10px;
-  font-size: 38px;
+  overflow-wrap: anywhere;
+  font-size: 34px;
   line-height: 1.08;
   font-weight: 800;
   letter-spacing: 0;
@@ -669,11 +674,15 @@ select option {
 }
 
 .hero-player .player {
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
 }
 
 .hero-player {
+  grid-column: 1;
+  grid-row: 2;
   min-width: 0;
+  width: min(720px, 100%);
 }
 
 .filter-row {
@@ -840,6 +849,10 @@ select option {
 }
 
 .player-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   position: absolute;
   inset: auto 14px 14px;
   z-index: 3;
@@ -851,6 +864,39 @@ select option {
   line-height: 1.4;
   padding: 10px 12px;
   backdrop-filter: blur(12px);
+}
+
+.player-error span {
+  min-width: 0;
+}
+
+.player-error button,
+.player-external-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.player-external-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.player:hover .player-external-button,
+.player:focus-within .player-external-button {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .player-empty {
@@ -1424,10 +1470,15 @@ select option {
 
   .hero-strip {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    min-height: 520px;
   }
 
   .hero-copy {
     grid-template-columns: 96px minmax(0, 1fr);
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
   }
 
   .hero-poster {
@@ -1435,6 +1486,8 @@ select option {
   }
 
   .hero-player {
+    grid-column: 1;
+    grid-row: 2;
     max-width: 560px;
   }
 

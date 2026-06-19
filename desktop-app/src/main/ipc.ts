@@ -90,6 +90,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   );
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
+  ipcMain.handle(ipcChannels.openMediaExternally, (_event, mediaFileId: number) =>
+    services.player.openExternally(mediaFileId)
+  );
 
   ipcMain.handle(ipcChannels.updateWatchProgress, (_event, update: WatchProgressUpdate) => {
     services.player.updateWatchProgress(update);

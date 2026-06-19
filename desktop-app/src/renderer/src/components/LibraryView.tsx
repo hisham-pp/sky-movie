@@ -31,7 +31,8 @@ export function LibraryView({
   onMetadataQueryChange,
   onSearchMetadata,
   onApplyMetadata,
-  onPlay
+  onPlay,
+  onOpenExternal
 }: {
   view: Exclude<ViewMode, 'settings'>;
   movies: Movie[];
@@ -51,6 +52,7 @@ export function LibraryView({
   onSearchMetadata(): void;
   onApplyMetadata(result: MovieMetadataSearchResult | TvMetadataSearchResult): void;
   onPlay(file: MediaFile): void;
+  onOpenExternal(mediaFileId: number): void;
 }) {
   const visibleCount = view === 'movies' ? movies.length : shows.length;
   const selectedOverview = selectedMovie?.overview ?? selectedShow?.overview;
@@ -78,7 +80,7 @@ export function LibraryView({
             </div>
           </div>
           <div className="hero-player">
-            <PlayerPanel player={player} />
+            <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
           </div>
         </div>
 
