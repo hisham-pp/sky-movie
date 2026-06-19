@@ -3,6 +3,7 @@ export type MatchStatus = 'unmatched' | 'auto_matched' | 'manual_matched';
 export type SyncType = 'full' | 'partial' | 'metadata-only' | 'files' | 'watch-progress';
 export type LibraryScanMode = MediaKind | 'mixed';
 export type MatcherStrategy = 'auto' | 'movie-title-year' | 'show-season-episode' | 'folder-name';
+export type AppTheme = 'cinema' | 'midnight' | 'daylight' | 'ember';
 
 export interface LibraryFolder {
   id: number;
@@ -92,10 +93,19 @@ export interface ScanResult {
   movieMatches: number;
   showMatches: number;
   unmatchedFiles: number;
+  movieIds: number[];
+  showIds: number[];
 }
 
 export interface ScanLibraryRequest {
   path?: string;
+  mediaKind?: LibraryScanMode;
+  matcherStrategy?: MatcherStrategy;
+  extractFileMetadata?: boolean;
+}
+
+export interface ScanLibrariesRequest {
+  paths?: string[];
   mediaKind?: LibraryScanMode;
   matcherStrategy?: MatcherStrategy;
   extractFileMetadata?: boolean;
@@ -125,20 +135,39 @@ export interface MovieMetadataSearchRequest {
   year?: number | null;
 }
 
-export interface MovieMetadataSearchResult {
+export interface MetadataSearchResult {
   provider: 'tmdb';
   providerId: number;
   title: string;
   originalTitle: string | null;
-  releaseYear: number | null;
+  year: number | null;
   overview: string | null;
   posterUrl: string | null;
   backdropUrl: string | null;
   rating: number | null;
 }
 
+export interface MovieMetadataSearchResult extends MetadataSearchResult {
+  releaseYear: number | null;
+}
+
 export interface ApplyMovieMetadataRequest {
   movieId: number;
+  provider: 'tmdb';
+  providerId: number;
+}
+
+export interface TvMetadataSearchRequest {
+  query: string;
+  year?: number | null;
+}
+
+export interface TvMetadataSearchResult extends MetadataSearchResult {
+  firstAirYear: number | null;
+}
+
+export interface ApplyTvMetadataRequest {
+  showId: number;
   provider: 'tmdb';
   providerId: number;
 }
@@ -198,6 +227,7 @@ export interface SyncResult {
 }
 
 export interface AppSettings {
+  theme: AppTheme;
   metadataProvider: 'local' | 'tmdb';
   tmdbApiKey: string;
   tmdbLanguage: string;
@@ -207,6 +237,7 @@ export interface AppSettings {
   defaultScanMode: LibraryScanMode;
   defaultMatcherStrategy: MatcherStrategy;
   extractFileMetadata: boolean;
+  libraryFolders: string[];
   deviceId: string;
 }
 
@@ -224,7 +255,9 @@ export interface BackupResult {
 
 export interface SkyMovieApi {
   chooseFolder(title?: string): Promise<string | null>;
+  chooseFolders(title?: string): Promise<string[]>;
   scanLibrary(request?: ScanLibraryRequest | string): Promise<ScanResult | null>;
+  scanLibraries(request?: ScanLibrariesRequest | string[]): Promise<ScanResult[]>;
   getMovies(query?: string): Promise<Movie[]>;
   getMovieById(id: number): Promise<DetailResult<Movie>>;
   getShows(query?: string): Promise<TvShow[]>;
@@ -232,6 +265,8 @@ export interface SkyMovieApi {
   updateMetadata(update: MetadataUpdate): Promise<void>;
   searchMovieMetadata(request: MovieMetadataSearchRequest): Promise<MovieMetadataSearchResult[]>;
   applyMovieMetadata(request: ApplyMovieMetadataRequest): Promise<Movie>;
+  searchTvMetadata(request: TvMetadataSearchRequest): Promise<TvMetadataSearchResult[]>;
+  applyTvMetadata(request: ApplyTvMetadataRequest): Promise<TvShow>;
   playMedia(mediaFileId: number): Promise<PlayMediaResult>;
   updateWatchProgress(update: WatchProgressUpdate): Promise<void>;
   exportLibrary(request?: SyncRequest): Promise<SyncResult | null>;
@@ -247,7 +282,9 @@ export interface SkyMovieApi {
 
 export const ipcChannels = {
   chooseFolder: 'dialog:choose-folder',
+  chooseFolders: 'dialog:choose-folders',
   scanLibrary: 'library:scan',
+  scanLibraries: 'library:scan-many',
   getMovies: 'library:get-movies',
   getMovieById: 'library:get-movie-by-id',
   getShows: 'library:get-shows',
@@ -255,6 +292,8 @@ export const ipcChannels = {
   updateMetadata: 'metadata:update',
   searchMovieMetadata: 'metadata:search-movie',
   applyMovieMetadata: 'metadata:apply-movie',
+  searchTvMetadata: 'metadata:search-tv',
+  applyTvMetadata: 'metadata:apply-tv',
   playMedia: 'player:play-media',
   updateWatchProgress: 'watch:update-progress',
   exportLibrary: 'sync:export-library',

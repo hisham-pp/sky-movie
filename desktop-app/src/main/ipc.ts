@@ -3,9 +3,12 @@ import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
   MetadataUpdate,
   ApplyMovieMetadataRequest,
+  ApplyTvMetadataRequest,
   MovieMetadataSearchRequest,
+  ScanLibrariesRequest,
   ScanLibraryRequest,
   SyncRequest,
+  TvMetadataSearchRequest,
   WatchProgressUpdate
 } from '../shared/ipc';
 import { ipcChannels } from '../shared/ipc';
@@ -34,6 +37,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.chooseFolder, async (_event, title?: string) =>
     chooseDirectory(services.getMainWindow(), title ?? 'Choose folder')
   );
+  ipcMain.handle(ipcChannels.chooseFolders, async (_event, title?: string) =>
+    chooseDirectories(services.getMainWindow(), title ?? 'Choose library folders')
+  );
 
   ipcMain.handle(ipcChannels.scanLibrary, async (_event, requestInput?: string | ScanLibraryRequest) => {
     const request = normalizeScanRequest(requestInput);
@@ -43,11 +49,22 @@ export function registerIpcHandlers(services: IpcServices): void {
       return null;
     }
 
-    return services.scanner.scanLibrary(folderPath, {
-      mediaKind: request.mediaKind ?? settings.defaultScanMode,
-      matcherStrategy: request.matcherStrategy ?? settings.defaultMatcherStrategy,
-      extractFileMetadata: request.extractFileMetadata ?? settings.extractFileMetadata
-    });
+    return scanOneLibrary(services, folderPath, request);
+  });
+
+  ipcMain.handle(ipcChannels.scanLibraries, async (_event, requestInput?: string[] | ScanLibrariesRequest) => {
+    const request = normalizeScanLibrariesRequest(requestInput);
+    const paths = request.paths?.length
+      ? request.paths
+      : await chooseDirectories(services.getMainWindow(), 'Choose library folders');
+    const uniquePaths = [...new Set(paths.filter(Boolean))];
+    const results = [];
+
+    for (const folderPath of uniquePaths) {
+      results.push(await scanOneLibrary(services, folderPath, request));
+    }
+
+    return results;
   });
 
   ipcMain.handle(ipcChannels.getMovies, (_event, query?: string) => services.catalog.getMovies(query));
@@ -64,6 +81,12 @@ export function registerIpcHandlers(services: IpcServices): void {
   );
   ipcMain.handle(ipcChannels.applyMovieMetadata, (_event, request: ApplyMovieMetadataRequest) =>
     services.metadata.applyMovieMetadata(request)
+  );
+  ipcMain.handle(ipcChannels.searchTvMetadata, (_event, request: TvMetadataSearchRequest) =>
+    services.metadata.searchTvMetadata(request)
+  );
+  ipcMain.handle(ipcChannels.applyTvMetadata, (_event, request: ApplyTvMetadataRequest) =>
+    services.metadata.applyTvMetadata(request)
   );
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
@@ -130,6 +153,23 @@ function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibrar
   return request ?? {};
 }
 
+function normalizeScanLibrariesRequest(request?: string[] | ScanLibrariesRequest): ScanLibrariesRequest {
+  if (Array.isArray(request)) {
+    return { paths: request };
+  }
+
+  return request ?? {};
+}
+
+function scanOneLibrary(services: IpcServices, folderPath: string, request: ScanLibraryRequest | ScanLibrariesRequest) {
+  const settings = services.settings.getSettings();
+  return services.scanner.scanLibrary(folderPath, {
+    mediaKind: request.mediaKind ?? settings.defaultScanMode,
+    matcherStrategy: request.matcherStrategy ?? settings.defaultMatcherStrategy,
+    extractFileMetadata: request.extractFileMetadata ?? settings.extractFileMetadata
+  });
+}
+
 async function chooseDirectory(window: BrowserWindow | null, title: string): Promise<string | null> {
   const options: OpenDialogOptions = {
     title,
@@ -138,6 +178,16 @@ async function chooseDirectory(window: BrowserWindow | null, title: string): Pro
   const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
 
   return result.canceled ? null : result.filePaths[0] ?? null;
+}
+
+async function chooseDirectories(window: BrowserWindow | null, title: string): Promise<string[]> {
+  const options: OpenDialogOptions = {
+    title,
+    properties: ['openDirectory', 'createDirectory', 'multiSelections']
+  };
+  const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+
+  return result.canceled ? [] : result.filePaths;
 }
 
 async function chooseBackupSavePath(window: BrowserWindow | null): Promise<string | null> {
