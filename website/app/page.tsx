@@ -68,7 +68,7 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8">
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#features">Features</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#downloads">Download</a>
-          <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#docs">Docs</a>
+          <Link className="text-secondary font-label-md hover:text-primary transition-colors" href="/docs">Docs</Link>
           <a className="px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-primary font-label-md transition-all flex items-center gap-2" href={repoUrl}>
             <span className="material-symbols-outlined text-sm">code</span>
             GitHub
@@ -91,9 +91,9 @@ export default function Home() {
                 <span className="material-symbols-outlined">download</span>
                 Download on GitHub
               </a>
-              <a className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-primary font-label-md text-base rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2" href="#docs">
+              <Link className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-primary font-label-md text-base rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2" href="/docs">
                 View Documentation
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -264,16 +264,16 @@ export default function Home() {
               </div>
             </div>
             <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-              <a className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+              <Link className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="/docs#introduction">
                 <span className="material-symbols-outlined text-primary mb-4 block">menu_book</span>
                 <h4 className="font-headline-sm text-xl mb-2 group-hover:text-primary">Getting Started</h4>
                 <p className="text-secondary text-sm">Installation guide and first-time configuration walkthrough.</p>
-              </a>
-              <a className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+              </Link>
+              <Link className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="/docs#naming-conventions">
                 <span className="material-symbols-outlined text-primary mb-4 block">settings_suggest</span>
                 <h4 className="font-headline-sm text-xl mb-2 group-hover:text-primary">Library Setup</h4>
                 <p className="text-secondary text-sm">Learn how to optimize your folder structure for best scanning results.</p>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
