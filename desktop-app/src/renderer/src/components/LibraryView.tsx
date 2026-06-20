@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Calendar, Clapperboard, FolderSearch, Play, Star, Tv2 } from 'lucide-react';
 import type {
   Episode,
@@ -33,6 +34,8 @@ export function LibraryView({
   lastScan,
   onSelectMovie,
   onSelectShow,
+  onViewMovieDetails,
+  onViewShowDetails,
   onBackToLibrary,
   onMetadataQueryChange,
   onSearchMetadata,
@@ -55,6 +58,8 @@ export function LibraryView({
   lastScan: ScanResult | null;
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
+  onViewMovieDetails(movie: Movie): void;
+  onViewShowDetails(show: TvShow): void;
   onBackToLibrary(): void;
   onMetadataQueryChange(value: string): void;
   onSearchMetadata(): void;
@@ -63,8 +68,9 @@ export function LibraryView({
   onOpenExternal(mediaFileId: number): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
+  const [showDetailView, setShowDetailView] = useState(false);
 
-  if (view === 'movies' && selectedMovie) {
+  if (view === 'movies' && selectedMovie && showDetailView) {
     return (
       <MovieDetailPage
         movie={selectedMovie}
@@ -74,7 +80,10 @@ export function LibraryView({
         busy={busy}
         player={player}
         playingFile={playingFile}
-        onBack={onBackToLibrary}
+        onBack={() => {
+          setShowDetailView(false);
+          onBackToLibrary();
+        }}
         onMetadataQueryChange={onMetadataQueryChange}
         onSearchMetadata={onSearchMetadata}
         onApplyMetadata={onApplyMetadata}
@@ -84,7 +93,7 @@ export function LibraryView({
     );
   }
 
-  if (view === 'shows' && selectedShow) {
+  if (view === 'shows' && selectedShow && showDetailView) {
     return (
       <SeriesDetailPage
         show={selectedShow}
@@ -95,7 +104,10 @@ export function LibraryView({
         busy={busy}
         player={player}
         playingFile={playingFile}
-        onBack={onBackToLibrary}
+        onBack={() => {
+          setShowDetailView(false);
+          onBackToLibrary();
+        }}
         onMetadataQueryChange={onMetadataQueryChange}
         onSearchMetadata={onSearchMetadata}
         onApplyMetadata={onApplyMetadata}
@@ -110,11 +122,21 @@ export function LibraryView({
       view={view}
       movies={movies}
       shows={shows}
+      selectedMovie={selectedMovie}
+      selectedShow={selectedShow}
       selectedTitle={selectedTitle}
       player={player}
       lastScan={lastScan}
       onSelectMovie={onSelectMovie}
       onSelectShow={onSelectShow}
+      onViewMovieDetails={(movie) => {
+        onViewMovieDetails(movie);
+        setShowDetailView(true);
+      }}
+      onViewShowDetails={(show) => {
+        onViewShowDetails(show);
+        setShowDetailView(true);
+      }}
       onOpenExternal={onOpenExternal}
     />
   );
@@ -124,21 +146,29 @@ function BrowseLibraryPage({
   view,
   movies,
   shows,
+  selectedMovie,
+  selectedShow,
   selectedTitle,
   player,
   lastScan,
   onSelectMovie,
   onSelectShow,
+  onViewMovieDetails,
+  onViewShowDetails,
   onOpenExternal
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
   shows: TvShow[];
+  selectedMovie: Movie | null;
+  selectedShow: TvShow | null;
   selectedTitle: string;
   player: PlayMediaResult | null;
   lastScan: ScanResult | null;
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
+  onViewMovieDetails(movie: Movie): void;
+  onViewShowDetails(show: TvShow): void;
   onOpenExternal(mediaFileId: number): void;
 }) {
   const visibleCount = view === 'movies' ? movies.length : shows.length;
@@ -148,9 +178,84 @@ function BrowseLibraryPage({
       ? 'Browse local films, open a movie page, and play files from your private collection.'
       : 'Browse local TV shows, open a series page, and review seasons, episodes, and files.';
 
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const items = view === 'movies' ? movies : shows;
+  const itemsWithBackdrop = items.filter((item) => 
+    view === 'movies' ? (item as Movie).backdropPath : (item as TvShow).backdropPath
+  );
+
+  useEffect(() => {
+    if (itemsWithBackdrop.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % itemsWithBackdrop.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [itemsWithBackdrop.length]);
+
+  const currentBannerItem = itemsWithBackdrop[currentBannerIndex];
+
   return (
     <div className="browse-grid">
       <section className="library-list">
+        {currentBannerItem && (
+          <div className="rotating-banner">
+            <img 
+              src={view === 'movies' 
+                ? (currentBannerItem as Movie).backdropPath! 
+                : (currentBannerItem as TvShow).backdropPath!
+              } 
+              alt="" 
+              className="banner-backdrop"
+            />
+            <div className="banner-overlay">
+              <div className="banner-content">
+                <h2>
+                  {view === 'movies' 
+                    ? (currentBannerItem as Movie).title 
+                    : (currentBannerItem as TvShow).title
+                  }
+                </h2>
+                <p>
+                  {view === 'movies' 
+                    ? (currentBannerItem as Movie).overview 
+                    : (currentBannerItem as TvShow).overview
+                  }
+                </p>
+                <div className="banner-meta">
+                  <span>
+                    {view === 'movies' 
+                      ? (currentBannerItem as Movie).releaseYear ?? 'Unknown year'
+                      : (currentBannerItem as TvShow).firstAirYear ?? 'Unknown year'
+                    }
+                  </span>
+                  {view === 'movies' && (currentBannerItem as Movie).rating && (
+                    <span>
+                      <Star size={14} /> {(currentBannerItem as Movie).rating!.toFixed(1)}
+                    </span>
+                  )}
+                  {view === 'shows' && (currentBannerItem as TvShow).rating && (
+                    <span>
+                      <Star size={14} /> {(currentBannerItem as TvShow).rating!.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="banner-indicators">
+                {itemsWithBackdrop.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`banner-dot ${index === currentBannerIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentBannerIndex(index)}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="hero-strip browse-hero">
           <div className="hero-copy">
             <div className="hero-poster">
@@ -187,8 +292,24 @@ function BrowseLibraryPage({
         {visibleCount ? (
           <div className="poster-grid">
             {view === 'movies'
-              ? movies.map((movie) => <MovieTile key={movie.id} movie={movie} onClick={() => onSelectMovie(movie)} />)
-              : shows.map((show) => <ShowTile key={show.id} show={show} onClick={() => onSelectShow(show)} />)}
+              ? movies.map((movie) => (
+                  <MovieTile 
+                    key={movie.id} 
+                    movie={movie} 
+                    onClick={() => onSelectMovie(movie)} 
+                    onViewDetails={() => onViewMovieDetails(movie)}
+                    isSelected={selectedMovie?.id === movie.id}
+                  />
+                ))
+              : shows.map((show) => (
+                  <ShowTile 
+                    key={show.id} 
+                    show={show} 
+                    onClick={() => onSelectShow(show)} 
+                    onViewDetails={() => onViewShowDetails(show)}
+                    isSelected={selectedShow?.id === show.id}
+                  />
+                ))}
           </div>
         ) : (
           <div className="library-empty-state">
@@ -337,6 +458,26 @@ function SeriesDetailPage({
   onOpenExternal(mediaFileId: number): void;
 }) {
   const seasons = groupEpisodesBySeason(episodes);
+  
+  // Map files to episodes based on filename patterns
+  const episodeFileMap = new Map<number, MediaFile>();
+  files.forEach((file) => {
+    const fileName = file.fileName.toLowerCase();
+    // Match patterns like S01E01, s01e01, 1x01, etc.
+    const match = fileName.match(/s(\d+)e(\d+)|(\d+)x(\d+)/i);
+    if (match) {
+      const seasonNum = parseInt(match[1] || match[3], 10);
+      const episodeNum = parseInt(match[2] || match[4], 10);
+      
+      const episode = episodes.find(
+        (ep) => ep.seasonNumber === seasonNum && ep.episodeNumber === episodeNum
+      );
+      
+      if (episode) {
+        episodeFileMap.set(episode.id, file);
+      }
+    }
+  });
 
   return (
     <section className="media-detail-page series-detail-page">
@@ -383,15 +524,27 @@ function SeriesDetailPage({
                   <section key={season.seasonNumber} className="season-card">
                     <h3>Season {season.seasonNumber}</h3>
                     <div className="episode-list">
-                      {season.episodes.map((episode) => (
-                        <div key={episode.id} className="episode-row">
-                          <span>
-                            S{String(episode.seasonNumber).padStart(2, '0')}E{String(episode.episodeNumber).padStart(2, '0')}
-                          </span>
-                          <strong>{episode.title ?? `Episode ${episode.episodeNumber}`}</strong>
-                          <small>{episode.runtimeMinutes ? `${episode.runtimeMinutes} min` : episode.airDate ?? 'No runtime'}</small>
-                        </div>
-                      ))}
+                      {season.episodes.map((episode) => {
+                        const episodeFile = episodeFileMap.get(episode.id);
+                        return (
+                          <div key={episode.id} className="episode-row">
+                            <span>
+                              S{String(episode.seasonNumber).padStart(2, '0')}E{String(episode.episodeNumber).padStart(2, '0')}
+                            </span>
+                            <strong>{episode.title ?? `Episode ${episode.episodeNumber}`}</strong>
+                            <small>{episode.runtimeMinutes ? `${episode.runtimeMinutes} min` : episode.airDate ?? 'No runtime'}</small>
+                            {episodeFile && (
+                              <button 
+                                className="episode-play-button" 
+                                onClick={() => onPlay(episodeFile)}
+                                title={`Play: ${episodeFile.fileName}`}
+                              >
+                                <Play size={14} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </section>
                 ))}

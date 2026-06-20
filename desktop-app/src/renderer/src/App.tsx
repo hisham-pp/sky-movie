@@ -66,6 +66,8 @@ export function App() {
             lastScan={library.lastScan}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
+            onViewMovieDetails={library.viewMovieDetails}
+            onViewShowDetails={library.viewShowDetails}
             onBackToLibrary={library.backToLibrary}
             onMetadataQueryChange={library.setMetadataQuery}
             onSearchMetadata={library.searchSelectedMetadata}
