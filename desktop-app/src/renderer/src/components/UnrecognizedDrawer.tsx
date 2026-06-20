@@ -218,8 +218,8 @@ export function UnrecognizedDrawer({
                   onClick={() => handleApplyMatch(result)}
                   disabled={busy}
                 >
-                  {result.posterPath ? (
-                    <img src={result.posterPath} alt={result.title} className="result-poster" />
+                  {result.posterUrl ? (
+                    <img src={result.posterUrl} alt={result.title} className="result-poster" />
                   ) : (
                     <div className="result-poster-placeholder">
                       {currentFile.mediaKind === 'movie' ? <Film size={24} /> : <Tv size={24} />}
