@@ -46,6 +46,7 @@ mac:
 linux:
   category: AudioVideo
   maintainer: Sky Movie
+  syncDesktopName: true
   target:
     - target: AppImage
       arch:
