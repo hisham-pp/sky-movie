@@ -6,7 +6,7 @@ import type { ReleaseInfo, UpdateCheckResult, UpdateDownloadProgress, UpdateStat
 import { ipcChannels } from '../../shared/ipc';
 import type { SettingsService } from './settingsService';
 
-const RELEASES_URL = 'https://sky-movie.com/releases.json';
+const RELEASES_URL = 'https://sky-movie-website.vercel.app/releases.json';
 const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
 interface ReleasesJson {
