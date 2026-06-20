@@ -6,13 +6,14 @@ import {
   Eraser,
   FolderPlus,
   Palette,
+  RefreshCw,
   Upload,
   X
 } from 'lucide-react';
-import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy } from '@shared/ipc';
+import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, UpdateCheckResult } from '@shared/ipc';
 import { Select } from './ui/Select';
 
-type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data';
+type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
 
 const tabs: Array<{ id: SettingsTab; label: string }> = [
   { id: 'appearance', label: 'Appearance' },
@@ -20,7 +21,8 @@ const tabs: Array<{ id: SettingsTab; label: string }> = [
   { id: 'metadata', label: 'Metadata' },
   { id: 'backups', label: 'Backups' },
   { id: 'downloads', label: 'Downloads' },
-  { id: 'local-data', label: 'Local Data' }
+  { id: 'local-data', label: 'Local Data' },
+  { id: 'updates', label: 'Updates' }
 ];
 
 const themePresets: Array<{
@@ -123,12 +125,38 @@ export function SettingsPanel({
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
   const [tmdbApiKey, setTmdbApiKey] = useState('');
   const [tmdbLanguage, setTmdbLanguage] = useState('en-US');
+  const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false);
   const activeTheme = settings?.theme ?? 'cinema';
 
   useEffect(() => {
     setTmdbApiKey(settings?.tmdbApiKey ?? '');
     setTmdbLanguage(settings?.tmdbLanguage ?? 'en-US');
   }, [settings?.tmdbApiKey, settings?.tmdbLanguage]);
+
+  const handleCheckForUpdates = async () => {
+    setIsCheckingUpdates(true);
+    try {
+      const result = await (window as any).skyMovie.checkForUpdates();
+      setUpdateCheckResult(result);
+    } catch (error) {
+      console.error('Failed to check for updates:', error);
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  };
+
+  const handleDownloadAndInstallUpdate = async () => {
+    setIsDownloadingUpdate(true);
+    try {
+      await (window as any).skyMovie.downloadAndInstallUpdate();
+    } catch (error) {
+      console.error('Failed to download and install update:', error);
+    } finally {
+      setIsDownloadingUpdate(false);
+    }
+  };
 
   return (
     <section className="settings-page">
@@ -343,6 +371,64 @@ export function SettingsPanel({
                 Metadata only
               </button>
             </div>
+          </div>
+        ) : null}
+
+        {activeTab === 'updates' ? (
+          <div className="settings-section">
+            <div className="settings-section-heading">
+              <div>
+                <h3>Updates</h3>
+                <p>Check for new versions and manage auto-download settings.</p>
+              </div>
+            </div>
+            <div className="settings-form-grid">
+              <label className="toggle wide">
+                <input
+                  type="checkbox"
+                  checked={settings?.autoDownloadUpdates ?? false}
+                  onChange={(event) => onSave({ autoDownloadUpdates: event.target.checked })}
+                />
+                Auto-download new versions
+              </label>
+            </div>
+            <div className="settings-actions left">
+              <button disabled={isCheckingUpdates || busy} onClick={handleCheckForUpdates}>
+                <RefreshCw size={18} />
+                {isCheckingUpdates ? 'Checking...' : 'Check for updates'}
+              </button>
+              {updateCheckResult?.hasUpdate && updateCheckResult.releaseInfo && (
+                <button
+                  disabled={isDownloadingUpdate || busy}
+                  onClick={handleDownloadAndInstallUpdate}
+                >
+                  <Download size={18} />
+                  {isDownloadingUpdate ? 'Downloading...' : `Download ${updateCheckResult.latestVersion}`}
+                </button>
+              )}
+            </div>
+            {updateCheckResult && (
+              <div className="update-status">
+                {updateCheckResult.hasUpdate ? (
+                  <div className="update-available">
+                    <strong>New version available: {updateCheckResult.latestVersion}</strong>
+                    <p>Current version: {updateCheckResult.currentVersion}</p>
+                    {updateCheckResult.releaseInfo && (
+                      <div className="release-notes">
+                        <p>{updateCheckResult.releaseInfo.notes}</p>
+                        <ul>
+                          {updateCheckResult.releaseInfo.changes.map((change, index) => (
+                            <li key={index}>{change}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="update-current">You're on the latest version ({updateCheckResult.currentVersion})</p>
+                )}
+              </div>
+            )}
           </div>
         ) : null}
       </div>

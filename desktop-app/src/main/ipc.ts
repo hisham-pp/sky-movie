@@ -20,6 +20,7 @@ import { MetadataProviderManager } from './services/metadataProvider';
 import { PlayerService } from './services/playerService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
+import { UpdateService } from './services/updateService';
 
 interface IpcServices {
   catalog: CatalogService;
@@ -30,6 +31,7 @@ interface IpcServices {
   maintenance: MaintenanceService;
   settings: SettingsService;
   sync: LocalSyncEngine;
+  update: UpdateService;
   getMainWindow(): BrowserWindow | null;
 }
 
@@ -153,6 +155,10 @@ export function registerIpcHandlers(services: IpcServices): void {
 
     return services.backup.restoreBackup(backupPath);
   });
+  ipcMain.handle(ipcChannels.checkForUpdates, () => services.update.checkForUpdates());
+  ipcMain.handle(ipcChannels.downloadAndInstallUpdate, () => services.update.downloadAndInstallUpdate());
+  ipcMain.handle(ipcChannels.getUpdateStatus, () => services.update.getStatus());
+  ipcMain.handle(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification());
 }
 
 function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibraryRequest {

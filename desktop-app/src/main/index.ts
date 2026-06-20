@@ -13,6 +13,7 @@ import { MetadataProviderManager } from './services/metadataProvider';
 import { PlayerService } from './services/playerService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
+import { UpdateService } from './services/updateService';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 let mainWindow: BrowserWindow | null = null;
@@ -77,6 +78,7 @@ app.whenReady().then(() => {
   const settings = new SettingsService(sqlite);
   const metadata = new MetadataProviderManager(sqlite, paths, settings);
   const sync = new LocalSyncEngine(sqlite, paths, app.getVersion());
+  const update = new UpdateService(() => mainWindow, settings);
 
   player.registerMediaProtocol();
 
@@ -89,10 +91,14 @@ app.whenReady().then(() => {
     maintenance,
     settings,
     sync,
+    update,
     getMainWindow: () => mainWindow
   });
 
   mainWindow = createWindow();
+
+  // Start periodic update checks
+  update.startPeriodicChecks();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
