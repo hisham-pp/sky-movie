@@ -86,4 +86,17 @@ export class CatalogService {
       )
       .run(fileId);
   }
+
+  updateFileMatch(fileId: number, matchedMovieId: number | null, matchedShowId: number | null): void {
+    this.db
+      .prepare(
+        `UPDATE media_files
+         SET matched_movie_id = ?,
+             matched_show_id = ?,
+             match_status = 'manual_matched',
+             match_confidence = 1.0
+         WHERE id = ?`
+      )
+      .run(matchedMovieId, matchedShowId, fileId);
+  }
 }

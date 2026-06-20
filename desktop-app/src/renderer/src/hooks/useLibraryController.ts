@@ -516,41 +516,25 @@ export function useLibraryController() {
       const api = getSkyMovieApi();
       
       if (file.mediaKind === 'movie' && 'releaseYear' in result) {
-        // Create or update movie
+        // Apply movie metadata - this will create a new movie entry
         const movie = await api.applyMovieMetadata({
-          movieId: file.matchedMovieId ?? 0,
+          movieId: 0, // 0 means create new
           provider: result.provider,
           providerId: result.providerId
         });
         
         // Update file to link to this movie
-        await api.updateMetadata({
-          table: 'media_files',
-          id: file.id,
-          fields: {
-            matched_movie_id: movie.id,
-            match_status: 'manual_matched',
-            match_confidence: 1.0
-          }
-        });
+        await api.updateFileMatch(file.id, movie.id, null);
       } else if (file.mediaKind === 'show' && 'firstAirYear' in result) {
-        // Create or update show
+        // Apply show metadata - this will create a new show entry
         const show = await api.applyTvMetadata({
-          showId: file.matchedShowId ?? 0,
+          showId: 0, // 0 means create new
           provider: result.provider,
           providerId: result.providerId
         });
         
         // Update file to link to this show
-        await api.updateMetadata({
-          table: 'media_files',
-          id: file.id,
-          fields: {
-            matched_show_id: show.id,
-            match_status: 'manual_matched',
-            match_confidence: 1.0
-          }
-        });
+        await api.updateFileMatch(file.id, null, show.id);
       }
       
       // Refresh the unmatched files list
