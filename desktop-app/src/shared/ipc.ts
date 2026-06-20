@@ -176,6 +176,14 @@ export interface PlayMediaResult {
   mediaFileId: number;
   mediaUrl: string;
   title: string;
+  watchProgress: WatchProgressSnapshot | null;
+}
+
+export interface WatchProgressSnapshot {
+  positionSeconds: number;
+  durationSeconds: number;
+  completed: boolean;
+  updatedAt: string;
 }
 
 export interface WatchProgressUpdate {

@@ -3,7 +3,8 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import { Readable } from 'node:stream';
-import type { PlayMediaResult, WatchProgressUpdate } from '../../shared/ipc';
+import { pathToFileURL } from 'node:url';
+import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
 
@@ -80,8 +81,9 @@ export class PlayerService {
 
     return {
       mediaFileId,
-      mediaUrl: `sky-media://${mediaFileId}`,
-      title: mediaFile.fileName
+      mediaUrl: pathToFileURL(mediaFile.absolutePath).toString(),
+      title: mediaFile.fileName,
+      watchProgress: this.getWatchProgress(mediaFileId)
     };
   }
 
@@ -99,6 +101,7 @@ export class PlayerService {
 
   updateWatchProgress(update: WatchProgressUpdate): void {
     const now = new Date().toISOString();
+    const previousProgress = this.getWatchProgress(update.mediaFileId);
     this.db
       .prepare(
         `INSERT INTO watch_progress (media_file_id, position_seconds, duration_seconds, completed, updated_at)
@@ -111,11 +114,39 @@ export class PlayerService {
       )
       .run(update.mediaFileId, update.positionSeconds, update.durationSeconds, Number(update.completed ?? false), now);
 
-    if (update.completed) {
+    if (update.completed && !previousProgress?.completed) {
       this.db
         .prepare('INSERT INTO watch_history (media_file_id, watched_at, position_seconds) VALUES (?, ?, ?)')
         .run(update.mediaFileId, now, update.positionSeconds);
     }
+  }
+
+  private getWatchProgress(mediaFileId: number): WatchProgressSnapshot | null {
+    const row = this.db
+      .prepare(
+        `SELECT position_seconds, duration_seconds, completed, updated_at
+         FROM watch_progress
+         WHERE media_file_id = ?`
+      )
+      .get(mediaFileId) as
+      | {
+          position_seconds: number;
+          duration_seconds: number;
+          completed: number;
+          updated_at: string;
+        }
+      | undefined;
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      positionSeconds: row.position_seconds,
+      durationSeconds: row.duration_seconds,
+      completed: Boolean(row.completed),
+      updatedAt: row.updated_at
+    };
   }
 }
 

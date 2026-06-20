@@ -6,3 +6,7 @@ desktop-app/dist/*
 website\tsconfig.tsbuildinfo
 website/tsconfig.tsbuildinfo
 website/next-dev.log
+
+# files
+*.asar
+8.log

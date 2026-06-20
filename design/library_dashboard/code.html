@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sky Movie - Premium Cinema Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#282a2e",
+                    "secondary": "#c4c6ce",
+                    "primary-fixed-dim": "#89ceff",
+                    "on-primary-fixed": "#001e2f",
+                    "on-tertiary-fixed": "#181c24",
+                    "outline": "#88929b",
+                    "on-tertiary-fixed-variant": "#434750",
+                    "tertiary-container": "#989ba6",
+                    "on-tertiary-container": "#2f333c",
+                    "on-secondary-container": "#b6b8c0",
+                    "surface-tint": "#89ceff",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#bec8d2",
+                    "on-surface": "#e2e2e8",
+                    "surface": "#111317",
+                    "surface-dim": "#111317",
+                    "background": "#111317",
+                    "on-primary": "#00344d",
+                    "on-error-container": "#ffdad6",
+                    "primary-container": "#0ea5e9",
+                    "on-secondary": "#2d3037",
+                    "on-secondary-fixed-variant": "#44474d",
+                    "secondary-fixed-dim": "#c4c6ce",
+                    "inverse-on-surface": "#2f3035",
+                    "outline-variant": "#3e4850",
+                    "error": "#ffb4ab",
+                    "on-background": "#e2e2e8",
+                    "surface-variant": "#333539",
+                    "secondary-fixed": "#e1e2ea",
+                    "inverse-surface": "#e2e2e8",
+                    "secondary-container": "#464950",
+                    "on-primary-container": "#003751",
+                    "tertiary": "#c3c6d2",
+                    "tertiary-fixed-dim": "#c3c6d2",
+                    "surface-container": "#1e2024",
+                    "surface-container-low": "#1a1c20",
+                    "tertiary-fixed": "#dfe2ee",
+                    "surface-container-lowest": "#0c0e12",
+                    "on-tertiary": "#2c303a",
+                    "inverse-primary": "#006591",
+                    "on-secondary-fixed": "#191c22",
+                    "primary": "#89ceff",
+                    "surface-bright": "#37393e",
+                    "on-primary-fixed-variant": "#004c6e",
+                    "surface-container-highest": "#333539",
+                    "primary-fixed": "#c9e6ff",
+                    "on-error": "#690005"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "sidebar-width": "280px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "grid-gutter": "24px",
+                    "container-padding": "40px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "label-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0F1115;
+            color: #e2e2e8;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .movie-card:hover .movie-overlay {
+            opacity: 1;
+        }
+        .movie-card img {
+            transition: transform 0.3s ease;
+        }
+        .movie-card:hover img {
+            transform: scale(1.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111317;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333539;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #89ceff;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background">
+<!-- SideNavBar Anchor -->
+<aside class="w-[280px] h-screen fixed left-0 top-0 border-r border-white/10 backdrop-blur-xl bg-surface/80 flex flex-col h-full py-stack-lg z-50">
+<div class="px-8 mb-12">
+<h1 class="font-display-lg text-display-lg text-primary tracking-tighter">Sky Movie</h1>
+<p class="text-secondary font-label-md text-label-sm opacity-60">Premium Cinema</p>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center space-x-3 text-primary font-bold border-l-4 border-primary pl-4 h-12 transition-all duration-200 Active: scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="video_library">video_library</span>
+<span class="font-label-md text-label-md">Library</span>
+</a>
+<a class="flex items-center space-x-3 text-secondary font-label-md text-label-md pl-5 h-12 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+<span class="font-label-md text-label-md">Movies</span>
+</a>
+<a class="flex items-center space-x-3 text-secondary font-label-md text-label-md pl-5 h-12 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="tv">tv</span>
+<span class="font-label-md text-label-md">TV Shows</span>
+</a>
+<a class="flex items-center space-x-3 text-secondary font-label-md text-label-md pl-5 h-12 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search_check">search_check</span>
+<span class="font-label-md text-label-md">Scan</span>
+</a>
+<a class="flex items-center space-x-3 text-secondary font-label-md text-label-md pl-5 h-12 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span class="font-label-md text-label-md">Downloads</span>
+</a>
+<a class="flex items-center space-x-3 text-secondary font-label-md text-label-md pl-5 h-12 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-8 py-6 border-t border-white/5 flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a professional-looking person with a friendly expression, soft studio lighting against a dark navy blue background, high-end cinematic photography style, sharp focus, 8k resolution, maintaining the premium dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUFlvoaa8NxyvLzQJrzIYftfIEwz45d9c6LOwQevZ22s788BKLLaqLBX5d491vwOWVphxUenL8kDXSt0xDgbp4z0sAm4qARIgZAXmbbHaOiokaD0CEZEJnUKPDZptGkDKhH-Q1EGP88IKpBQgKHtXhIMbS8lppb6GS5_eOGi6WSEkDKtoLfJpY46iQY8KrXO1feC6MkcParJQgdVhHwsEisyJtLH_7hPxnH7CxIiQfM7WbpqPwbIYM82p63OKhSLP8w6G934CAEPuM"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Alex Rivera</p>
+<p class="text-xs text-secondary opacity-60">Pro Member</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen relative">
+<!-- TopAppBar Anchor -->
+<header class="fixed top-0 right-0 w-[calc(100%-280px)] backdrop-blur-md bg-surface/40 flex justify-between items-center px-container-padding h-20 z-40">
+<div class="flex items-center space-x-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-xl pl-11 pr-4 py-2.5 w-80 text-on-surface focus:ring-2 focus:ring-primary/50 transition-all font-label-md text-label-md" placeholder="Search your library..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<button class="bg-primary hover:bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-label-md text-label-md font-bold transition-all active:scale-95 flex items-center space-x-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="refresh">refresh</span>
+<span>Scan Folder</span>
+</button>
+<div class="flex items-center space-x-4">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/5 rounded-xl transition-colors relative">
+<span class="material-symbols-outlined text-secondary" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/5 rounded-xl transition-colors">
+<span class="material-symbols-outlined text-secondary" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Body -->
+<div class="pt-24 pb-stack-lg px-container-padding">
+<!-- Filter Bar -->
+<div class="flex items-center justify-between mb-stack-lg">
+<div class="flex items-center space-x-4">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-xl border border-white/5">
+<span class="text-secondary text-label-sm mr-3">Genre:</span>
+<select class="bg-transparent border-none text-on-surface font-label-md text-label-md p-0 focus:ring-0 cursor-pointer">
+<option>All Genres</option>
+<option>Action</option>
+<option>Sci-Fi</option>
+<option>Drama</option>
+<option>Documentary</option>
+</select>
+</div>
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-xl border border-white/5">
+<span class="text-secondary text-label-sm mr-3">Year:</span>
+<select class="bg-transparent border-none text-on-surface font-label-md text-label-md p-0 focus:ring-0 cursor-pointer">
+<option>All Years</option>
+<option>2024</option>
+<option>2023</option>
+<option>2022</option>
+</select>
+</div>
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-xl border border-white/5">
+<span class="text-secondary text-label-sm mr-3">Rating:</span>
+<select class="bg-transparent border-none text-on-surface font-label-md text-label-md p-0 focus:ring-0 cursor-pointer">
+<option>Any Rating</option>
+<option>4.5+</option>
+<option>4.0+</option>
+<option>3.5+</option>
+</select>
+</div>
+</div>
+<div class="flex items-center space-x-2 bg-surface-container-low p-1 rounded-xl border border-white/5">
+<button class="p-2 bg-primary/20 text-primary rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="view_list">view_list</span>
+</button>
+</div>
+</div>
+<!-- Library Heading -->
+<div class="mb-stack-md flex items-end justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Your Library</h2>
+<p class="text-secondary font-body-md opacity-60">Showing 1,248 titles in premium quality</p>
+</div>
+</div>
+<!-- Movie Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-grid-gutter">
+<!-- Movie Card 1 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A cinematic science fiction movie poster featuring a sleek, futuristic spaceship drifting through a vibrant neon nebula. The lighting is dominated by deep indigo and brilliant sky-blue streaks, with sharp geometric compositions. The mood is epic and adventurous, with a high-fidelity digital art style that emphasizes scale and mystery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpTqyfmkCcpGLYpRvejL31JdjYAWGK5k680r76pmb-LPjj3Q5J-apWJvr671qJAFsyE3K72lpQbx4NXI8i2zvKqsd_489EM8Y2TT_dw3aCS7jUT_xNTnN-9jq-t7Cz6nN-Oz3H0Bbwv1FjFospUCp7Kmg-ao6E5htABvfb2Azi3Ae5oJAehhODR9E-lK3r4sgVaevg4ALHQi1Z9mXxqS4sokgbmuW4Ihijab033kFUXzXo36qYdiETptbtLIL1PqckWG_7BcFT5Rwz"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">4K HDR</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">The Last Nebula</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2024</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 2 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A moody film noir movie poster showing a detective in a trench coat standing under a flickering streetlamp on a rainy urban street. The color palette is restricted to deep blacks, grays, and a single splash of muted sky-blue reflected in a puddle. The lighting is high-contrast with dramatic shadows, creating a suspenseful and sophisticated cinematic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuqUJ6bUszAcp6fh4sFtpg5w3suQsBIQCpG56HqYwGDOwWYSwFssd4rwNFy08C8gcBVqdHIMIoufV3-Jlt5DMOO_Gx6KkkuMxp3bOOphTbLU00rVRY-lEsj0m9eX9juX-vJ2jc8J2Ji1AoRvCbMTTae2T3UbDVic2j4TGD1xLJQDq_vCul6mYfvH7yotcyajHhbeTak7w7s8yfMuuyBD-NwQcULbUSJgDZ8nF2E22RMSau9i9xIHDZsq1oQrB43H2W_ntDkEEgd6-f"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-surface-container-highest/90 text-on-surface text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">HD</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Shadows of Neon</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2023</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.5</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 3 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A breathtaking nature documentary poster displaying a majestic snow-capped mountain range under a clear, deep blue sky. The foreground features a crystalline turquoise lake reflecting the peaks. The lighting is crisp and natural, highlighting the textures of rock and ice. The aesthetic is clean, premium, and serene, emphasizing high-definition clarity and vibrant natural colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6t-e2aDHFe97gI6cj1FbHx55DhQ8oDqX25N7lIiWH6m67duuCv2Vw1DFIOAN_a6HHHAA6yMMCBgUmQ-r2fn4HmkFsSaSykJWGdUKCjl6xgnJDWz4QK1ObRXvoXdEhZJ1SxMr5N9YkZJDrf0KdspZKySMmZbFNLVTP-y0W8BffgiucqTQHCx04wvypMA5GjPoK19TVc9Xapix6in94yY3yuzpHEKGly9Ab0HrGOy6a-6eKDUKi2R97X0yMHNbDWtONi53UAx5xJJx3"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">4K</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Frozen Peaks</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2024</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.8</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 4 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="An intense action thriller movie poster with a high-speed car chase at sunset. The background is a blur of warm orange and cool purple city lights. The focus is a sleek metallic sports car weaving through traffic. The lighting creates sharp, glowing highlights on the car's body. The style is dynamic, high-octane, and polished, utilizing a sophisticated cinematic color grade." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl8W7kY5oEGkf13807vp6kT1EaruM9r8p2zp8zuFVMGeYr_teB272zKtwabUqLxQZ5h-K0xUrwp4MhyDkNVEE4phz5aMu7FfWKm1B75ZO8cvRU_TZFzBV4rs04eQkKJbemmYpgJG73T-ItDqcCPn854lUQszTpR05NK4KwrR0Rgw7NH2jUKvgbSYMyJgTcBVlhMTa2DT4oHparfARiGJDlf8gZNP1ERcJycL9oUBk08ATWUmfeFPN75CNeRvj-39_BganWUWEGtGyW"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">4K HDR</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Velocity: Zero</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2023</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.2</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 5 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A minimalist architectural documentary poster featuring a close-up of a modern glass and concrete skyscraper against a pale morning sky. The lighting is soft and diffuse, emphasizing the clean lines and geometric patterns of the building. The color palette is a sophisticated blend of cool blues, greys, and whites. The mood is intellectual, calm, and visually precise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv8Q1MpQcIqCsodeEshLc1GggLiEH8F9FluPrOxsdr6jUS1HrDG4ftLwYgKQ6xrwwGIBtqLJWkW_rVSMgYJ0qA854oSUZap4EHIHgGCLIFekrAhl1ukOTGcnAJkVKyl63x5M9PViOZkgIj8535NdXNMOouCTTpF2jxliYkpXPNVwDW5CHt718NpGv5g6jhL2D-n1qjXZamFhlJhNQGMFuIAOSc1zbyCqOk0htTGU_3mcazEh_5PZ4LXFJYZo7jibDgRf1bOhipZ39V"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-surface-container-highest/90 text-on-surface text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">HD</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Concrete Silence</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2022</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.7</span>
+</div>
+</div>
+</div>
+<!-- Movie Card 6 -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="An atmospheric fantasy movie poster showing an ancient, glowing tree deep within a mystical forest at twilight. The scene is illuminated by floating bioluminescent particles in shades of teal and sky-blue. The background is a dense, dark woodland with swirling mists. The aesthetic is magical, high-fantasy, and immersive, with a rich and layered digital painting style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQFz-kJuOaO2TEWekAAiaqVjTasTjCPxUnp1W7SZvKc4EsP88YYeQqCOjpVAX_my62z7qklHXe2cDxhCyPa8fXtKTBDqF4jWuEVhlllcObsTR0ExUQU9EjUd_vGLeaXpT1FhbFf89bcJeM7Cp0_4ayJeBYYslh6IObuA54aWAQI5SnFJXkHospqxZyt7AjqCxSki-0sTs_9bQUQxINS8ESULRjjpEQUkXnZRXWITxeb3JE_pf9I8mpqnN2P3vrj35B0lzHGJWPh-Gg"/>
+<div class="absolute top-2 right-2 flex flex-col space-y-1">
+<span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-sm">4K HDR</span>
+</div>
+<div class="movie-overlay absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4">
+<button class="w-full bg-white text-black py-2 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Play Now</span>
+</button>
+</div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">The Elder Grove</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-secondary text-xs opacity-60">2024</span>
+<div class="flex items-center text-primary-fixed-dim text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>5.0</span>
+</div>
+</div>
+</div>
+<!-- Card Repeat Simulation (Total 12) -->
+<!-- Movie Card 7-12 placeholders -->
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A high-end sports documentary poster capturing a close-up of a basketball player's hand clutching a ball, illuminated by a single, powerful spotlight. The background is a dark, out-of-focus stadium. The lighting is dramatic and textures of the leather and skin are incredibly detailed. The style is professional, gritty, and heroic, focusing on effort and dedication." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADouQmQC0oU-qjw9lQj_n2xDOxJVORe0Tg4eFbOj5xcOLbwytEqUiZJNvj9KG_wYg4zuC5kRGmGyx7s-Ri4a6UmduDbR2kTM-1Jh4xSJK211mMvx3P5W_AJPHUQWWio9kRaN3flbCnKjG8hp7yNXw3eNs6DxHuoS3ISFO_j5yfC0P--y7JLO7ZRTkr4VVZTr2z04xts9EZYBA1_OJHjyW291_xhBkgbmyDE4dB7JKFPOrh9GNuouPhxQqzB7L00xdN0fgs5W-UPYDQ"/>
+<div class="absolute top-2 right-2"><span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold">4K</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Full Court Press</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2023</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.3</span></div></div>
+</div>
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A vibrant animation movie poster featuring a group of colorful, friendly robot characters standing on a lush, exotic alien planet. The flora is giant and translucent, glowing in shades of pink, orange, and sky-blue. The lighting is bright and cheerful. The art style is high-quality 3D animation, similar to premium animated features, with rich textures and expressive characters." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkzCDno-DRLikraig0YT5Z8-WfseYxZIYq1jviCqlMJqKW7uReO18q25aHn3_v_Lr-1kovL5hac39uZQFdAZ-BPRoQWAhfrfYzXh1TYc4AY-Li0j0SmHBxls908GtMSK4pP6D4eYuJkCh7wCljiTEpSD3uu9PCdmyuF-50gYYHqT_ohrHeT_AiGoGKij74a3oJpCyQUU_YIIPolXVrVbaV2scxbynOrrqsA0dclYGwpft79-YtIZxdc9KDvJ4w7GSzVffC_RPLTnY_"/>
+<div class="absolute top-2 right-2"><span class="bg-surface-container-highest/90 text-on-surface text-[10px] px-2 py-0.5 rounded font-bold">HD</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Robo-Bot Adventures</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2024</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.6</span></div></div>
+</div>
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A sophisticated period drama movie poster featuring a lavish 1920s ballroom. Elegant guests in tuxedoes and flapper dresses are seen in a soft-focus background, while a single glass of champagne sparkles on a marble table in the foreground. The lighting is warm and candle-lit, creating a luxurious and nostalgic atmosphere. The aesthetic is rich, detailed, and classic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7ax6-xZGCbW8jMQZDvZPtadHI2LEvH9kBg8zxu0qbZJYYzPugsr22PaLplGvntL8ycTtq4MI8detZp4ZlGrU6kPIjmL-38VgPExeyhSG4w5PnOhRk7lvo4ognCopWH_A-CBG3m02OUv79u-5VlDXngfDjMBvJMFKlVT2Vjz0lVCAdJsqEYH1IVRWLZXuwjwMGpnU_zGgbDf12Mn5xu2qmCsmj6A-k8WIU1fpUAY0DXJGR6SrauiRRafRC6U_mQh5Whtr4n5xms9w4"/>
+<div class="absolute top-2 right-2"><span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold">4K HDR</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">The Grand Soiree</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2022</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.4</span></div></div>
+</div>
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A gritty crime drama poster showing an overhead view of a rainy city intersection at night. The wet asphalt reflects vibrant red and sky-blue neon signs from surrounding buildings. Long shadows stretch across the crosswalk. The mood is tense and urban. The photography style is sharp, with deep blacks and high saturation, creating a professional and cinematic look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUNhaZCVhSInUMk2r_mhdYJ8SUyCYPHUm6CUinJKwzCHSL5y-VkmSeGUS3Dx9S8aS2kIBKMq8folHKU9U4CN4ZRhYvcnfhRyq53WAZTrixB0DQOot-PkN-XFF01JLCTh4iUzlURfSaj9HfGaSQltsmzF0gttQ6b55DS6ozDRScPPHvx3fZjUm_duNENHkrPTaGPfOMkfYCVwdGNQw8-eYFJfcoEfoNlxzuoP2fH4wqn6VK0BMsz_lgaEngAPETcdO3KUz7b-BCCA0k"/>
+<div class="absolute top-2 right-2"><span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold">4K</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Undercurrent</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2023</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.1</span></div></div>
+</div>
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A visually stunning independent film poster featuring a double exposure effect. One layer is a contemplative close-up of a woman's face, the other is a vast, starry night sky over a quiet ocean. The colors are ethereal teals and deep purples. The lighting is soft and poetic. The overall design is artistic, modern, and emotionally resonant, targeting a premium cinema audience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMnbWcsThESMWMtmhhGuK_e6G1XbncJPh38x7zGJHhZoKmb_EbSU6MBPZvn_4Vmj0RjtRonLoabmhHd1Ij5txvA8LVn6w4vbY1W_-NtUrpOqvKl5mTh_A1kF61goWQRBHrSXfIoQoBKlqR9rjg8KfV64yuMAyt7kzM7FhfYhBPQYpbl0ib5FHSn-pAtAX5BNz57csbRKMxMrgNXlhmcUkCoMF2G6moLn5WY4PddLrFBTE-D9UaraWPWwo2EmZjFi9X9IatnesNvQfq"/>
+<div class="absolute top-2 right-2"><span class="bg-surface-container-highest/90 text-on-surface text-[10px] px-2 py-0.5 rounded font-bold">HD</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Echoes of Silence</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2024</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.9</span></div></div>
+</div>
+<div class="movie-card group cursor-pointer">
+<div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-white/5 bg-surface-container-high shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-primary/30">
+<img class="w-full h-full object-cover" data-alt="A high-concept psychological thriller poster featuring a glass prism shattering into thousands of sharp, crystalline shards. Each shard reflects a different fragment of an eye or a mouth. The background is a stark, void-like black. The lighting is clinical and sharp, creating high contrast and brilliant spectral reflections. The style is avant-garde, clean, and unsettlingly beautiful." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-_U1mIUz8OfvDO_LRoYy_SaYejeyExlk7XbbpclPwPm3WEBXv9ScVv5YNfhQXmRLjszvv7RCnTDJQTmFFomofo1CL1hSM4NKZ_AFi395Ta0b2jiSudAnCcEEDZIDmQYoVW9Fo10Gp6bdl74oBqYxStEWy-U5phzCD5O2IQtxVkXq5ef7dLfuZG5amLqGFJB5-jyfSFMhye8qhNqL0DVtOmXyrHqNu2GAj1anPXsBY4vJxFxfY6zxFaNAJjFnKzbJaOCwZq5jPL6TK"/>
+<div class="absolute top-2 right-2"><span class="bg-primary-container/90 text-on-primary-container text-[10px] px-2 py-0.5 rounded font-bold">4K HDR</span></div>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface truncate">Fractured Mind</h3>
+<div class="flex items-center justify-between mt-1"><span class="text-secondary text-xs opacity-60">2023</span><div class="flex items-center text-primary-fixed-dim text-xs"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span><span>4.6</span></div></div>
+</div>
+</div>
+<!-- Empty State / Pagination Simulation -->
+<div class="mt-stack-lg pt-stack-md border-t border-white/5 flex items-center justify-center">
+<nav class="flex items-center space-x-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors text-secondary">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-on-primary-container font-bold font-label-md text-label-md">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors text-secondary font-label-md text-label-md">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors text-secondary font-label-md text-label-md">3</button>
+<span class="text-secondary px-2">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors text-secondary font-label-md text-label-md">24</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors text-secondary">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('.movie-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for adding subtle sound effects or hover sounds if required
+            });
+        });
+
+        // Simple Search Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+    </script>
+</body></html>

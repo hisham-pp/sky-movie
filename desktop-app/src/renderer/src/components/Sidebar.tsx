@@ -1,4 +1,4 @@
-import { Film, Settings, Tv } from 'lucide-react';
+import { Film, HardDrive, Settings, Tv, Video } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
 import { Metric } from './Metric';
@@ -15,13 +15,9 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark" aria-hidden="true">
-          <span className="logo-crescent" />
-          <span className="logo-play" />
-        </div>
         <div>
           <h1>Sky Movie</h1>
-          <p>Local library</p>
+          <p>Premium Cinema</p>
         </div>
       </div>
 
@@ -34,6 +30,10 @@ export function Sidebar({
           <Tv size={18} />
           <span>TV Shows</span>
         </button>
+        <button className="passive" title="Local files">
+          <Video size={18} />
+          <span>Library</span>
+        </button>
         <button className={view === 'settings' ? 'active' : ''} onClick={() => onViewChange('settings')} title="Settings">
           <Settings size={18} />
           <span>Settings</span>
@@ -41,6 +41,10 @@ export function Sidebar({
       </nav>
 
       <div className="summary">
+        <div className="summary-heading">
+          <HardDrive size={16} />
+          <span>Local Vault</span>
+        </div>
         <Metric label="Movies" value={summary?.movieCount ?? 0} />
         <Metric label="Shows" value={summary?.showCount ?? 0} />
         <Metric label="Files" value={summary?.mediaFileCount ?? 0} />
