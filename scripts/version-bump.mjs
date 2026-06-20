@@ -156,6 +156,49 @@ async function main() {
   console.log(`\n✅ Successfully released version ${newVersion}!`);
   console.log(`\n🔗 GitHub Actions will now build and create the release.`);
   console.log(`   Watch the progress at: https://github.com/${getRepoPath()}/actions`);
+
+  // Wait 7 minutes then check for newer versions
+  console.log(`\n⏳ Waiting 7 minutes before checking for newer versions...`);
+  await sleep(7 * 60 * 1000); // 7 minutes
+
+  console.log(`\n🔍 Checking for newer versions (6 attempts, 1 minute apart)...`);
+  
+  let newerVersionFound = null;
+  
+  for (let i = 0; i < 6; i++) {
+    console.log(`\nAttempt ${i + 1}/6: Checking for newer version...`);
+    const newerVersion = checkForNewerVersion(newVersion);
+    
+    if (newerVersion) {
+      newerVersionFound = newerVersion;
+      console.log(`✅ Found newer version: ${newerVersion}`);
+      break;
+    }
+    
+    console.log(`No newer version found yet.`);
+    
+    if (i < 5) {
+      console.log(`Waiting 1 minute before next check...`);
+      await sleep(60 * 1000); // 1 minute
+    }
+  }
+
+  if (newerVersionFound) {
+    console.log(`\n🚀 Newer version ${newerVersionFound} found. Running release:github --skip-sha...`);
+    const releaseResult = spawnSync('pnpm', ['release:github', '--skip-sha'], {
+      cwd: repoRoot,
+      stdio: 'inherit'
+    });
+
+    if (releaseResult.status !== 0) {
+      console.error(`❌ Failed to run release:github --skip-sha`);
+      process.exit(1);
+    }
+    
+    console.log(`\n✅ Successfully ran release:github --skip-sha for version ${newerVersionFound}`);
+  } else {
+    console.log(`\n✅ No newer version found after 6 attempts. Script completed.`);
+  }
 }
 
 main().catch((error) => {
@@ -374,6 +417,72 @@ function getRepoPath() {
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
+}
+
+function checkForNewerVersion(currentVersion) {
+  // Fetch all tags from remote
+  const fetchResult = spawnSync('git', ['fetch', '--tags'], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (fetchResult.status !== 0) {
+    console.error('❌ Failed to fetch tags');
+    return null;
+  }
+
+  // Get all version tags
+  const tagResult = spawnSync('git', ['tag', '-l', 'v*'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+
+  if (tagResult.status !== 0) {
+    console.error('❌ Failed to get tags');
+    return null;
+  }
+
+  const tags = tagResult.stdout
+    .trim()
+    .split('\n')
+    .filter(line => line.trim())
+    .map(tag => tag.replace(/^v/, ''));
+
+  // Find the latest version
+  const latestVersion = tags
+    .sort((a, b) => {
+      const aParts = a.split('.').map(Number);
+      const bParts = b.split('.').map(Number);
+      for (let i = 0; i < 3; i++) {
+        if (aParts[i] !== bParts[i]) {
+          return bParts[i] - aParts[i];
+        }
+      }
+      return 0;
+    })[0];
+
+  if (!latestVersion) {
+    return null;
+  }
+
+  // Compare versions
+  const currentParts = currentVersion.split('.').map(Number);
+  const latestParts = latestVersion.split('.').map(Number);
+
+  for (let i = 0; i < 3; i++) {
+    if (latestParts[i] > currentParts[i]) {
+      return latestVersion;
+    }
+    if (latestParts[i] < currentParts[i]) {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function printHelp() {
