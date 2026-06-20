@@ -493,7 +493,8 @@ select option {
   border-bottom: 1px solid transparent;
   background: transparent;
   padding: 0 40px;
-  backdrop-filter: none;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .toolbar-title {
