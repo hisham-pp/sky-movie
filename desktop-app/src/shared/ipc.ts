@@ -3,7 +3,7 @@ export type MatchStatus = 'unmatched' | 'auto_matched' | 'manual_matched';
 export type SyncType = 'full' | 'partial' | 'metadata-only' | 'files' | 'watch-progress';
 export type LibraryScanMode = MediaKind | 'mixed';
 export type MatcherStrategy = 'auto' | 'movie-title-year' | 'show-season-episode' | 'folder-name';
-export type AppTheme = 'cinema' | 'midnight' | 'daylight' | 'ember';
+export type AppTheme = 'cinema' | 'midnight' | 'daylight' | 'ember' | 'ocean' | 'forest' | 'sunset' | 'noir' | 'lavender' | 'crimson';
 
 export interface LibraryFolder {
   id: number;
