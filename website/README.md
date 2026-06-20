@@ -86,7 +86,9 @@ pnpm --filter @sky-movie/website build
 - Vercel detects pnpm from `pnpm-lock.yaml` and the root `packageManager` field.
 - Keep the Vercel project scoped to `website/` so desktop-only Electron code is
   not included in the web deployment.
-- The website currently needs no environment variables.
+- The deployed website reads static download metadata from
+  `website/public/releases.json`; it does not need Cloudflare R2 credentials at
+  runtime. R2 credentials stay local in `envs/.env.r2` for the release script.
 
 References:
 

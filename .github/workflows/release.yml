@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            arch: x64,arm64
+          - os: macos-latest
+            platform: macos
+            arch: x64,arm64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64,arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libarchive-tools rpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Rebuild native modules for Electron
+        run: pnpm --filter @sky-movie/desktop-app run rebuild:electron
+
+      - name: Build app bundles
+        run: pnpm --filter @sky-movie/desktop-app run build
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        run: pnpm --filter @sky-movie/desktop-app run package:win:builder
+
+      - name: Package macOS
+        if: runner.os == 'macOS'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: pnpm --filter @sky-movie/desktop-app run package:mac
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        run: pnpm --filter @sky-movie/desktop-app run package:linux
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sky-movie-${{ matrix.platform }}
+          path: |
+            desktop-app/dist/*.exe
+            desktop-app/dist/*.dmg
+            desktop-app/dist/*.zip
+            desktop-app/dist/*.AppImage
+            desktop-app/dist/*.deb
+            desktop-app/dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "TAG=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            TAG=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG#v}
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          if [ -f "CHANGELOG.md" ]; then
+            NOTES=$(sed -n "/## \[${{ steps.version.outputs.VERSION }}\]/,/## \[/p" CHANGELOG.md | sed '1d;$d')
+          else
+            NOTES="Release ${{ steps.version.outputs.VERSION }}"
+          fi
+          echo "NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: Sky Movie ${{ steps.version.outputs.VERSION }}
+          body: ${{ steps.notes.outputs.NOTES }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/*.exe
+            artifacts/*.dmg
+            artifacts/*.zip
+            artifacts/*.AppImage
+            artifacts/*.deb
+            artifacts/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List release artifacts
+        run: |
+          echo "Release artifacts:"
+          ls -lh artifacts/

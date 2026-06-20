@@ -1,38 +1,112 @@
 # Scripts
 
-This folder is reserved for project automation such as database maintenance, export/import helpers, packaging, and release scripts.
+Helper scripts for building, packaging, and releasing Sky Movie.
 
-Keep scripts independent from the renderer. File-system and database helpers should target the Electron main-process service boundaries used by `desktop-app/`.
+## Build Scripts
 
-## Build Desktop App
-
-```powershell
-.\scripts\build-desktop-app.ps1 -Target current
-.\scripts\build-desktop-app.ps1 -Target windows
-.\scripts\build-desktop-app.ps1 -Target linux
-.\scripts\build-desktop-app.ps1 -Target mac
-.\scripts\build-desktop-app.ps1 -Target all
-```
+### `build-desktop-app.sh` / `build-desktop-app.ps1`
+Build the desktop app for the current platform.
 
 ```bash
-./scripts/build-desktop-app.sh current
-./scripts/build-desktop-app.sh linux
-./scripts/build-desktop-app.sh mac
-./scripts/build-desktop-app.sh all
+# macOS/Linux
+./scripts/build-desktop-app.sh
+
+# Windows
+.\scripts\build-desktop-app.ps1
 ```
 
-Windows-only shortcut:
+### `build-windows-app.ps1`
+Build Windows desktop app with native module rebuilding.
 
 ```powershell
 .\scripts\build-windows-app.ps1
 ```
 
-Artifacts are written to `desktop-app/dist/`.
+## Release Scripts
 
-Expected targets:
+### `release-r2.mjs`
+Upload release artifacts to Cloudflare R2 and update `website/public/releases.json`.
 
-- Windows: NSIS installer and `win-unpacked/` folder.
-- macOS: DMG and ZIP for x64 and arm64.
-- Linux: AppImage, DEB, and tar.gz.
+See [RELEASES_R2.md](../docs/RELEASES_R2.md) for full documentation.
 
-Build macOS artifacts on macOS for reliable signing and notarization.
+```powershell
+# Upload already-built artifacts
+pnpm run release:r2
+
+# Package then upload
+pnpm run release:r2:package
+
+# Custom options
+node scripts/release-r2.mjs --version 0.1.0 --package all
+```
+
+### `release-github.mjs`
+Fetch GitHub release data and update `website/public/releases.json`.
+
+See [RELEASES_GITHUB.md](../docs/RELEASES_GITHUB.md) for full documentation.
+
+```powershell
+# Update from latest GitHub release
+$env:GITHUB_TOKEN = "your-token"
+pnpm run release:github
+
+# Custom options
+node scripts/release-github.mjs --version 0.1.0 --skip-sha
+```
+
+### `release-google-drive.mjs`
+(Deprecated) Upload releases to Google Drive. R2 is the current release target.
+
+See [RELEASES_GOOGLE_DRIVE.md](../docs/RELEASES_GOOGLE_DRIVE.md) for historical reference.
+
+## Release Workflows
+
+### GitHub Releases (Recommended for Open Source)
+
+1. **Create Release via Tag**
+   ```powershell
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+   
+   This triggers `.github/workflows/release.yml` which builds all platforms and creates a GitHub release.
+
+2. **Update Website**
+   ```powershell
+   $env:GITHUB_TOKEN = "your-token"
+   pnpm run release:github
+   ```
+
+### Cloudflare R2 (Recommended for Self-Hosted)
+
+1. **Configure R2**
+   ```powershell
+   Copy-Item envs\.env.r2.example envs\.env.r2
+   # Edit envs/.env.r2 with your credentials
+   ```
+
+2. **Package and Upload**
+   ```powershell
+   pnpm run release:r2:package
+   ```
+
+This automatically updates `website/public/releases.json` and commits it.
+
+## Platform Support
+
+All release workflows support:
+
+- **Windows**: x64, ARM64 (NSIS installer)
+- **macOS**: x64, ARM64 (DMG, ZIP)
+- **Linux**: x64, ARM64 (AppImage, DEB, tar.gz)
+
+## Environment Files
+
+Release scripts load environment variables from:
+
+- `envs/.env.r2` - Cloudflare R2 configuration
+- `envs/.env.drive` - Google Drive configuration (deprecated)
+
+Template files are in `envs.example/`.
+
+**Security**: Never commit actual `.env` files. They're in `.gitignore`.

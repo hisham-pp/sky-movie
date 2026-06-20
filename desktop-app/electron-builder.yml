@@ -22,9 +22,11 @@ win:
     - target: nsis
       arch:
         - x64
+        - arm64
     - target: dir
       arch:
         - x64
+        - arm64
   artifactName: '${productName}-${version}-${arch}-Setup.${ext}'
 
 mac:
@@ -47,12 +49,15 @@ linux:
     - target: AppImage
       arch:
         - x64
+        - arm64
     - target: deb
       arch:
         - x64
+        - arm64
     - target: tar.gz
       arch:
         - x64
+        - arm64
   artifactName: '${productName}-${version}-${arch}.${ext}'
 
 nsis:

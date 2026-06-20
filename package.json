@@ -22,6 +22,9 @@
     "package:win": "pnpm --filter @sky-movie/desktop-app package:win",
     "package:win:dir": "pnpm --filter @sky-movie/desktop-app package:win:dir",
     "package:win:installer": "pnpm --filter @sky-movie/desktop-app package:win:installer",
+    "release:r2": "node scripts/release-r2.mjs",
+    "release:r2:package": "node scripts/release-r2.mjs --package all",
+    "release:github": "node scripts/release-github.mjs",
     "rebuild:native": "pnpm --filter @sky-movie/desktop-app rebuild better-sqlite3",
     "typecheck": "pnpm --filter @sky-movie/desktop-app typecheck",
     "typecheck:website": "pnpm --filter @sky-movie/website typecheck"
