@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
 import { ScanPanel } from './components/ScanPanel';
+import { SearchModal } from './components/SearchModal';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
@@ -11,16 +13,26 @@ export function App() {
   const library = useLibraryController();
   const theme = library.settings?.theme ?? 'cinema';
   const libraryView = library.view === 'shows' ? 'shows' : 'movies';
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <main className="app-shell" data-theme={theme}>
       <Sidebar view={library.view} summary={library.summary} onViewChange={library.setView} />
 
       <section className="workspace">
-        <Toolbar
-          query={library.query}
-          onQueryChange={library.setQuery}
-        />
+        <Toolbar onOpenSearch={() => setIsSearchOpen(true)} />
 
         {library.view === 'settings' ? (
           <SettingsPanel
@@ -83,6 +95,19 @@ export function App() {
           busy={library.busy}
           onApply={library.applyPromptMetadata}
           onSkip={library.skipPromptMetadata}
+        />
+
+        <SearchModal
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          movies={library.movies}
+          shows={library.shows}
+          onSelectMovie={(movie) => {
+            library.viewMovieDetails(movie);
+          }}
+          onSelectShow={(show) => {
+            library.viewShowDetails(show);
+          }}
         />
       </section>
     </main>

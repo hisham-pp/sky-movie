@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 
 export function Toolbar({
   onOpenSearch
@@ -12,9 +12,16 @@ export function Toolbar({
         <input
           placeholder="Search library"
           readOnly
-          style={{ cursor: 'pointer' }}
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onOpenSearch();
+          }}
         />
-        <kbd style={{ fontSize: '12px', opacity: 0.6 }}>Ctrl+K</kbd>
+        <kbd className="search-shortcut">Ctrl+K</kbd>
+      </div>
+      <div className="toolbar-badge">
+        <Sparkles size={16} />
+        <span>Poster-first library</span>
       </div>
     </header>
   );
