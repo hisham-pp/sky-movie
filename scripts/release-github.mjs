@@ -21,8 +21,8 @@ async function main() {
   loadEnvFile(args.envFile ?? 'envs/.env.github');
   
   const version = args.version ?? readJson(desktopPackagePath).version;
-  const owner = args.owner ?? process.env.GITHUB_OWNER ?? getRepoOwner();
-  const repo = args.repo ?? process.env.GITHUB_REPO ?? getRepoName();
+  const owner = args.owner ?? process.env.GITHUB_OWNER ?? await getRepoOwner();
+  const repo = args.repo ?? process.env.GITHUB_REPO ?? await getRepoName();
   const token = args.token ?? process.env.GITHUB_TOKEN;
 
   if (!token) {
@@ -241,8 +241,8 @@ function classifyArtifact(fileName) {
   return { platform: 'unknown', arch, kind: 'file' };
 }
 
-function getRepoOwner() {
-  const { spawnSync } = require('node:child_process');
+async function getRepoOwner() {
+  const { spawnSync } = await import('node:child_process');
   const result = spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: repoRoot, encoding: 'utf8' });
   if (result.status !== 0) {
     throw new Error('Could not determine repository owner from git remote. Use --owner.');
@@ -254,8 +254,8 @@ function getRepoOwner() {
   return match[1];
 }
 
-function getRepoName() {
-  const { spawnSync } = require('node:child_process');
+async function getRepoName() {
+  const { spawnSync } = await import('node:child_process');
   const result = spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: repoRoot, encoding: 'utf8' });
   if (result.status !== 0) {
     throw new Error('Could not determine repository name from git remote. Use --repo.');

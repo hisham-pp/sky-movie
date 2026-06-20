@@ -1,6 +1,7 @@
 appId: com.skymovie.desktop
 productName: Sky Movie
 copyright: Copyright 2026 Sky Movie
+executableName: sky-movie
 
 directories:
   output: dist
