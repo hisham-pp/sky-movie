@@ -157,7 +157,6 @@ async function main() {
   console.log(`\n🔗 GitHub Actions will now build and create the release.`);
   console.log(`   Watch the progress at: https://github.com/${getRepoPath()}/actions`);
 }
-}
 
 main().catch((error) => {
   console.error(error instanceof Error ? error.message : error);
