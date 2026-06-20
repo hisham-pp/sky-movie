@@ -277,6 +277,7 @@ export interface SkyMovieApi {
   searchTvMetadata(request: TvMetadataSearchRequest): Promise<TvMetadataSearchResult[]>;
   applyTvMetadata(request: ApplyTvMetadataRequest): Promise<TvShow>;
   markFileAsIgnored(fileId: number): Promise<void>;
+  updateFileMatch(fileId: number, matchedMovieId: number | null, matchedShowId: number | null): Promise<void>;
   playMedia(mediaFileId: number): Promise<PlayMediaResult>;
   openMediaExternally(mediaFileId: number): Promise<void>;
   updateWatchProgress(update: WatchProgressUpdate): Promise<void>;
@@ -307,6 +308,7 @@ export const ipcChannels = {
   searchTvMetadata: 'metadata:search-tv',
   applyTvMetadata: 'metadata:apply-tv',
   markFileAsIgnored: 'metadata:mark-file-ignored',
+  updateFileMatch: 'metadata:update-file-match',
   playMedia: 'player:play-media',
   openMediaExternally: 'player:open-external',
   updateWatchProgress: 'watch:update-progress',
