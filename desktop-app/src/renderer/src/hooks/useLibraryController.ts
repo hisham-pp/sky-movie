@@ -204,12 +204,13 @@ export function useLibraryController() {
     setSelectedFiles([]);
     setMetadataResults([]);
     setSelectedTitle('No media selected');
+    // Clear player when going back to library
+    setPlayer(null);
   }
 
   async function selectMovie(movie: Movie) {
     const details = await getSkyMovieApi().getMovieById(movie.id);
     const selected = details.item ?? movie;
-    setView('movies');
     setSelectedMovie(selected);
     setSelectedShow(null);
     setSelectedEpisodes([]);
@@ -217,19 +218,55 @@ export function useLibraryController() {
     setSelectedFiles(details.files);
     setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
     setMetadataResults([]);
+    
+    // Clear player when selecting a different movie
+    setPlayer(null);
+    
+    // Auto-play first file if available
+    if (details.files.length > 0) {
+      const firstFile = details.files[0];
+      const result = await getSkyMovieApi().playMedia(firstFile.id);
+      setPlayer(result);
+      setStatus(`Playing ${result.title}`);
+    }
+  }
+
+  async function viewMovieDetails(movie: Movie) {
+    await selectMovie(movie);
+    setView('movies');
   }
 
   async function selectShow(show: TvShow) {
     const details = await getSkyMovieApi().getShowById(show.id);
     const selected = details.item ?? show;
-    setView('shows');
-    setSelectedMovie(null);
     setSelectedShow(selected);
+    setSelectedMovie(null);
     setSelectedEpisodes(details.episodes ?? []);
     setSelectedTitle(selected.title);
     setSelectedFiles(details.files);
     setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
     setMetadataResults([]);
+    
+    // Clear player when selecting a different show
+    setPlayer(null);
+    
+    // Auto-play first episode file if available
+    if (details.files.length > 0) {
+      // Try to find first episode (S01E01) or just use first file
+      const firstEpisodeFile = details.files.find((file) => {
+        const fileName = file.fileName.toLowerCase();
+        return /s0*1e0*1|1x0*1/i.test(fileName);
+      }) ?? details.files[0];
+      
+      const result = await getSkyMovieApi().playMedia(firstEpisodeFile.id);
+      setPlayer(result);
+      setStatus(`Playing ${result.title}`);
+    }
+  }
+
+  async function viewShowDetails(show: TvShow) {
+    await selectShow(show);
+    setView('shows');
   }
 
   async function play(file: MediaFile) {
@@ -582,6 +619,8 @@ export function useLibraryController() {
     scanLibraries,
     selectMovie,
     selectShow,
+    viewMovieDetails,
+    viewShowDetails,
     backToLibrary,
     play,
     openExternal,
