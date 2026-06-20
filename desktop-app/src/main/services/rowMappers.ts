@@ -109,6 +109,7 @@ export function defaultSettings(deviceId: string): AppSettings {
     defaultMatcherStrategy: 'auto',
     extractFileMetadata: true,
     libraryFolders: [],
-    deviceId
+    deviceId,
+    autoDownloadUpdates: false
   };
 }

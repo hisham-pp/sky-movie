@@ -247,6 +247,7 @@ export interface AppSettings {
   extractFileMetadata: boolean;
   libraryFolders: string[];
   deviceId: string;
+  autoDownloadUpdates: boolean;
 }
 
 export interface ClearLocalDataResult {
@@ -260,6 +261,31 @@ export interface BackupResult {
   rowCount: number;
   createdAt: string;
 }
+
+export interface ReleaseInfo {
+  version: string;
+  releasedAt: string;
+  notes: string;
+  changes: string[];
+  downloadUrl: string;
+  webViewUrl: string;
+  size: number;
+}
+
+export interface UpdateCheckResult {
+  hasUpdate: boolean;
+  currentVersion: string;
+  latestVersion: string;
+  releaseInfo: ReleaseInfo | null;
+}
+
+export interface UpdateDownloadProgress {
+  bytesDownloaded: number;
+  totalBytes: number;
+  percentage: number;
+}
+
+export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'installing' | 'error';
 
 export interface SkyMovieApi {
   chooseFolder(title?: string): Promise<string | null>;
@@ -290,6 +316,10 @@ export interface SkyMovieApi {
   clearLocalLibraryData(): Promise<ClearLocalDataResult>;
   createBackup(destinationPath?: string): Promise<BackupResult | null>;
   restoreBackup(path?: string): Promise<BackupResult | null>;
+  checkForUpdates(): Promise<UpdateCheckResult>;
+  downloadAndInstallUpdate(): Promise<void>;
+  getUpdateStatus(): Promise<UpdateStatus>;
+  dismissUpdateNotification(): Promise<void>;
 }
 
 export const ipcChannels = {
@@ -320,5 +350,10 @@ export const ipcChannels = {
   getLibrarySummary: 'library:summary',
   clearLocalLibraryData: 'maintenance:clear-local-library-data',
   createBackup: 'backup:create',
-  restoreBackup: 'backup:restore'
+  restoreBackup: 'backup:restore',
+  checkForUpdates: 'update:check',
+  downloadAndInstallUpdate: 'update:download-install',
+  getUpdateStatus: 'update:status',
+  dismissUpdateNotification: 'update:dismiss-notification',
+  updateProgress: 'update:progress'
 } as const;

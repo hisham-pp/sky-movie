@@ -40,7 +40,11 @@ const api: SkyMovieApi = {
   getLibrarySummary: () => ipcRenderer.invoke(ipcChannels.getLibrarySummary),
   clearLocalLibraryData: () => ipcRenderer.invoke(ipcChannels.clearLocalLibraryData),
   createBackup: (destinationPath?: string) => ipcRenderer.invoke(ipcChannels.createBackup, destinationPath),
-  restoreBackup: (path?: string) => ipcRenderer.invoke(ipcChannels.restoreBackup, path)
+  restoreBackup: (path?: string) => ipcRenderer.invoke(ipcChannels.restoreBackup, path),
+  checkForUpdates: () => ipcRenderer.invoke(ipcChannels.checkForUpdates),
+  downloadAndInstallUpdate: () => ipcRenderer.invoke(ipcChannels.downloadAndInstallUpdate),
+  getUpdateStatus: () => ipcRenderer.invoke(ipcChannels.getUpdateStatus),
+  dismissUpdateNotification: () => ipcRenderer.invoke(ipcChannels.dismissUpdateNotification)
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);
