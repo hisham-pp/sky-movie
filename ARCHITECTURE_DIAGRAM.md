@@ -1,0 +1,374 @@
+# Sky Movie Architecture Diagram
+
+## Project Overview
+Sky Movie is a local-first desktop movie and TV library manager built as an Electron application with no backend server.
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Sky Movie Monorepo                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────┐         ┌──────────────────┐              │
+│  │   desktop-app/   │         │     website/     │              │
+│  │  (Electron MVP)  │         │  (Next.js Future)│              │
+│  └──────────────────┘         └──────────────────┘              │
+│                                                                   │
+│  ┌──────────────────┐         ┌──────────────────┐              │
+│  │    scripts/      │         │      docs/       │              │
+│  │  (Build/Release) │         │  (Architecture)  │              │
+│  └──────────────────┘         └──────────────────┘              │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Desktop App Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Electron Desktop App                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                    Main Process                          │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │  index.ts - Entry Point                          │   │    │
+│  │  │  - Creates BrowserWindow                         │   │    │
+│  │  │  - Initializes services                          │   │    │
+│  │  │  - Registers IPC handlers                        │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  │                                                           │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │  ipc.ts - IPC Communication Layer               │   │    │
+│  │  │  - scanLibrary, getMovies, getShows             │   │    │
+│  │  │  - playMedia, updateWatchProgress               │   │    │
+│  │  │  - exportLibrary, importLibrary, syncLibrary    │   │    │
+│  │  │  - createBackup, restoreBackup                  │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  │                                                           │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │              Services Layer                      │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ LibraryScanner - File scanning & matching │  │   │    │
+│  │  │  │ - Scan local folders                      │  │   │    │
+│  │  │  │ - Parse filenames                         │  │   │    │
+│  │  │  │ - Match to movies/shows                   │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ CatalogService - Database queries         │  │   │    │
+│  │  │  │ - getMovies, getShows                     │  │   │    │
+│  │  │  │ - getUnmatchedFiles                       │  │   │    │
+│  │  │  │ - updateFileMatch                         │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ MetadataProvider - TMDB integration      │  │   │    │
+│  │  │  │ - searchMovieMetadata                    │  │   │    │
+│  │  │  │ - searchTvMetadata                       │  │   │    │
+│  │  │  │ - applyMovieMetadata                     │  │   │    │
+│  │  │  │ - applyTvMetadata                        │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ PlayerService - Media playback          │  │   │    │
+│  │  │  │ - playMedia (sky-media:// protocol)      │  │   │    │
+│  │  │  │ - updateWatchProgress                    │  │   │    │
+│  │  │  │ - openExternally                         │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ LocalSyncEngine - Sync/Export/Import    │  │   │    │
+│  │  │  │ - exportLibrary                          │  │   │    │
+│  │  │  │ - importLibrary                          │  │   │    │
+│  │  │  │ - syncLibrary                            │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ BackupService - Backup/Restore          │  │   │    │
+│  │  │  │ - createBackup                           │  │   │    │
+│  │  │  │ - restoreBackup                          │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │   │
+│  │  │  │ SettingsService - App settings           │  │   │    │
+│  │  │  │ - getSettings                            │  │   │    │
+│  │  │  │ - updateSettings                         │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ MaintenanceService - Data cleanup       │  │   │    │
+│  │  │  │ - clearLocalLibraryData                 │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  │                                                           │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │              Database Layer                     │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ SQLite (better-sqlite3) + Drizzle ORM    │  │   │    │
+│  │  │  │ - schema.ts - Database schema            │  │   │    │
+│  │  │  │ - client.ts - Database connection         │  │   │    │
+│  │  │  │ - migrations.ts - Schema migrations       │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                              │                                     │
+│                              │ IPC (contextBridge)                 │
+│                              │                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                   Preload Script                         │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │  index.ts - Exposes safe API to renderer        │   │    │
+│  │  │  - contextBridge.exposeInMainWorld('skyMovie') │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                              │                                     │
+│                              │ window.skyMovie API                 │
+│                              │                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                  Renderer Process                        │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │         React + TypeScript + Vite                 │   │    │
+│  │  │         TailwindCSS + shadcn-style UI              │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  │                                                           │    │
+│  │  ┌──────────────────────────────────────────────────┐   │    │
+│  │  │              UI Components                       │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ LibraryView - Main library grid           │  │   │    │
+│  │  │  │ - Movie/Show grids                        │  │   │    │
+│  │  │  │ - Detail panels                           │  │   │    │
+│  │  │  │ - Search & filters                        │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ ScanPanel - Library scanning UI           │  │   │    │
+│  │  │  │ - Folder selection                        │  │   │    │
+│  │  │  │ - Scan mode & strategy                    │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ PlayerPanel - Video player                │  │   │    │
+│  │  │  │ - Artplayer integration                   │  │   │    │
+│  │  │  │ - Watch progress tracking                 │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ SettingsPanel - Settings UI               │  │   │    │
+│  │  │  │ - Metadata provider                       │  │   │    │
+│  │  │  │ - Scan settings                           │  │   │    │
+│  │  │  │ - Sync profiles                           │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ SearchModal - Search functionality       │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ UnrecognizedDrawer - Unmatched files      │  │   │    │
+│  │  │  │ - Manual matching UI                      │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  │  ┌──────────────────────────────────────────┐  │   │    │
+│  │  │  │ MetadataMatchDialog - Metadata matching │  │   │    │
+│  │  │  └──────────────────────────────────────────┘  │   │    │
+│  │  └──────────────────────────────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Database Schema
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SQLite Database Schema                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Core Tables:                                                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │  library_folders│  │     movies      │  │     tv_shows    │  │
+│  │  - id           │  │  - id           │  │  - id           │  │
+│  │  - path         │  │  - title        │  │  - title        │  │
+│  │  - name         │  │  - originalTitle│  │  - originalTitle│  │
+│  │  - mediaKind    │  │  - releaseYear  │  │  - firstAirYear │  │
+│  │  - createdAt    │  │  - overview     │  │  - overview     │  │
+│  │  - updatedAt    │  │  - posterPath   │  │  - posterPath   │  │
+│  └─────────────────┘  │  - backdropPath │  │  - backdropPath │  │
+│                       │  - runtime      │  │  - rating       │  │
+│  ┌─────────────────┐  │  - rating       │  │  - favorite     │  │
+│  │   media_files   │  │  - favorite     │  │  - addedAt      │  │
+│  │  - id           │  │  - addedAt      │  │  - updatedAt    │  │
+│  │  - libraryFolder│  │  - updatedAt    │  └─────────────────┘  │
+│  │  - mediaKind    │  └─────────────────┘                       │
+│  │  - absolutePath │                                              │
+│  │  - relativePath │  ┌─────────────────┐  ┌─────────────────┐  │
+│  │  - fileName     │  │     seasons     │  │    episodes     │  │
+│  │  - extension    │  │  - id           │  │  - id           │  │
+│  │  - fileSize     │  │  - showId       │  │  - showId       │  │
+│  │  - modifiedTime │  │  - seasonNumber │  │  - seasonId     │  │
+│  │  - createdTime  │  │  - title        │  │  - seasonNumber │  │
+│  │  - hash         │  │  - overview     │  │  - episodeNumber│  │
+│  │  - duration     │  │  - posterPath   │  │  - title        │  │
+│  │  - resolution   │  └─────────────────┘  │  - overview     │  │
+│  │  - videoCodec   │                       │  - runtime      │  │
+│  │  - audioTracks  │                       │  - airDate      │  │
+│  │  - subtitleTracks│                      │  - stillPath    │  │
+│  │  - matchedMovie │                       └─────────────────┘  │
+│  │  - matchedShow  │                                              │
+│  │  - matchedEpisode│                                             │
+│  │  - matchConfidence│                                            │
+│  │  - matchStatus   │                                             │
+│  └─────────────────┘                                             │
+│                                                                   │
+│  Supporting Tables:                                              │
+│  ┌──────────┐ ┌──────────┐ ┌──────────────┐ ┌──────────────┐    │
+│  │  genres  │ │  people  │ │watch_progress│ │ watch_history│    │
+│  │  - id    │ │  - id    │ │  - id        │ │  - id        │    │
+│  │  - name  │ │  - name  │ │  - mediaFile │ │  - mediaFile │    │
+│  └──────────┘ │  - role  │ │  - position  │ │  - watchedAt │    │
+│               │  - image │ │  - duration  │ │  - position  │    │
+│  ┌──────────┐ └──────────┘ │  - completed │ └──────────────┘    │
+│  │   tags   │               │  - updatedAt │                     │
+│  │  - id    │               └──────────────┘                     │
+│  │  - name  │                                                      │
+│  └──────────┘  ┌──────────────┐ ┌──────────────┐                  │
+│               │ collections  │ │ sync_profiles│                  │
+│  ┌──────────┐ │  - id        │ │  - id        │                  │
+│  │appSettings│ │  - name      │ │  - name      │                  │
+│  │  - key   │ │  - description│ │  - syncType  │                  │
+│  │  - value │ └──────────────┘ │  - destPath  │                  │
+│  │  - updated│                 │  - filters   │                  │
+│  └──────────┘                 │  - includeFiles│                  │
+│                               └──────────────┘                  │
+│  ┌──────────────┐                                              │
+│  │ sync_history │                                              │
+│  │  - id        │                                              │
+│  │  - profileId │                                              │
+│  │  - syncType  │                                              │
+│  │  - destPath  │                                              │
+│  │  - itemCount │                                              │
+│  │  - fileCount │                                              │
+│  │  - totalSize │                                              │
+│  │  - status    │                                              │
+│  │  - manifest  │                                              │
+│  │  - createdAt │                                              │
+│  └──────────────┘                                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Data Flow
+
+### Library Scanning Flow
+```
+User selects folder
+    ↓
+Renderer: scanLibrary(folderPath) via IPC
+    ↓
+Main Process: LibraryScanner.scanLibrary()
+    ↓
+Scan files and parse filenames
+    ↓
+Match to local database/TMDB
+    ↓
+Store in SQLite (media_files, movies, tv_shows)
+    ↓
+Return results to renderer
+    ↓
+Renderer: Update UI with new library
+```
+
+### Media Playback Flow
+```
+User clicks play on media file
+    ↓
+Renderer: playMedia(mediaFileId) via IPC
+    ↓
+Main Process: PlayerService.playMedia()
+    ↓
+Register custom protocol: sky-media://<mediaFileId>
+    ↓
+Return safe URL to renderer
+    ↓
+Renderer: Load URL in Artplayer
+    ↓
+Main Process: Stream file through custom protocol
+    ↓
+User watches and progress updates via IPC
+```
+
+### Sync/Export Flow
+```
+User initiates sync/export
+    ↓
+Renderer: syncLibrary() or exportLibrary() via IPC
+    ↓
+Main Process: LocalSyncEngine.syncLibrary()
+    ↓
+Export database to JSONL
+    ↓
+Copy media files (if configured)
+    ↓
+Create manifest.json
+    ↓
+Write to destination folder
+    ↓
+Return results to renderer
+```
+
+## Technology Stack
+
+### Desktop App
+- **Framework**: Electron 37.0.0
+- **UI**: React 19.0.0 + TypeScript 5.7.2
+- **Build**: Vite 6.0.3 + electron-vite 3.0.0
+- **Styling**: TailwindCSS 3.4.17
+- **Database**: SQLite (better-sqlite3 12.2.0) + Drizzle ORM 0.44.0
+- **Player**: Artplayer 5.4.0
+- **Icons**: Lucide React 0.468.0
+- **Package Manager**: pnpm 9.15.0
+
+### Website (Future)
+- **Framework**: Next.js
+- **UI**: React + TypeScript + TailwindCSS
+
+## Key Design Principles
+
+1. **Local-First**: No backend server, all data stored locally
+2. **Security**: Renderer never accesses filesystem directly, uses IPC via contextBridge
+3. **Privacy**: No cloud sync in MVP, all data stays on device
+4. **Extensibility**: Services designed to be wrapped by APIs later if needed
+5. **Performance**: SQLite for fast queries, custom protocol for media streaming
+6. **Backup-Friendly**: Structured app data layout for easy backup/restore
+
+## File System Layout
+
+```
+App Data Directory/
+├── database.sqlite
+├── cache/
+│   ├── images/
+│   ├── posters/
+│   ├── backdrops/
+│   └── subtitles/
+├── backups/
+└── exports/
+```
+
+## IPC Channels
+
+### Library Operations
+- `scanLibrary`, `scanLibraries`
+- `getMovies`, `getMovieById`
+- `getShows`, `getShowById`
+- `getUnmatchedFiles`
+- `getLibrarySummary`
+
+### Metadata Operations
+- `searchMovieMetadata`, `applyMovieMetadata`
+- `searchTvMetadata`, `applyTvMetadata`
+- `updateMetadata`
+- `updateFileMatch`, `markFileAsIgnored`
+
+### Player Operations
+- `playMedia`, `openMediaExternally`
+- `updateWatchProgress`
+
+### Sync/Backup Operations
+- `exportLibrary`, `importLibrary`, `syncLibrary`
+- `createBackup`, `restoreBackup`
+
+### Settings Operations
+- `getSettings`, `updateSettings`
+- `clearLocalLibraryData`
+
+### File Dialog Operations
+- `chooseFolder`, `chooseFolders`
