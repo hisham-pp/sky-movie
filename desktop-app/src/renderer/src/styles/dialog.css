@@ -1,0 +1,85 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 14, 18, 0.78);
+  padding: 28px;
+  backdrop-filter: blur(12px);
+}
+
+.metadata-match-dialog {
+  display: grid;
+  gap: 18px;
+  width: min(760px, 100%);
+  max-height: min(680px, calc(100vh - 56px));
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel-solid);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.metadata-match-dialog header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metadata-match-dialog header span {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.metadata-match-dialog h2 {
+  margin: 4px 0 0;
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.metadata-match-dialog header button {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.metadata-match-list {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.metadata-match-list button {
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: start;
+  min-height: 104px;
+}
+
+.metadata-match-list img,
+.metadata-match-list .metadata-poster-placeholder {
+  width: 64px;
+  height: 92px;
+  border-radius: 8px;
+}
+
+.metadata-match-list small {
+  color: var(--muted);
+}
+
+.metadata-match-list em {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--soft);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
