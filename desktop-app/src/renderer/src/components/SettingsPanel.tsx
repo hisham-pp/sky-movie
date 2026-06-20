@@ -52,6 +52,42 @@ const themePresets: Array<{
     name: 'Ember',
     description: 'Warm theater tones with amber focus states.',
     swatches: ['#170b08', '#ffb13c', '#f04f32']
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    description: 'Deep teal waves with aqua highlights.',
+    swatches: ['#0a1a1f', '#14b8a6', '#06b6d4']
+  },
+  {
+    id: 'forest',
+    name: 'Forest',
+    description: 'Rich emerald tones with natural greens.',
+    swatches: ['#0f1810', '#10b981', '#34d399']
+  },
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    description: 'Warm dusk palette with golden accents.',
+    swatches: ['#1a1214', '#f59e0b', '#fb923c']
+  },
+  {
+    id: 'noir',
+    name: 'Noir',
+    description: 'Pure black surfaces with minimal accents.',
+    swatches: ['#000000', '#404040', '#a3a3a3']
+  },
+  {
+    id: 'lavender',
+    name: 'Lavender',
+    description: 'Soft purple hues with dreamy atmospherics.',
+    swatches: ['#1a0f1f', '#a78bfa', '#c4b5fd']
+  },
+  {
+    id: 'crimson',
+    name: 'Crimson',
+    description: 'Bold red theater with dramatic contrast.',
+    swatches: ['#1a0808', '#ef4444', '#dc2626']
   }
 ];
 
