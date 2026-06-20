@@ -51,6 +51,13 @@ export default function Home() {
     return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
   };
   
+  const isBetaVersion = (version: string) => {
+    const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+    if (!match) return false;
+    const major = parseInt(match[1]);
+    return major < 1;
+  };
+  
   return (
     <>
       {/* Global Top Bar */}
@@ -184,8 +191,12 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="font-headline-sm text-lg flex items-center gap-2">
-                      {latestRelease?.version} 
-                      <span className="bg-primary/10 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-primary/20">Latest</span>
+                      {latestRelease?.version}
+                      {isBetaVersion(latestRelease?.version || '') ? (
+                        <span className="bg-orange-500/10 text-orange-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-orange-500/20">Beta</span>
+                      ) : (
+                        <span className="bg-primary/10 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-primary/20">Latest</span>
+                      )}
                     </h4>
                     <p className="text-secondary text-sm">Released {formatReleaseDate(latestRelease?.releasedAt)} • macOS, Windows, Linux</p>
                   </div>
