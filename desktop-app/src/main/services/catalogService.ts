@@ -63,4 +63,27 @@ export class CatalogService {
     const row = this.db.prepare('SELECT * FROM media_files WHERE id = ?').get(id) as Record<string, unknown> | undefined;
     return row ? mapMediaFile(row) : null;
   }
+
+  getUnmatchedFiles(): MediaFile[] {
+    const rows = this.db
+      .prepare(
+        `SELECT * FROM media_files
+         WHERE match_status = 'unmatched'
+         AND match_confidence < 0.5
+         ORDER BY file_name ASC`
+      )
+      .all() as Record<string, unknown>[];
+
+    return rows.map(mapMediaFile);
+  }
+
+  markFileAsIgnored(fileId: number): void {
+    this.db
+      .prepare(
+        `UPDATE media_files
+         SET match_status = 'ignored'
+         WHERE id = ?`
+      )
+      .run(fileId);
+  }
 }
