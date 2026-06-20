@@ -1,0 +1,228 @@
+/* Theme Variables */
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e2e2e8;
+  background: #111317;
+  --bg: #111317;
+  --bg-deep: #0f1115;
+  --surface-lowest: #0c0e12;
+  --surface-low: #1a1c20;
+  --surface: #1e2024;
+  --surface-high: #282a2e;
+  --surface-highest: #333539;
+  --ink: #e2e2e8;
+  --soft: #c4c6ce;
+  --muted: #88929b;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(137, 206, 255, 0.48);
+  --primary: #89ceff;
+  --primary-strong: #0ea5e9;
+  --on-primary: #00344d;
+  --danger: #ffb4ab;
+  --gold: #f7c948;
+  --panel: rgba(26, 29, 35, 0.78);
+  --panel-solid: #1a1d23;
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+  --glow: 0 0 24px rgba(137, 206, 255, 0.16);
+  --poster-a: rgba(137, 206, 255, 0.7);
+  --poster-b: rgba(62, 72, 80, 0.6);
+  --poster-c: rgba(14, 165, 233, 0.52);
+  color-scheme: dark;
+}
+
+.app-shell[data-theme="midnight"] {
+  --bg: #070b18;
+  --bg-deep: #050814;
+  --surface-lowest: #060916;
+  --surface-low: #10182d;
+  --surface: #16223e;
+  --surface-high: #202d4c;
+  --surface-highest: #2c3a5c;
+  --primary: #8bb7ff;
+  --primary-strong: #4f8ff8;
+  --on-primary: #071326;
+  --panel: rgba(13, 20, 40, 0.78);
+  --panel-solid: #10182d;
+  --line-strong: rgba(139, 183, 255, 0.46);
+  --poster-a: rgba(139, 183, 255, 0.7);
+  --poster-b: rgba(48, 78, 150, 0.55);
+  --poster-c: rgba(182, 149, 255, 0.42);
+}
+
+.app-shell[data-theme="daylight"] {
+  --bg: #f7f3ea;
+  --bg-deep: #ece6da;
+  --surface-lowest: #fffdf8;
+  --surface-low: #f0e9dc;
+  --surface: #ffffff;
+  --surface-high: #e8e1d5;
+  --surface-highest: #dcd2c2;
+  --ink: #17202a;
+  --soft: #344455;
+  --muted: #697789;
+  --line: rgba(31, 44, 59, 0.14);
+  --line-strong: rgba(35, 100, 210, 0.36);
+  --primary: #2364d2;
+  --primary-strong: #1d56bd;
+  --on-primary: #ffffff;
+  --panel: rgba(255, 255, 255, 0.76);
+  --panel-solid: #fffdf8;
+  --shadow: 0 24px 64px rgba(35, 44, 64, 0.16);
+  --glow: 0 0 22px rgba(35, 100, 210, 0.16);
+  color-scheme: light;
+}
+
+.app-shell[data-theme="ember"] {
+  --bg: #170b08;
+  --bg-deep: #0d0503;
+  --surface-lowest: #120704;
+  --surface-low: #24110c;
+  --surface: #301811;
+  --surface-high: #3d2118;
+  --surface-highest: #4c2d22;
+  --primary: #ffb13c;
+  --primary-strong: #f59e0b;
+  --on-primary: #281202;
+  --danger: #ff8d7e;
+  --panel: rgba(39, 18, 12, 0.78);
+  --panel-solid: #24110c;
+  --line-strong: rgba(255, 177, 60, 0.42);
+  --poster-a: rgba(255, 177, 60, 0.7);
+  --poster-b: rgba(124, 42, 23, 0.55);
+  --poster-c: rgba(240, 79, 50, 0.42);
+}
+
+.app-shell[data-theme="ocean"] {
+  --bg: #0a1a1f;
+  --bg-deep: #051115;
+  --surface-lowest: #081418;
+  --surface-low: #0f2832;
+  --surface: #14353f;
+  --surface-high: #1a4350;
+  --surface-highest: #225461;
+  --ink: #e2f3f8;
+  --soft: #c4e3ea;
+  --muted: #7eb8c8;
+  --primary: #14b8a6;
+  --primary-strong: #0d9488;
+  --on-primary: #032621;
+  --panel: rgba(10, 35, 42, 0.78);
+  --panel-solid: #0f2832;
+  --line-strong: rgba(20, 184, 166, 0.48);
+  --poster-a: rgba(20, 184, 166, 0.7);
+  --poster-b: rgba(34, 84, 97, 0.6);
+  --poster-c: rgba(6, 182, 212, 0.52);
+}
+
+.app-shell[data-theme="forest"] {
+  --bg: #0f1810;
+  --bg-deep: #0a110c;
+  --surface-lowest: #0d1410;
+  --surface-low: #1a2d20;
+  --surface: #234029;
+  --surface-high: #2d5135;
+  --surface-highest: #386443;
+  --ink: #e7f5ea;
+  --soft: #c8e8d0;
+  --muted: #85b890;
+  --primary: #10b981;
+  --primary-strong: #059669;
+  --on-primary: #022817;
+  --panel: rgba(20, 38, 26, 0.78);
+  --panel-solid: #1a2d20;
+  --line-strong: rgba(16, 185, 129, 0.48);
+  --poster-a: rgba(16, 185, 129, 0.7);
+  --poster-b: rgba(38, 64, 43, 0.6);
+  --poster-c: rgba(52, 211, 153, 0.52);
+}
+
+.app-shell[data-theme="sunset"] {
+  --bg: #1a1214;
+  --bg-deep: #100a0c;
+  --surface-lowest: #140e10;
+  --surface-low: #2d1a1c;
+  --surface: #3d2428;
+  --surface-high: #4e3035;
+  --surface-highest: #603d43;
+  --ink: #fce7e5;
+  --soft: #f0c5bf;
+  --muted: #d89387;
+  --primary: #f59e0b;
+  --primary-strong: #d97706;
+  --on-primary: #2b1700;
+  --panel: rgba(38, 20, 22, 0.78);
+  --panel-solid: #2d1a1c;
+  --line-strong: rgba(245, 158, 11, 0.48);
+  --poster-a: rgba(245, 158, 11, 0.7);
+  --poster-b: rgba(78, 48, 53, 0.6);
+  --poster-c: rgba(251, 146, 60, 0.52);
+}
+
+.app-shell[data-theme="noir"] {
+  --bg: #000000;
+  --bg-deep: #000000;
+  --surface-lowest: #0a0a0a;
+  --surface-low: #171717;
+  --surface: #262626;
+  --surface-high: #404040;
+  --surface-highest: #525252;
+  --ink: #fafafa;
+  --soft: #d4d4d4;
+  --muted: #a3a3a3;
+  --primary: #a3a3a3;
+  --primary-strong: #737373;
+  --on-primary: #000000;
+  --panel: rgba(15, 15, 15, 0.78);
+  --panel-solid: #171717;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(163, 163, 163, 0.52);
+  --poster-a: rgba(115, 115, 115, 0.7);
+  --poster-b: rgba(64, 64, 64, 0.6);
+  --poster-c: rgba(163, 163, 163, 0.52);
+}
+
+.app-shell[data-theme="lavender"] {
+  --bg: #1a0f1f;
+  --bg-deep: #100a15;
+  --surface-lowest: #140d18;
+  --surface-low: #2a1a35;
+  --surface: #382345;
+  --surface-high: #483056;
+  --surface-highest: #5a3f6a;
+  --ink: #f3e9ff;
+  --soft: #e3d1f5;
+  --muted: #c4a7e0;
+  --primary: #a78bfa;
+  --primary-strong: #8b5cf6;
+  --on-primary: #1e0f2d;
+  --panel: rgba(35, 20, 45, 0.78);
+  --panel-solid: #2a1a35;
+  --line-strong: rgba(167, 139, 250, 0.48);
+  --poster-a: rgba(167, 139, 250, 0.7);
+  --poster-b: rgba(72, 48, 86, 0.6);
+  --poster-c: rgba(196, 181, 253, 0.52);
+}
+
+.app-shell[data-theme="crimson"] {
+  --bg: #1a0808;
+  --bg-deep: #0f0404;
+  --surface-lowest: #140606;
+  --surface-low: #2d0f0f;
+  --surface: #3f1515;
+  --surface-high: #521e1e;
+  --surface-highest: #662929;
+  --ink: #ffe5e5;
+  --soft: #fcc8c8;
+  --muted: #f58a8a;
+  --primary: #ef4444;
+  --primary-strong: #dc2626;
+  --on-primary: #2a0505;
+  --danger: #ff9090;
+  --panel: rgba(38, 12, 12, 0.78);
+  --panel-solid: #2d0f0f;
+  --line-strong: rgba(239, 68, 68, 0.52);
+  --poster-a: rgba(239, 68, 68, 0.7);
+  --poster-b: rgba(82, 30, 30, 0.6);
+  --poster-c: rgba(220, 38, 38, 0.52);
+}
