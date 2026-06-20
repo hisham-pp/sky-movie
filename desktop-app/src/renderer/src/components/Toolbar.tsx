@@ -31,11 +31,6 @@ export function Toolbar({
           <span className="unrecognized-badge-count">{unmatchedCount}</span>
         </button>
       ) : null}
-      
-      <div className="toolbar-badge">
-        <Sparkles size={16} />
-        <span>Poster-first library</span>
-      </div>
     </header>
   );
 }
