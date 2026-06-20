@@ -6,7 +6,11 @@ export function MovieTile({ movie, onClick }: { movie: Movie; onClick(): void })
     <button className="tile" onClick={onClick}>
       <div className="poster">
         {movie.posterPath ? <img src={movie.posterPath} alt="" /> : <Film size={34} />}
-        <span className="tile-badge">Local</span>
+        <span className="tile-badge">LOCAL</span>
+        <span className="tile-overlay">
+          <strong>{movie.title}</strong>
+          <small>{movie.releaseYear ?? 'Unknown year'}</small>
+        </span>
       </div>
       <strong>{movie.title}</strong>
       <span>{movie.releaseYear ?? 'Unknown year'}</span>
@@ -21,6 +25,10 @@ export function ShowTile({ show, onClick }: { show: TvShow; onClick(): void }) {
       <div className="poster show-poster">
         {show.posterPath ? <img src={show.posterPath} alt="" /> : <Tv size={34} />}
         <span className="tile-badge">TV</span>
+        <span className="tile-overlay">
+          <strong>{show.title}</strong>
+          <small>{show.firstAirYear ?? 'Unknown year'}</small>
+        </span>
       </div>
       <strong>{show.title}</strong>
       <span>{show.firstAirYear ?? 'Unknown year'}</span>

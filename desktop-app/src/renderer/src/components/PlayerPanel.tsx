@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 
+const resumeStartThresholdSeconds = 5;
+const resumeEndBufferSeconds = 10;
+const saveIntervalMs = 10000;
+
 export function PlayerPanel({
   player,
   onOpenExternal
@@ -24,7 +28,7 @@ export function PlayerPanel({
     const art = new Artplayer({
       container,
       url: player.mediaUrl,
-      theme: '#0df2c9',
+      theme: '#89ceff',
       volume: 0.8,
       autoplay: true,
       pip: true,
@@ -42,32 +46,88 @@ export function PlayerPanel({
       }
     });
     artRef.current = art;
+    let restoredPosition = false;
+    let lastSavedPosition = -1;
+    let lastSavedAt = 0;
 
-    const updateProgress = async () => {
+    const loadTimer = window.setTimeout(() => {
       const video = art.video;
-      if (!video || !Number.isFinite(video.duration)) {
+      if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) {
+        setPlaybackError('The built-in player did not load this file. HEVC/x265 videos usually need the system player.');
+      }
+    }, 5000);
+
+    const updateProgress = async (force = false) => {
+      const video = art.video;
+      if (!video || !Number.isFinite(video.duration) || video.duration <= 0 || !Number.isFinite(video.currentTime)) {
+        return;
+      }
+
+      const positionSeconds = Math.floor(video.currentTime);
+      const now = Date.now();
+
+      if (!force && (positionSeconds === lastSavedPosition || now - lastSavedAt < saveIntervalMs)) {
         return;
       }
 
       await window.skyMovie.updateWatchProgress({
         mediaFileId: player.mediaFileId,
-        positionSeconds: Math.floor(video.currentTime),
+        positionSeconds,
         durationSeconds: Math.floor(video.duration),
         completed: video.duration > 0 && video.currentTime / video.duration > 0.92
       });
+      lastSavedPosition = positionSeconds;
+      lastSavedAt = now;
+    };
+
+    const restorePosition = () => {
+      if (restoredPosition) {
+        return;
+      }
+
+      const video = art.video;
+      const savedPosition = player.watchProgress?.positionSeconds ?? 0;
+      const savedDuration = player.watchProgress?.durationSeconds ?? 0;
+      const duration = Number.isFinite(video?.duration) && video.duration > 0 ? video.duration : savedDuration;
+
+      restoredPosition = true;
+
+      if (
+        player.watchProgress?.completed ||
+        savedPosition < resumeStartThresholdSeconds ||
+        duration - savedPosition < resumeEndBufferSeconds
+      ) {
+        return;
+      }
+
+      if (video) {
+        video.currentTime = Math.min(savedPosition, Math.max(duration - resumeEndBufferSeconds, 0));
+      }
     };
 
     const handlePlaybackError = () => {
       setPlaybackError('The built-in player cannot decode this file. HEVC/x265 videos usually need the system player.');
     };
 
-    art.on('video:pause', () => void updateProgress());
-    art.on('video:ended', () => void updateProgress());
+    art.on('video:pause', () => void updateProgress(true));
+    art.on('video:seeked', () => void updateProgress(true));
+    art.on('video:timeupdate', () => void updateProgress());
+    art.on('video:ended', () => void updateProgress(true));
     art.on('video:error', handlePlaybackError);
-    art.on('video:loadedmetadata', () => setPlaybackError(null));
+    art.on('video:loadedmetadata', () => {
+      window.clearTimeout(loadTimer);
+      setPlaybackError(null);
+      restorePosition();
+    });
+    art.on('video:canplay', () => {
+      window.clearTimeout(loadTimer);
+      setPlaybackError(null);
+      restorePosition();
+    });
 
     return () => {
-      void updateProgress();
+      window.clearTimeout(loadTimer);
+      void updateProgress(true);
       art.destroy(false);
       artRef.current = null;
       container.textContent = '';

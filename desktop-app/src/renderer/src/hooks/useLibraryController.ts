@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
   AppSettings,
+  Episode,
   LibraryScanMode,
   LibrarySummary,
   MatcherStrategy,
@@ -41,6 +42,7 @@ export function useLibraryController() {
   const [selectedTitle, setSelectedTitle] = useState('No media selected');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [selectedShow, setSelectedShow] = useState<TvShow | null>(null);
+  const [selectedEpisodes, setSelectedEpisodes] = useState<Episode[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
   const [metadataQuery, setMetadataQuery] = useState('');
   const [metadataResults, setMetadataResults] = useState<Array<MovieMetadataSearchResult | TvMetadataSearchResult>>([]);
@@ -185,23 +187,48 @@ export function useLibraryController() {
     }
   }
 
+  function changeView(nextView: ViewMode) {
+    setView(nextView);
+    setSelectedMovie(null);
+    setSelectedShow(null);
+    setSelectedEpisodes([]);
+    setSelectedFiles([]);
+    setMetadataResults([]);
+    setSelectedTitle('No media selected');
+  }
+
+  function backToLibrary() {
+    setSelectedMovie(null);
+    setSelectedShow(null);
+    setSelectedEpisodes([]);
+    setSelectedFiles([]);
+    setMetadataResults([]);
+    setSelectedTitle('No media selected');
+  }
+
   async function selectMovie(movie: Movie) {
     const details = await getSkyMovieApi().getMovieById(movie.id);
-    setSelectedMovie(movie);
+    const selected = details.item ?? movie;
+    setView('movies');
+    setSelectedMovie(selected);
     setSelectedShow(null);
-    setSelectedTitle(movie.title);
+    setSelectedEpisodes([]);
+    setSelectedTitle(selected.title);
     setSelectedFiles(details.files);
-    setMetadataQuery(`${movie.title}${movie.releaseYear ? ` ${movie.releaseYear}` : ''}`);
+    setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
     setMetadataResults([]);
   }
 
   async function selectShow(show: TvShow) {
     const details = await getSkyMovieApi().getShowById(show.id);
+    const selected = details.item ?? show;
+    setView('shows');
     setSelectedMovie(null);
-    setSelectedShow(show);
-    setSelectedTitle(show.title);
+    setSelectedShow(selected);
+    setSelectedEpisodes(details.episodes ?? []);
+    setSelectedTitle(selected.title);
     setSelectedFiles(details.files);
-    setMetadataQuery(`${show.title}${show.firstAirYear ? ` ${show.firstAirYear}` : ''}`);
+    setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
     setMetadataResults([]);
   }
 
@@ -236,6 +263,9 @@ export function useLibraryController() {
       const result = await getSkyMovieApi().clearLocalLibraryData();
       setMovies([]);
       setShows([]);
+      setSelectedMovie(null);
+      setSelectedShow(null);
+      setSelectedEpisodes([]);
       setSelectedFiles([]);
       setPlayer(null);
       await refreshAll();
@@ -519,7 +549,7 @@ export function useLibraryController() {
 
   return {
     view,
-    setView,
+    setView: changeView,
     query,
     setQuery,
     movies,
@@ -536,6 +566,7 @@ export function useLibraryController() {
     selectedTitle,
     selectedMovie,
     selectedShow,
+    selectedEpisodes,
     selectedFiles,
     metadataQuery,
     setMetadataQuery,
@@ -551,6 +582,7 @@ export function useLibraryController() {
     scanLibraries,
     selectMovie,
     selectShow,
+    backToLibrary,
     play,
     openExternal,
     saveSettings,

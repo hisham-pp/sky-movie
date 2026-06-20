@@ -33,8 +33,8 @@ const themePresets: Array<{
   {
     id: 'cinema',
     name: 'Cinema',
-    description: 'Balanced dark theme with teal highlights.',
-    swatches: ['#071013', '#0df2c9', '#ff6b4a']
+    description: 'Cinematic charcoal surfaces with sky blue focus.',
+    swatches: ['#111317', '#1a1c20', '#89ceff']
   },
   {
     id: 'midnight',
@@ -45,8 +45,8 @@ const themePresets: Array<{
   {
     id: 'daylight',
     name: 'Daylight',
-    description: 'Clean bright layout for daytime browsing.',
-    swatches: ['#f7f3ea', '#2364d2', '#d96f32']
+    description: 'Clean bright layout for daytime curation.',
+    swatches: ['#f7f3ea', '#2364d2', '#111317']
   },
   {
     id: 'ember',
@@ -102,7 +102,7 @@ export function SettingsPanel({
       <header className="settings-header">
         <div>
           <h2>Settings</h2>
-          <p>Manage library folders, metadata, backups, and local storage.</p>
+          <p>Manage the local vault, metadata matching, backups, and exports.</p>
         </div>
       </header>
 

@@ -45,6 +45,7 @@ export function App() {
             selectedTitle={library.selectedTitle}
             selectedMovie={library.selectedMovie}
             selectedShow={library.selectedShow}
+            selectedEpisodes={library.selectedEpisodes}
             selectedFiles={library.selectedFiles}
             metadataQuery={library.metadataQuery}
             metadataResults={library.metadataResults}
@@ -53,6 +54,7 @@ export function App() {
             lastScan={library.lastScan}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
+            onBackToLibrary={library.backToLibrary}
             onMetadataQueryChange={library.setMetadataQuery}
             onSearchMetadata={library.searchSelectedMetadata}
             onApplyMetadata={library.applySelectedMetadata}

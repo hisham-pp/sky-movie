@@ -1,5 +1,5 @@
 import { statSync } from 'node:fs';
-import { readdir } from 'node:fs/promises';
+import { readdir, realpath } from 'node:fs/promises';
 import { basename, dirname, extname, join, relative } from 'node:path';
 import type { LibraryScanMode, LibrarySummary, MatcherStrategy, MediaKind, ScanResult } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
@@ -42,12 +42,22 @@ interface ExtractedFileMetadata {
   subtitleTracks: string | null;
 }
 
+interface ExistingMediaFileMatch {
+  media_kind: MediaKind;
+  matched_movie_id: number | null;
+  matched_show_id: number | null;
+  matched_episode_id: number | null;
+  match_confidence: number;
+  match_status: string;
+}
+
 export class LibraryScanner {
   constructor(private readonly db: SqliteDatabase) {}
 
   async scanLibrary(rootPath: string, options: ScanOptions): Promise<ScanResult> {
-    const folder = this.upsertLibraryFolder(rootPath, options.mediaKind);
-    const files = await this.findVideoFiles(rootPath);
+    const normalizedRootPath = await normalizePath(rootPath);
+    const folder = this.upsertLibraryFolder(normalizedRootPath, options.mediaKind);
+    const files = await this.findVideoFiles(normalizedRootPath);
 
     let importedFiles = 0;
     let movieMatches = 0;
@@ -58,9 +68,10 @@ export class LibraryScanner {
 
     const transaction = this.db.transaction((videoFiles: string[]) => {
       for (const absolutePath of videoFiles) {
-        const parsed = parseMediaName(absolutePath, rootPath, options);
+        const existingFile = this.getExistingMediaFileMatch(absolutePath);
+        const parsed = existingFile ? null : parseMediaName(absolutePath, normalizedRootPath, options);
         const fileStats = statSync(absolutePath);
-        const relativePath = relative(rootPath, absolutePath);
+        const relativePath = relative(normalizedRootPath, absolutePath);
         const extension = extname(absolutePath).toLowerCase();
         const fileMetadata = options.extractFileMetadata
           ? extractFileMetadataHints(absolutePath)
@@ -69,12 +80,42 @@ export class LibraryScanner {
         let matchedMovieId: number | null = null;
         let matchedShowId: number | null = null;
         let matchedEpisodeId: number | null = null;
+        let mediaKind: MediaKind;
+        let matchConfidence: number;
+        let matchStatus: string;
 
-        if (parsed.mediaKind === 'movie') {
-          matchedMovieId = this.upsertMovie(parsed.title, parsed.year);
-          movieIds.add(matchedMovieId);
+        if (existingFile) {
+          mediaKind = existingFile.media_kind;
+          matchedMovieId = existingFile.matched_movie_id;
+          matchedShowId = existingFile.matched_show_id;
+          matchedEpisodeId = existingFile.matched_episode_id;
+          matchConfidence = existingFile.match_confidence;
+          matchStatus = existingFile.match_status;
+
+          if (matchedMovieId) {
+            movieMatches += 1;
+          } else if (matchedShowId) {
+            showMatches += 1;
+          } else {
+            unmatchedFiles += 1;
+          }
+        } else if (parsed?.mediaKind === 'movie') {
+          mediaKind = parsed.mediaKind;
+          matchConfidence = parsed.confidence;
+          matchStatus = parsed.confidence >= 0.5 ? 'auto_matched' : 'unmatched';
+          const match = this.upsertMovie(parsed.title, parsed.year);
+          matchedMovieId = match.id;
+          if (match.created) {
+            movieIds.add(matchedMovieId);
+          }
           movieMatches += 1;
         } else {
+          if (!parsed) {
+            throw new Error(`Could not parse media file ${absolutePath}.`);
+          }
+          mediaKind = parsed.mediaKind;
+          matchConfidence = parsed.confidence;
+          matchStatus = parsed.confidence >= 0.5 ? 'auto_matched' : 'unmatched';
           const match = this.upsertShowEpisode(parsed.title, parsed.seasonNumber ?? 1, parsed.episodeNumber ?? 1);
           matchedShowId = match.showId;
           matchedEpisodeId = match.episodeId;
@@ -82,7 +123,7 @@ export class LibraryScanner {
           showMatches += 1;
         }
 
-        if (parsed.confidence < 0.5) {
+        if (!existingFile && parsed && parsed.confidence < 0.5) {
           unmatchedFiles += 1;
         }
 
@@ -113,11 +154,11 @@ export class LibraryScanner {
               matched_show_id = excluded.matched_show_id,
               matched_episode_id = excluded.matched_episode_id,
               match_confidence = excluded.match_confidence,
-              match_status = excluded.match_status`
+            match_status = excluded.match_status`
           )
           .run(
             folder.id,
-            parsed.mediaKind,
+            mediaKind,
             absolutePath,
             relativePath,
             basename(absolutePath),
@@ -133,8 +174,8 @@ export class LibraryScanner {
             matchedMovieId,
             matchedShowId,
             matchedEpisodeId,
-            parsed.confidence,
-            parsed.confidence >= 0.5 ? 'auto_matched' : 'unmatched'
+            matchConfidence,
+            matchStatus
           );
 
         if (result.changes > 0) {
@@ -207,14 +248,26 @@ export class LibraryScanner {
     return mapLibraryFolder(this.db.prepare('SELECT * FROM library_folders WHERE path = ?').get(rootPath) as Record<string, unknown>);
   }
 
-  private upsertMovie(title: string, year: number | null): number {
+  private getExistingMediaFileMatch(absolutePath: string): ExistingMediaFileMatch | null {
+    const existing = this.db
+      .prepare(
+        `SELECT media_kind, matched_movie_id, matched_show_id, matched_episode_id, match_confidence, match_status
+         FROM media_files
+         WHERE absolute_path = ?`
+      )
+      .get(absolutePath) as ExistingMediaFileMatch | undefined;
+
+    return existing ?? null;
+  }
+
+  private upsertMovie(title: string, year: number | null): { id: number; created: boolean } {
     const now = new Date().toISOString();
     const existing = this.db
-      .prepare('SELECT id FROM movies WHERE title = ? AND COALESCE(release_year, 0) = COALESCE(?, 0)')
+      .prepare('SELECT id FROM movies WHERE lower(title) = lower(?) AND COALESCE(release_year, 0) = COALESCE(?, 0)')
       .get(title, year) as { id: number } | undefined;
 
     if (existing) {
-      return existing.id;
+      return { id: existing.id, created: false };
     }
 
     const result = this.db
@@ -224,7 +277,7 @@ export class LibraryScanner {
       )
       .run(title, year, now, now);
 
-    return Number(result.lastInsertRowid);
+    return { id: Number(result.lastInsertRowid), created: true };
   }
 
   private upsertShowEpisode(title: string, seasonNumber: number, episodeNumber: number) {
@@ -332,6 +385,14 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
     episodeNumber: null,
     confidence: 0.45
   };
+}
+
+async function normalizePath(path: string): Promise<string> {
+  try {
+    return await realpath(path);
+  } catch {
+    return path;
+  }
 }
 
 function extractFileMetadataHints(path: string): ExtractedFileMetadata {
