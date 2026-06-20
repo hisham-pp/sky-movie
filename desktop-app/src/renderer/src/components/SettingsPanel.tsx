@@ -5,7 +5,6 @@ import {
   Download,
   Eraser,
   FolderPlus,
-  FolderSearch,
   Palette,
   Upload,
   X
@@ -66,7 +65,6 @@ export function SettingsPanel({
   onSave,
   onChooseFolders,
   onRemoveFolder,
-  onScanLibraries,
   onClear,
   onBackup,
   onRestore,
@@ -81,7 +79,6 @@ export function SettingsPanel({
   onSave(update: Partial<AppSettings>): void;
   onChooseFolders(): void;
   onRemoveFolder(path: string): void;
-  onScanLibraries(): void;
   onClear(): void;
   onBackup(): void;
   onRestore(): void;
@@ -160,16 +157,12 @@ export function SettingsPanel({
             <div className="settings-section-heading">
               <div>
                 <h3>Library Finder</h3>
-                <p>Add one or more local folders, then scan them into the library.</p>
+                <p>Choose the local folders and matching rules used by the Scan page.</p>
               </div>
               <div className="settings-actions">
                 <button disabled={busy} onClick={onChooseFolders}>
                   <FolderPlus size={18} />
                   Add folders
-                </button>
-                <button className="primary" disabled={busy} onClick={onScanLibraries}>
-                  <FolderSearch size={18} />
-                  Scan libraries
                 </button>
               </div>
             </div>

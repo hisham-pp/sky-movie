@@ -1,4 +1,4 @@
-import { Film, HardDrive, Settings, Tv, Video } from 'lucide-react';
+import { Download, Film, FolderSearch, HardDrive, Settings, Tv, Video } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
 import { Metric } from './Metric';
@@ -22,6 +22,10 @@ export function Sidebar({
       </div>
 
       <nav className="nav">
+        <button className="passive" onClick={() => onViewChange('movies')} title="Library">
+          <Video size={18} />
+          <span>Library</span>
+        </button>
         <button className={view === 'movies' ? 'active' : ''} onClick={() => onViewChange('movies')} title="Movies">
           <Film size={18} />
           <span>Movies</span>
@@ -30,9 +34,13 @@ export function Sidebar({
           <Tv size={18} />
           <span>TV Shows</span>
         </button>
-        <button className="passive" title="Local files">
-          <Video size={18} />
-          <span>Library</span>
+        <button className={view === 'scan' ? 'active' : ''} onClick={() => onViewChange('scan')} title="Scan">
+          <FolderSearch size={18} />
+          <span>Scan</span>
+        </button>
+        <button className="passive" title="Downloads live in Settings">
+          <Download size={18} />
+          <span>Downloads</span>
         </button>
         <button className={view === 'settings' ? 'active' : ''} onClick={() => onViewChange('settings')} title="Settings">
           <Settings size={18} />

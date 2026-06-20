@@ -40,7 +40,7 @@ export function LibraryView({
   onPlay,
   onOpenExternal
 }: {
-  view: Exclude<ViewMode, 'settings'>;
+  view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
   shows: TvShow[];
   selectedTitle: string;
@@ -131,7 +131,7 @@ function BrowseLibraryPage({
   onSelectShow,
   onOpenExternal
 }: {
-  view: Exclude<ViewMode, 'settings'>;
+  view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
   shows: TvShow[];
   selectedTitle: string;
