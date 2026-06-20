@@ -20,7 +20,6 @@ async function main() {
   // Load environment from envs/.env.github if it exists
   loadEnvFile(args.envFile ?? 'envs/.env.github');
   
-  const version = args.version ?? readJson(desktopPackagePath).version;
   const owner = args.owner ?? process.env.GITHUB_OWNER ?? await getRepoOwner();
   const repo = args.repo ?? process.env.GITHUB_REPO ?? await getRepoName();
   const token = args.token ?? process.env.GITHUB_TOKEN;
@@ -29,13 +28,18 @@ async function main() {
     throw new Error('GITHUB_TOKEN environment variable or --token argument required.');
   }
 
-  console.log(`Fetching GitHub release for ${owner}/${repo} v${version}...`);
+  console.log(`Fetching latest GitHub release for ${owner}/${repo}...`);
 
-  const release = await fetchGitHubRelease(owner, repo, `v${version}`, token);
+  const release = args.version 
+    ? await fetchGitHubRelease(owner, repo, `v${args.version}`, token)
+    : await fetchLatestGitHubRelease(owner, repo, token);
+    
   if (!release) {
-    throw new Error(`GitHub release v${version} not found. Create the release first with the GitHub Actions workflow.`);
+    const versionMsg = args.version ? `v${args.version}` : 'latest';
+    throw new Error(`GitHub release ${versionMsg} not found. Create the release first with the GitHub Actions workflow.`);
   }
 
+  const version = release.tag_name.replace(/^v/, '');
   console.log(`Found release: ${release.name} (${release.tag_name})`);
   console.log(`Published: ${release.published_at}`);
   console.log(`Assets: ${release.assets.length}`);
@@ -163,7 +167,7 @@ Usage:
   node scripts/release-github.mjs [options]
 
 Options:
-  --version <version>    Release version. Defaults to desktop-app/package.json version.
+  --version <version>    Specific release version to fetch. If omitted, fetches the latest release.
   --owner <owner>        GitHub repository owner. Defaults to GITHUB_OWNER env var or git remote origin.
   --repo <repo>          GitHub repository name. Defaults to GITHUB_REPO env var or git remote origin.
   --token <token>        GitHub token. Defaults to GITHUB_TOKEN env var.
@@ -176,6 +180,24 @@ Options:
 
 async function fetchGitHubRelease(owner, repo, tag, token) {
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${tag}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github.v3+json'
+    }
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null;
+    }
+    throw new Error(`GitHub API error: ${response.status} ${await response.text()}`);
+  }
+
+  return response.json();
+}
+
+async function fetchLatestGitHubRelease(owner, repo, token) {
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github.v3+json'
