@@ -7,6 +7,9 @@ website\tsconfig.tsbuildinfo
 website/tsconfig.tsbuildinfo
 website/next-dev.log
 
+# Env
+envs/*
+
 # files
 *.asar
 8.log

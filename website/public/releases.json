@@ -1,0 +1,23 @@
+{
+  "latestVersion": "0.1.0",
+  "updatedAt": null,
+  "releases": [
+    {
+      "version": "0.1.0",
+      "releasedAt": null,
+      "storageProvider": "cloudflare-r2",
+      "storageBucket": null,
+      "storagePrefix": null,
+      "storageFolderUrl": null,
+      "sourceCommit": {
+        "sha": null,
+        "message": null
+      },
+      "notes": "Initial release metadata placeholder. Run pnpm run release:r2 after packaging desktop artifacts.",
+      "changes": [
+        "Initial release metadata placeholder."
+      ],
+      "artifacts": []
+    }
+  ]
+}
