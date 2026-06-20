@@ -19,10 +19,6 @@ export function Toolbar({
         />
         <kbd className="search-shortcut">Ctrl+K</kbd>
       </div>
-      <div className="toolbar-badge">
-        <Sparkles size={16} />
-        <span>Poster-first library</span>
-      </div>
     </header>
   );
 }

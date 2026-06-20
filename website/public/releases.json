@@ -1,7 +1,144 @@
 {
-  "latestVersion": "0.2.0",
-  "updatedAt": "2026-06-20T11:22:37.057Z",
+  "latestVersion": "0.2.1",
+  "updatedAt": "2026-06-20T12:46:26.725Z",
   "releases": [
+    {
+      "version": "0.2.1",
+      "releasedAt": "2026-06-20T12:45:35Z",
+      "storageProvider": "github-releases",
+      "storageFolderUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1",
+      "sourceCommit": {
+        "sha": "main",
+        "message": "Release 0.2.1"
+      },
+      "notes": "Sky Movie 0.2.1",
+      "changes": [
+        "- add search modal with Ctrl+K shortcut and movie/show listing (Hisham)",
+        "- remove title text from header toolbar (Hisham)",
+        "- make toolbar header transparent (Hisham)",
+        "- remove title and badge from toolbar header (Hisham)",
+        "- reduce sidebar width from 280px to 220px (Hisham)",
+        "- add beta version detection and badge display (Hisham)",
+        "- dynamically load releases from manifest and display in landing page (Hisham)",
+        "- add client-side whats-new page with release history (Hisham)",
+        "- disable TypeScript auto-closing tags in VSCode (Hisham)",
+        "- Update What's New page styling with modern glass-panel design (Hisham)",
+        "- docs: add code signing guide and update build configuration (Hisham)",
+        "- chore(release): publish Sky Movie 0.2.0 downloads from GitHub (Hisham)"
+      ],
+      "artifacts": [
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.2.1-amd64.deb",
+          "size": 98395600,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-amd64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.2.1-arm64.AppImage",
+          "size": 127477369,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-arm64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.2.1-arm64.deb",
+          "size": 92953384,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-arm64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.2.1-arm64.dmg",
+          "size": 119029927,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-arm64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.2.1-arm64.tar.gz",
+          "size": 120043363,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-arm64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.2.1-arm64.zip",
+          "size": 119069838,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-arm64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "windows",
+          "arch": "x64",
+          "kind": "installer",
+          "fileName": "Sky-Movie-0.2.1-x64-Setup.exe",
+          "size": 99726595,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-x64-Setup.exe",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.2.1-x64.dmg",
+          "size": 123816523,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-x64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.2.1-x64.tar.gz",
+          "size": 120096370,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-x64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.2.1-x64.zip",
+          "size": 123913386,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-x64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        },
+        {
+          "platform": "linux",
+          "arch": "ia32",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.2.1-x86_64.AppImage",
+          "size": 127257930,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.2.1/Sky-Movie-0.2.1-x86_64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1"
+        }
+      ]
+    },
     {
       "version": "0.2.0",
       "releasedAt": "2026-06-20T11:18:38Z",
