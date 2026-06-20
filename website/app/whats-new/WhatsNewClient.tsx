@@ -43,6 +43,13 @@ export default function WhatsNewClient({ releases, latestVersion }: WhatsNewClie
   const latestRelease = releases[0];
   const olderReleases = releases.slice(1);
   
+  const isBetaVersion = (version: string) => {
+    const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+    if (!match) return false;
+    const major = parseInt(match[1]);
+    return major < 1;
+  };
+  
   return (
     <section className="section">
       <div className="section-inner release-timeline">
@@ -51,8 +58,15 @@ export default function WhatsNewClient({ releases, latestVersion }: WhatsNewClie
           <article className="release-card" key={latestRelease.version}>
             <div className="release-card-header">
               <div>
-                <span className="release-eyebrow">Latest release</span>
-                <h2>Sky Movie {latestRelease.version}</h2>
+                <span className="release-eyebrow">
+                  {isBetaVersion(latestRelease.version) ? 'Latest Beta Release' : 'Latest Release'}
+                </span>
+                <h2 className="flex items-center gap-3">
+                  Sky Movie {latestRelease.version}
+                  {isBetaVersion(latestRelease.version) && (
+                    <span className="bg-orange-500/10 text-orange-400 text-xs uppercase font-bold px-3 py-1 rounded-full border border-orange-500/20">Beta</span>
+                  )}
+                </h2>
                 <p>{latestRelease.notes}</p>
               </div>
               <div className="release-date-pill">{formatReleaseDate(latestRelease.releasedAt)}</div>
@@ -129,8 +143,15 @@ export default function WhatsNewClient({ releases, latestVersion }: WhatsNewClie
               <article className="release-card" key={release.version}>
                 <div className="release-card-header">
                   <div>
-                    <span className="release-eyebrow">Release</span>
-                    <h2>Sky Movie {release.version}</h2>
+                    <span className="release-eyebrow">
+                      {isBetaVersion(release.version) ? 'Beta Release' : 'Release'}
+                    </span>
+                    <h2 className="flex items-center gap-3">
+                      Sky Movie {release.version}
+                      {isBetaVersion(release.version) && (
+                        <span className="bg-orange-500/10 text-orange-400 text-xs uppercase font-bold px-3 py-1 rounded-full border border-orange-500/20">Beta</span>
+                      )}
+                    </h2>
                     <p>{release.notes}</p>
                   </div>
                   <div className="release-date-pill">{formatReleaseDate(release.releasedAt)}</div>
