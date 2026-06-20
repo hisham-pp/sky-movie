@@ -74,8 +74,8 @@ async function main() {
   console.log('\n📝 Git operations to be performed:');
   console.log(`  1. git add package.json desktop-app/package.json CHANGELOG.md`);
   console.log(`  2. git commit -m "chore: release v${newVersion}"`);
-  console.log(`  3. git tag v${newVersion}`);
-  console.log(`  4. git push origin main`);
+  console.log(`  3. git push origin main`);
+  console.log(`  4. git tag v${newVersion}`);
   console.log(`  5. git push origin v${newVersion}`);
 
   // Ask for confirmation
@@ -117,19 +117,7 @@ async function main() {
   }
   console.log('  ✓ Created commit');
 
-  // Git tag
-  const tagResult = spawnSync('git', ['tag', `v${newVersion}`], {
-    cwd: repoRoot,
-    stdio: 'inherit'
-  });
-
-  if (tagResult.status !== 0) {
-    console.error('❌ Failed to create tag');
-    process.exit(1);
-  }
-  console.log('  ✓ Created tag');
-
-  // Git push
+  // Git push changes first
   const pushResult = spawnSync('git', ['push', 'origin', 'main'], {
     cwd: repoRoot,
     stdio: 'inherit'
@@ -141,7 +129,19 @@ async function main() {
   }
   console.log('  ✓ Pushed commits');
 
-  // Git push tags
+  // Git tag (after push)
+  const tagResult = spawnSync('git', ['tag', `v${newVersion}`], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (tagResult.status !== 0) {
+    console.error('❌ Failed to create tag');
+    process.exit(1);
+  }
+  console.log('  ✓ Created tag');
+
+  // Git push tag
   const pushTagResult = spawnSync('git', ['push', 'origin', `v${newVersion}`], {
     cwd: repoRoot,
     stdio: 'inherit'
@@ -206,7 +206,8 @@ function updateChangelog(changelogPath, oldVersion, newVersion) {
   
   commits.forEach(commit => {
     const msg = commit.message.toLowerCase();
-    const line = `- ${commit.message}`;
+    const author = commit.author || 'Unknown';
+    const line = `- ${commit.message} (${author})`;
     
     if (msg.startsWith('feat:') || msg.startsWith('feat(')) {
       categories.added.push(line.replace(/^- feat(\([\w-]+\))?:\s*/i, '- '));
@@ -314,7 +315,8 @@ function getCommitsSinceLastVersion(version) {
     gitRange = 'HEAD~10..HEAD';
   }
   
-  const logResult = spawnSync('git', ['log', gitRange, '--pretty=format:%s', '--no-merges'], {
+  // Get commits with author name
+  const logResult = spawnSync('git', ['log', gitRange, '--pretty=format:%s|%an', '--no-merges'], {
     cwd: repoRoot,
     encoding: 'utf8'
   });
@@ -327,7 +329,13 @@ function getCommitsSinceLastVersion(version) {
     .trim()
     .split('\n')
     .filter(line => line.trim())
-    .map(message => ({ message: message.trim() }));
+    .map(line => {
+      const [message, author] = line.split('|');
+      return { 
+        message: message.trim(),
+        author: author ? author.trim() : 'Unknown'
+      };
+    });
 }
 
 function getCommitCount(version) {
