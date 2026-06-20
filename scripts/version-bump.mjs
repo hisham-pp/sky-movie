@@ -159,7 +159,7 @@ async function main() {
 
   // Wait 7 minutes then check for newer versions
   console.log(`\n⏳ Waiting 7 minutes before checking for newer versions...`);
-  await sleep(7 * 60 * 1000); // 7 minutes
+  await countdown(7 * 60); // 7 minutes in seconds
 
   console.log(`\n🔍 Checking for newer versions (6 attempts, 1 minute apart)...`);
   
@@ -420,8 +420,10 @@ function readJson(filePath) {
 }
 
 function checkForNewerVersion(currentVersion) {
+  console.log(`   Current version: ${currentVersion}`);
+  
   // Fetch all tags from remote
-  const fetchResult = spawnSync('git', ['fetch', '--tags'], {
+  const fetchResult = spawnSync('git', ['fetch', '--tags', '--force'], {
     cwd: repoRoot,
     stdio: 'inherit'
   });
@@ -431,14 +433,14 @@ function checkForNewerVersion(currentVersion) {
     return null;
   }
 
-  // Get all version tags
-  const tagResult = spawnSync('git', ['tag', '-l', 'v*'], {
+  // Get all version tags from remote
+  const tagResult = spawnSync('git', ['ls-remote', '--tags', 'origin'], {
     cwd: repoRoot,
     encoding: 'utf8'
   });
 
   if (tagResult.status !== 0) {
-    console.error('❌ Failed to get tags');
+    console.error('❌ Failed to get remote tags');
     return null;
   }
 
@@ -446,10 +448,24 @@ function checkForNewerVersion(currentVersion) {
     .trim()
     .split('\n')
     .filter(line => line.trim())
+    .map(line => line.split('\t')[1].replace(/^refs\/tags\//, '').replace(/\^\{\}$/, ''));
+
+  console.log(`   Found ${tags.length} remote tags: ${tags.slice(0, 5).join(', ')}${tags.length > 5 ? '...' : ''}`);
+
+  // Filter version tags
+  const versionTags = tags
+    .filter(tag => tag.match(/^v\d+\.\d+\.\d+$/))
     .map(tag => tag.replace(/^v/, ''));
 
+  console.log(`   Version tags: ${versionTags.join(', ')}`);
+
+  if (versionTags.length === 0) {
+    console.log('   No version tags found');
+    return null;
+  }
+
   // Find the latest version
-  const latestVersion = tags
+  const latestVersion = versionTags
     .sort((a, b) => {
       const aParts = a.split('.').map(Number);
       const bParts = b.split('.').map(Number);
@@ -461,9 +477,7 @@ function checkForNewerVersion(currentVersion) {
       return 0;
     })[0];
 
-  if (!latestVersion) {
-    return null;
-  }
+  console.log(`   Latest version: ${latestVersion}`);
 
   // Compare versions
   const currentParts = currentVersion.split('.').map(Number);
@@ -471,18 +485,31 @@ function checkForNewerVersion(currentVersion) {
 
   for (let i = 0; i < 3; i++) {
     if (latestParts[i] > currentParts[i]) {
+      console.log(`   ✅ ${latestVersion} is newer than ${currentVersion}`);
       return latestVersion;
     }
     if (latestParts[i] < currentParts[i]) {
+      console.log(`   ${latestVersion} is older than ${currentVersion}`);
       return null;
     }
   }
 
+  console.log(`   ${latestVersion} is the same as ${currentVersion}`);
   return null;
 }
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function countdown(seconds) {
+  for (let i = seconds; i >= 0; i--) {
+    const minutes = Math.floor(i / 60);
+    const secs = i % 60;
+    process.stdout.write(`\r   ${minutes}:${secs.toString().padStart(2, '0')} remaining`);
+    await sleep(1000);
+  }
+  process.stdout.write('\r');
 }
 
 function printHelp() {
