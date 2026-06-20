@@ -274,16 +274,6 @@ export default function Home() {
                 <h4 className="font-headline-sm text-xl mb-2 group-hover:text-primary">Library Setup</h4>
                 <p className="text-secondary text-sm">Learn how to optimize your folder structure for best scanning results.</p>
               </a>
-              <a className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
-                <span className="material-symbols-outlined text-primary mb-4 block">api</span>
-                <h4 className="font-headline-sm text-xl mb-2 group-hover:text-primary">API Reference</h4>
-                <p className="text-secondary text-sm">Hooks and internal API documentation for plugin developers.</p>
-              </a>
-              <a className="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
-                <span className="material-symbols-outlined text-primary mb-4 block">forum</span>
-                <h4 className="font-headline-sm text-xl mb-2 group-hover:text-primary">Community Support</h4>
-                <p className="text-secondary text-sm">Join the discussion on GitHub and help shape the future of Sky Movie.</p>
-              </a>
             </div>
           </div>
         </section>
