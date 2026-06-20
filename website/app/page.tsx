@@ -1,8 +1,56 @@
 'use client';
 
+import releaseManifestJson from "../public/releases.json";
+import Link from "next/link";
+
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
+interface ReleaseManifest {
+  latestVersion: string;
+  updatedAt: string | null;
+  releases: Array<{
+    version: string;
+    releasedAt: string | null;
+    storageProvider?: string;
+    storageFolderUrl?: string | null;
+    notes: string;
+    changes?: string[];
+    artifacts: Array<{
+      platform: string;
+      kind: string;
+      fileName: string;
+      downloadUrl: string;
+    }>;
+  }>;
+}
+
+const releaseManifest = releaseManifestJson as ReleaseManifest;
+
 export default function Home() {
+  const latestRelease = releaseManifest.releases[0];
+  const secondRelease = releaseManifest.releases[1];
+  
+  // Get download artifacts for common platforms
+  const getDmgArtifact = (release: typeof latestRelease) => 
+    release?.artifacts.find(a => a.kind === 'dmg');
+  const getExeArtifact = (release: typeof latestRelease) => 
+    release?.artifacts.find(a => a.kind === 'installer');
+  
+  const latestDmg = getDmgArtifact(latestRelease);
+  const latestExe = getExeArtifact(latestRelease);
+  
+  const formatReleaseDate = (dateStr: string | null) => {
+    if (!dateStr) return 'Not released yet';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+    return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
+  };
+  
   return (
     <>
       {/* Global Top Bar */}
@@ -136,45 +184,51 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="font-headline-sm text-lg flex items-center gap-2">
-                      v2.1.0 
+                      {latestRelease?.version} 
                       <span className="bg-primary/10 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-primary/20">Latest</span>
                     </h4>
-                    <p className="text-secondary text-sm">Released 2 days ago • macOS, Windows, Linux</p>
+                    <p className="text-secondary text-sm">Released {formatReleaseDate(latestRelease?.releasedAt)} • macOS, Windows, Linux</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
-                  <button className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base">desktop_mac</span>
-                    .dmg
-                  </button>
-                  <button className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base">window</span>
-                    .exe
-                  </button>
+                  {latestDmg && (
+                    <a href={latestDmg.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">desktop_mac</span>
+                      .dmg
+                    </a>
+                  )}
+                  {latestExe && (
+                    <a href={latestExe.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">window</span>
+                      .exe
+                    </a>
+                  )}
                 </div>
               </div>
 
-              <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-all border-white/5">
-                <div className="flex items-center gap-6">
-                  <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-secondary">
-                    <span className="material-symbols-outlined">history</span>
+              {secondRelease && (
+                <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-all border-white/5">
+                  <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-secondary">
+                      <span className="material-symbols-outlined">history</span>
+                    </div>
+                    <div>
+                      <h4 className="font-headline-sm text-lg">{secondRelease.version}</h4>
+                      <p className="text-secondary text-sm">Released {formatReleaseDate(secondRelease.releasedAt)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-headline-sm text-lg">v2.0.5</h4>
-                    <p className="text-secondary text-sm">Released 1 month ago</p>
+                  <div className="flex items-center gap-3">
+                    <Link href="/whats-new" className="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">View Changes</Link>
+                    <Link href="/whats-new" className="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">Download Assets</Link>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">View Changes</button>
-                  <button className="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">Download Assets</button>
-                </div>
-              </div>
+              )}
             </div>
             <div className="mt-12 text-center">
-              <a className="text-primary font-label-md flex items-center justify-center gap-2 group" href={repoUrl}>
-                Browse all releases on GitHub
+              <Link href="/whats-new" className="text-primary font-label-md flex items-center justify-center gap-2 group">
+                Browse all releases and changelogs
                 <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -187,7 +241,7 @@ export default function Home() {
               <p className="text-secondary mb-8">Whether you're just setting up your first library or building a custom integration, our comprehensive docs have you covered.</p>
               <div className="p-1 px-4 bg-primary/5 border border-primary/20 rounded-full inline-flex items-center gap-2 text-primary font-label-sm">
                 <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                Docs updated for v2.1.0
+                Docs updated for {latestRelease?.version}
               </div>
             </div>
             <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
