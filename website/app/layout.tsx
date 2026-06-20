@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description:
     "A local-first desktop movie and TV library manager for scanning, organizing, playing, backing up, and syncing personal media collections.",
   metadataBase: new URL("https://github.com/hisham-pp/sky-movie"),
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
   openGraph: {
     title: "Sky Movie",
     description:
