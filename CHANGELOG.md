@@ -5,6 +5,36 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-20
+
+### Added
+
+- implement IPC communication layer and backend services for library management and app updates (Hisham)
+- implement IPC definitions and update service for desktop application architecture (Hisham)
+- implement library scanning service to index video files and synchronize media metadata with the database (Hisham)
+- implement database pruning utility, library scanning services, and media detail page styling (Hisham)
+- add application layout styles and initialize React renderer entry point (Hisham)
+- remove placeholder navigation buttons (Hisham)
+- persist sidebar navigation path in localStorage (Hisham)
+- support creating new movies/shows from unmatched files and fix type errors (Hisham)
+- add unrecognized files drawer with TMDB matching workflow (Hisham)
+- make toolbar transparent with backdrop blur (Hisham)
+
+### Changed
+
+- split styles into organized CSS files (Hisham)
+
+### Fixed
+
+- add missing API methods to preload and fix posterUrl property (Hisham)
+
+### Other
+
+- style: reduce width of unrecognized drawer and search modal (Hisham)
+- style(toolbar): remove poster-first library badge (Hisham)
+- docs(website): remove API Reference and Community Support cards from homepage (Hisham)
+- chore(release): publish Sky Movie 0.2.1 downloads from GitHub (Hisham)
+
 ## [0.2.1] - 2026-06-20
 
 ### Added
@@ -99,3 +129,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.1.6
 [0.2.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.0
 [0.2.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1
+[0.3.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.0
