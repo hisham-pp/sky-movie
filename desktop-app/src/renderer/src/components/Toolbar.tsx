@@ -1,17 +1,20 @@
 import { Search } from 'lucide-react';
 
 export function Toolbar({
-  query,
-  onQueryChange
+  onOpenSearch
 }: {
-  query: string;
-  onQueryChange(value: string): void;
+  onOpenSearch: () => void;
 }) {
   return (
     <header className="toolbar">
-      <div className="search">
+      <div className="search" onClick={onOpenSearch}>
         <Search size={18} />
-        <input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search library" />
+        <input
+          placeholder="Search library"
+          readOnly
+          style={{ cursor: 'pointer' }}
+        />
+        <kbd style={{ fontSize: '12px', opacity: 0.6 }}>Ctrl+K</kbd>
       </div>
     </header>
   );
