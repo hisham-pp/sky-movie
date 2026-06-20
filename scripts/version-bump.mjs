@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const rootPackagePath = join(repoRoot, 'package.json');
@@ -58,13 +59,13 @@ async function main() {
 
   // Update CHANGELOG.md
   updateChangelog(changelogPath, currentVersion, newVersion);
-  console.log(`✓ Updated CHANGELOG.md`);
+  console.log(`✓ Updated CHANGELOG.md with ${getCommitCount(currentVersion)} commits`);
 
   console.log(`\n✅ Version bumped to ${newVersion}`);
   console.log(`\nNext steps:`);
-  console.log(`  1. Update CHANGELOG.md with release notes`);
+  console.log(`  1. Review CHANGELOG.md and edit release notes if needed`);
   console.log(`  2. git add package.json desktop-app/package.json CHANGELOG.md`);
-  console.log(`  3. git commit -m "chore: bump version to ${newVersion}"`);
+  console.log(`  3. git commit -m "chore: release v${newVersion}"`);
   console.log(`  4. git tag v${newVersion}`);
   console.log(`  5. git push origin main --tags`);
 }
@@ -104,6 +105,75 @@ function updateChangelog(changelogPath, oldVersion, newVersion) {
     return;
   }
   
+  // Get commits since last version
+  const commits = getCommitsSinceLastVersion(oldVersion);
+  
+  // Categorize commits
+  const categories = {
+    added: [],
+    changed: [],
+    fixed: [],
+    other: []
+  };
+  
+  commits.forEach(commit => {
+    const msg = commit.message.toLowerCase();
+    const line = `- ${commit.message}`;
+    
+    if (msg.startsWith('feat:') || msg.startsWith('feat(')) {
+      categories.added.push(line.replace(/^- feat(\([\w-]+\))?:\s*/i, '- '));
+    } else if (msg.startsWith('fix:') || msg.startsWith('fix(')) {
+      categories.fixed.push(line.replace(/^- fix(\([\w-]+\))?:\s*/i, '- '));
+    } else if (msg.startsWith('chore:') || msg.startsWith('refactor:') || msg.startsWith('perf:')) {
+      categories.changed.push(line.replace(/^- (chore|refactor|perf)(\([\w-]+\))?:\s*/i, '- '));
+    } else if (!msg.startsWith('merge') && !msg.startsWith('bump')) {
+      categories.other.push(line);
+    }
+  });
+  
+  // Build new entry
+  const sections = [];
+  sections.push(`## [${newVersion}] - ${today}`);
+  sections.push('');
+  
+  if (categories.added.length > 0) {
+    sections.push('### Added');
+    sections.push('');
+    sections.push(...categories.added);
+    sections.push('');
+  }
+  
+  if (categories.changed.length > 0) {
+    sections.push('### Changed');
+    sections.push('');
+    sections.push(...categories.changed);
+    sections.push('');
+  }
+  
+  if (categories.fixed.length > 0) {
+    sections.push('### Fixed');
+    sections.push('');
+    sections.push(...categories.fixed);
+    sections.push('');
+  }
+  
+  if (categories.other.length > 0) {
+    sections.push('### Other');
+    sections.push('');
+    sections.push(...categories.other);
+    sections.push('');
+  }
+  
+  // If no commits found, add placeholder
+  if (commits.length === 0) {
+    sections.push('### Changed');
+    sections.push('');
+    sections.push('- Minor updates and improvements');
+    sections.push('');
+  }
+  
+  const newEntry = sections.join('\n');
+  
   // Find where to insert new version (after the title and before first version)
   const lines = changelog.split('\n');
   let insertIndex = -1;
@@ -119,22 +189,6 @@ function updateChangelog(changelogPath, oldVersion, newVersion) {
     console.log('⚠ Could not find insertion point in CHANGELOG.md');
     return;
   }
-  
-  // Create new version entry
-  const newEntry = [
-    `## [${newVersion}] - ${today}`,
-    '',
-    '### Added',
-    '- ',
-    '',
-    '### Changed',
-    '- ',
-    '',
-    '### Fixed',
-    '- ',
-    '',
-    ''
-  ].join('\n');
   
   // Insert new entry
   lines.splice(insertIndex, 0, newEntry);
@@ -153,6 +207,44 @@ function updateChangelog(changelogPath, oldVersion, newVersion) {
   }
   
   writeFileSync(changelogPath, lines.join('\n'));
+}
+
+function getCommitsSinceLastVersion(version) {
+  // Try to find last version tag
+  const result = spawnSync('git', ['tag', '-l', `v${version}`], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  
+  let gitRange = 'HEAD';
+  
+  if (result.status === 0 && result.stdout.trim()) {
+    // Tag exists, get commits since that tag
+    gitRange = `v${version}..HEAD`;
+  } else {
+    // No tag found, try to get last N commits
+    gitRange = 'HEAD~10..HEAD';
+  }
+  
+  const logResult = spawnSync('git', ['log', gitRange, '--pretty=format:%s', '--no-merges'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  
+  if (logResult.status !== 0 || !logResult.stdout.trim()) {
+    return [];
+  }
+  
+  return logResult.stdout
+    .trim()
+    .split('\n')
+    .filter(line => line.trim())
+    .map(message => ({ message: message.trim() }));
+}
+
+function getCommitCount(version) {
+  const commits = getCommitsSinceLastVersion(version);
+  return commits.length;
 }
 
 function readJson(filePath) {
