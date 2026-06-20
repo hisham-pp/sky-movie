@@ -59,6 +59,29 @@ node scripts/release-github.mjs --version 0.1.0 --skip-sha
 
 See [RELEASES_GOOGLE_DRIVE.md](../docs/RELEASES_GOOGLE_DRIVE.md) for historical reference.
 
+## Version Management
+
+Update version across all files automatically:
+
+```powershell
+# Bump major version (0.1.4 → 1.0.0)
+pnpm version:major
+
+# Bump minor version (0.1.4 → 0.2.0)
+pnpm version:minor
+
+# Bump patch version (0.1.4 → 0.1.5)
+pnpm version:patch
+
+# Set custom version
+pnpm version:set 2.0.0
+```
+
+This updates:
+- `package.json`
+- `desktop-app/package.json`
+- `CHANGELOG.md` (creates new version entry)
+
 ## Release Workflows
 
 ### GitHub Releases (Recommended for Open Source)

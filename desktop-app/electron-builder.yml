@@ -28,7 +28,7 @@ win:
       arch:
         - x64
         - arm64
-  artifactName: '${productName}-${version}-${arch}-Setup.${ext}'
+  artifactName: 'Sky-Movie-${version}-${arch}-Setup.${ext}'
 
 mac:
   category: public.app-category.video
@@ -41,7 +41,7 @@ mac:
       arch:
         - x64
         - arm64
-  artifactName: '${productName}-${version}-${arch}.${ext}'
+  artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
 
 linux:
   category: AudioVideo
@@ -60,7 +60,7 @@ linux:
       arch:
         - x64
         - arm64
-  artifactName: '${productName}-${version}-${arch}.${ext}'
+  artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
 
 nsis:
   oneClick: false
