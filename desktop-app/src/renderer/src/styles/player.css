@@ -1,0 +1,74 @@
+.player {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #000;
+}
+
+.artplayer-host,
+.player video,
+.player .artplayer-app {
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.player .artplayer-app {
+  --art-theme: var(--primary);
+}
+
+.player-empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.player-error {
+  position: absolute;
+  inset: auto 14px 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 180, 171, 0.36);
+  border-radius: 8px;
+  background: rgba(12, 14, 18, 0.9);
+  color: #ffdad6;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 10px 12px;
+  backdrop-filter: blur(12px);
+}
+
+.player-error span {
+  min-width: 0;
+}
+
+.player-error button,
+.player-external-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.player-external-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.56);
+  backdrop-filter: blur(10px);
+}
+

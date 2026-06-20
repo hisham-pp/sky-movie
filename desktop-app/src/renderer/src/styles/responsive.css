@@ -1,0 +1,164 @@
+@media (max-width: 1500px) {
+  .toolbar {
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 420px);
+  }
+
+  .toolbar-badge {
+    display: none;
+  }
+
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  }
+
+  .movie-detail-grid,
+  .series-detail-grid,
+  .scan-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  }
+
+  .hero-strip {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .hero-player {
+    max-width: 620px;
+  }
+
+  .poster-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .series-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scan-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1160px) {
+  body {
+    min-width: 900px;
+  }
+
+  .app-shell {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-top: 24px;
+  }
+
+  .brand {
+    padding: 0 14px 28px;
+    text-align: center;
+  }
+
+  .brand h1 {
+    font-size: 22px;
+    line-height: 1.05;
+  }
+
+  .brand p,
+  .nav span,
+  .summary span,
+  .summary-heading span {
+    display: none;
+  }
+
+  .nav button {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .summary {
+    margin-inline: 12px;
+  }
+
+  .summary div:not(.summary-heading) {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .summary-heading {
+    justify-content: center;
+  }
+
+  .toolbar,
+  .library-list,
+  .media-detail-page,
+  .scan-page,
+  .settings-page,
+  .statusbar {
+    padding-inline: 24px;
+  }
+
+  .hero-strip {
+    margin-inline: -24px;
+    padding-inline: 24px;
+  }
+
+  .hero-copy {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+
+  .hero-poster {
+    width: 104px;
+  }
+
+  .hero-strip h2 {
+    font-size: 36px;
+  }
+
+  .movie-detail-layout,
+  .series-title-row,
+  .movie-detail-grid,
+  .series-detail-grid,
+  .scan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-poster,
+  .series-poster {
+    width: 120px;
+    justify-self: start;
+  }
+
+  .detail-copy h2,
+  .series-title-row h2 {
+    font-size: 38px;
+  }
+
+  .episode-row {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .episode-row small {
+    grid-column: 2;
+  }
+
+  .settings-form-grid,
+  .theme-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-section-heading {
+    display: grid;
+  }
+
+  .settings-actions {
+    justify-content: flex-start;
+  }
+
+  .scan-hero {
+    padding: 24px;
+  }
+
+  .scan-hero h2 {
+    font-size: 34px;
+  }
+}
+

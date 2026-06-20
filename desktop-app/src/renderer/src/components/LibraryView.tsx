@@ -194,88 +194,107 @@ function BrowseLibraryPage({
     return () => clearInterval(interval);
   }, [itemsWithBackdrop.length]);
 
-  const currentBannerItem = itemsWithBackdrop[currentBannerIndex];
+  const playingItem = view === 'movies' ? selectedMovie : selectedShow;
+  const currentBannerItem = (player && playingItem ? playingItem : itemsWithBackdrop[currentBannerIndex]) as Movie | TvShow | undefined;
 
   return (
     <div className="browse-grid">
       <section className="library-list">
         {currentBannerItem && (
           <div className="rotating-banner">
-            <img 
-              src={view === 'movies' 
-                ? (currentBannerItem as Movie).backdropPath! 
-                : (currentBannerItem as TvShow).backdropPath!
-              } 
-              alt="" 
-              className="banner-backdrop"
-            />
-            <div className="banner-overlay">
-              <div className="banner-content">
-                <h2>
-                  {view === 'movies' 
-                    ? (currentBannerItem as Movie).title 
-                    : (currentBannerItem as TvShow).title
-                  }
-                </h2>
-                <p>
-                  {view === 'movies' 
-                    ? (currentBannerItem as Movie).overview 
-                    : (currentBannerItem as TvShow).overview
-                  }
-                </p>
-                <div className="banner-meta">
-                  <span>
-                    {view === 'movies' 
-                      ? (currentBannerItem as Movie).releaseYear ?? 'Unknown year'
-                      : (currentBannerItem as TvShow).firstAirYear ?? 'Unknown year'
-                    }
-                  </span>
-                  {view === 'movies' && (currentBannerItem as Movie).rating && (
-                    <span>
-                      <Star size={14} /> {(currentBannerItem as Movie).rating!.toFixed(1)}
-                    </span>
-                  )}
-                  {view === 'shows' && (currentBannerItem as TvShow).rating && (
-                    <span>
-                      <Star size={14} /> {(currentBannerItem as TvShow).rating!.toFixed(1)}
-                    </span>
-                  )}
+            {currentBannerItem.backdropPath ? (
+              <img 
+                src={currentBannerItem.backdropPath} 
+                alt="" 
+                className="banner-backdrop"
+              />
+            ) : (
+              <div className="banner-backdrop-placeholder" />
+            )}
+            <div className={`banner-overlay ${player ? 'playing-banner-overlay' : ''}`}>
+              {player ? (
+                <div className="banner-grid">
+                  <div className="banner-content">
+                    <span className="now-playing-badge">NOW PLAYING</span>
+                    <h2>{currentBannerItem.title}</h2>
+                    <p>{currentBannerItem.overview}</p>
+                    <div className="banner-meta">
+                      <span>
+                        {view === 'movies' 
+                          ? (currentBannerItem as Movie).releaseYear ?? 'Unknown year'
+                          : (currentBannerItem as TvShow).firstAirYear ?? 'Unknown year'
+                        }
+                      </span>
+                      {currentBannerItem.rating && (
+                        <span>
+                          <Star size={14} /> {currentBannerItem.rating.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="banner-player">
+                    <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
+                  </div>
                 </div>
-              </div>
-              <div className="banner-indicators">
-                {itemsWithBackdrop.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`banner-dot ${index === currentBannerIndex ? 'active' : ''}`}
-                    onClick={() => setCurrentBannerIndex(index)}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
+              ) : (
+                <>
+                  <div className="banner-content">
+                    <h2>{currentBannerItem.title}</h2>
+                    <p>{currentBannerItem.overview}</p>
+                    <div className="banner-meta">
+                      <span>
+                        {view === 'movies' 
+                          ? (currentBannerItem as Movie).releaseYear ?? 'Unknown year'
+                          : (currentBannerItem as TvShow).firstAirYear ?? 'Unknown year'
+                        }
+                      </span>
+                      {currentBannerItem.rating && (
+                        <span>
+                          <Star size={14} /> {currentBannerItem.rating.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {itemsWithBackdrop.length > 1 && (
+                    <div className="banner-indicators">
+                      {itemsWithBackdrop.map((_, index) => (
+                        <button
+                          key={index}
+                          className={`banner-dot ${index === currentBannerIndex ? 'active' : ''}`}
+                          onClick={() => setCurrentBannerIndex(index)}
+                          aria-label={`Go to slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
 
-        <div className="hero-strip browse-hero">
-          <div className="hero-copy">
-            <div className="hero-poster">
-              {view === 'movies' ? <Clapperboard size={34} /> : <Tv2 size={34} />}
-            </div>
-            <div>
-              <span>{player ? 'Now playing' : 'Browse library'}</span>
-              <h2 title={heroTitle}>{heroTitle}</h2>
-              <p>{heroCopy}</p>
-              <div className="hero-chips">
-                <span>{view === 'movies' ? 'Movies' : 'TV Shows'}</span>
-                <span>{visibleCount} items</span>
-                {lastScan ? <span>{lastScan.folder.name}</span> : null}
+        {!currentBannerItem && (
+          <div className="hero-strip browse-hero">
+            <div className="hero-copy">
+              <div className="hero-poster">
+                {view === 'movies' ? <Clapperboard size={34} /> : <Tv2 size={34} />}
+              </div>
+              <div>
+                <span>{player ? 'Now playing' : 'Browse library'}</span>
+                <h2 title={heroTitle}>{heroTitle}</h2>
+                <p>{heroCopy}</p>
+                <div className="hero-chips">
+                  <span>{view === 'movies' ? 'Movies' : 'TV Shows'}</span>
+                  <span>{visibleCount} items</span>
+                  {lastScan ? <span>{lastScan.folder.name}</span> : null}
+                </div>
               </div>
             </div>
+            <div className="hero-player">
+              <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
+            </div>
           </div>
-          <div className="hero-player">
-            <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-          </div>
-        </div>
+        )}
 
         <div className="filter-row">
           <button>All lists</button>

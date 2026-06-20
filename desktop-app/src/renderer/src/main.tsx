@@ -2,7 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import './styles/themes.css';
-import './styles/main.css';
+import './styles/base.css';
+import './styles/layout.css';
+import './styles/sidebar.css';
+import './styles/library.css';
+import './styles/detail.css';
+import './styles/dialog.css';
+import './styles/player.css';
+import './styles/scan.css';
+import './styles/settings.css';
+import './styles/responsive.css';
 import './styles/search-modal.css';
 import './styles/unrecognized-drawer.css';
 
