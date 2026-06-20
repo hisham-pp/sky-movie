@@ -29,6 +29,15 @@ win:
         - x64
         - arm64
   artifactName: 'Sky-Movie-${version}-${arch}-Setup.${ext}'
+  # Code signing configuration (requires certificate)
+  # Uncomment and configure when you have a code signing certificate
+  # certificateFile: path/to/certificate.pfx
+  # certificatePassword: ${env.WINDOWS_CERTIFICATE_PASSWORD}
+  # Or use certificateSha1 for certificates in Windows certificate store
+  # certificateSha1: ${env.WINDOWS_CERTIFICATE_SHA1}
+  # Sign the NSIS installer and uninstaller
+  # sign: path/to/signtool.exe
+  # signDlls: true
 
 mac:
   category: public.app-category.video
@@ -42,6 +51,18 @@ mac:
         - x64
         - arm64
   artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
+  # Code signing for macOS (requires Apple Developer account)
+  # Uncomment and configure when you have signing credentials
+  # identity: "Developer ID Application: Your Name (TEAM_ID)"
+  # hardenedRuntime: true
+  # gatekeeperAssess: false
+  # entitlements: build/entitlements.mac.plist
+  # entitlementsInherit: build/entitlements.mac.plist
+  # Notarization (required for macOS 10.15+)
+  # notarize:
+  #   teamId: ${env.APPLE_TEAM_ID}
+  #   appleId: ${env.APPLE_ID}
+  #   appleIdPassword: ${env.APPLE_APP_SPECIFIC_PASSWORD}
 
 linux:
   category: AudioVideo
