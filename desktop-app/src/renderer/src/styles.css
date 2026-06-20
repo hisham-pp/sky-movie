@@ -2822,7 +2822,7 @@ select option {
 
 .search-modal {
   width: 90%;
-  max-width: 640px;
+  max-width: 520px;
   max-height: 70vh;
   background: var(--surface-low);
   border: 1px solid var(--line-strong);
@@ -3020,7 +3020,7 @@ select option {
 
 .search-modal {
   width: 90%;
-  max-width: 640px;
+  max-width: 520px;
   background: var(--panel-solid);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -3195,8 +3195,8 @@ select option {
 .unrecognized-drawer {
   position: fixed;
   top: 0;
-  right: -600px;
-  width: 600px;
+  right: -500px;
+  width: 500px;
   height: 100vh;
   background: var(--panel-solid);
   border-left: 1px solid var(--line);
