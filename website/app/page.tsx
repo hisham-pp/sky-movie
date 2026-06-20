@@ -182,6 +182,14 @@ export default function Home() {
             <div className="text-center mb-16">
               <h2 className="font-headline-md text-white mb-4">Ready to upgrade your collection?</h2>
               <p className="text-secondary font-body-lg">Download the latest stable release for your operating system.</p>
+              {isBetaVersion(latestRelease?.version || '') && (
+                <div className="mt-6 max-w-2xl mx-auto p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+                  <p className="text-orange-400 text-sm">
+                    <strong>⚠️ Beta Software Notice:</strong> Windows may show a security warning because this app is not yet code-signed. 
+                    Click "More info" → "Run anyway" to install. The app is safe and open source.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="space-y-4">
               <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 border-white/5 hover:border-white/10 transition-colors">
