@@ -202,26 +202,62 @@ export class MetadataProviderManager {
 
     let movieId = request.movieId;
 
-    // If movieId is 0, create a new movie entry
+    // If movieId is 0, create a new movie entry (or reuse existing one with same title/year)
     if (movieId === 0) {
-      const result = this.db
-        .prepare(
-          `INSERT INTO movies (title, original_title, release_year, overview, poster_path, backdrop_path, runtime_minutes, rating, favorite, added_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
-        )
-        .run(
-          details.title,
-          details.original_title ?? null,
-          parseYear(details.release_date),
-          details.overview ?? null,
-          posterPath,
-          backdropPath,
-          details.runtime ?? null,
-          details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
-          now,
-          now
-        );
-      movieId = Number(result.lastInsertRowid);
+      const parsedYearVal = parseYear(details.release_date);
+      const existing = this.db
+        .prepare('SELECT id FROM movies WHERE lower(title) = lower(?) AND COALESCE(release_year, 0) = COALESCE(?, 0)')
+        .get(details.title, parsedYearVal) as { id: number } | undefined;
+
+      if (existing) {
+        movieId = existing.id;
+        // Update existing movie instead of inserting a new one
+        this.db
+          .prepare(
+            `UPDATE movies SET
+              title = ?,
+              original_title = ?,
+              release_year = ?,
+              overview = ?,
+              poster_path = ?,
+              backdrop_path = ?,
+              runtime_minutes = ?,
+              rating = ?,
+              updated_at = ?
+            WHERE id = ?`
+          )
+          .run(
+            details.title,
+            details.original_title ?? null,
+            parsedYearVal,
+            details.overview ?? null,
+            posterPath,
+            backdropPath,
+            details.runtime ?? null,
+            details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
+            now,
+            movieId
+          );
+      } else {
+        const result = this.db
+          .prepare(
+            `INSERT INTO movies (title, original_title, release_year, overview, poster_path, backdrop_path, runtime_minutes, rating, favorite, added_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+          )
+          .run(
+            details.title,
+            details.original_title ?? null,
+            parsedYearVal,
+            details.overview ?? null,
+            posterPath,
+            backdropPath,
+            details.runtime ?? null,
+            details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
+            now,
+            now
+          );
+        movieId = Number(result.lastInsertRowid);
+      }
     } else {
       // Update existing movie
       this.db
@@ -326,25 +362,59 @@ export class MetadataProviderManager {
 
     let showId = request.showId;
 
-    // If showId is 0, create a new TV show entry
+    // If showId is 0, create a new TV show entry (or reuse existing one with same title/year)
     if (showId === 0) {
-      const result = this.db
-        .prepare(
-          `INSERT INTO tv_shows (title, original_title, first_air_year, overview, poster_path, backdrop_path, rating, favorite, added_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
-        )
-        .run(
-          details.name,
-          details.original_name ?? null,
-          parseYear(details.first_air_date),
-          details.overview ?? null,
-          posterPath,
-          backdropPath,
-          details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
-          now,
-          now
-        );
-      showId = Number(result.lastInsertRowid);
+      const parsedYearVal = parseYear(details.first_air_date);
+      const existing = this.db
+        .prepare('SELECT id FROM tv_shows WHERE lower(title) = lower(?) AND COALESCE(first_air_year, 0) = COALESCE(?, 0)')
+        .get(details.name, parsedYearVal) as { id: number } | undefined;
+
+      if (existing) {
+        showId = existing.id;
+        // Update existing TV show
+        this.db
+          .prepare(
+            `UPDATE tv_shows SET
+              title = ?,
+              original_title = ?,
+              first_air_year = ?,
+              overview = ?,
+              poster_path = ?,
+              backdrop_path = ?,
+              rating = ?,
+              updated_at = ?
+            WHERE id = ?`
+          )
+          .run(
+            details.name,
+            details.original_name ?? null,
+            parsedYearVal,
+            details.overview ?? null,
+            posterPath,
+            backdropPath,
+            details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
+            now,
+            showId
+          );
+      } else {
+        const result = this.db
+          .prepare(
+            `INSERT INTO tv_shows (title, original_title, first_air_year, overview, poster_path, backdrop_path, rating, favorite, added_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+          )
+          .run(
+            details.name,
+            details.original_name ?? null,
+            parsedYearVal,
+            details.overview ?? null,
+            posterPath,
+            backdropPath,
+            details.vote_average == null ? null : Number(details.vote_average.toFixed(1)),
+            now,
+            now
+          );
+        showId = Number(result.lastInsertRowid);
+      }
     } else {
       // Update existing TV show
       this.db

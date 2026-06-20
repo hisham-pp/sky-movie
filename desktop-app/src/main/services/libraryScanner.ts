@@ -4,6 +4,7 @@ import { basename, dirname, extname, join, relative } from 'node:path';
 import type { LibraryScanMode, LibrarySummary, MatcherStrategy, MediaKind, ScanResult } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { mapLibraryFolder } from './rowMappers';
+import { pruneOrphans } from '../database/cleanup';
 
 const videoExtensions = new Set([
   '.avi',
@@ -67,6 +68,23 @@ export class LibraryScanner {
     const showIds = new Set<number>();
 
     const transaction = this.db.transaction((videoFiles: string[]) => {
+      // Delete files in database that are no longer on disk
+      const existingFiles = this.db
+        .prepare('SELECT id, absolute_path FROM media_files WHERE library_folder_id = ?')
+        .all(folder.id) as { id: number; absolute_path: string }[];
+
+      const scannedPathsSet = new Set(videoFiles);
+      const missingFileIds = existingFiles
+        .filter((f) => !scannedPathsSet.has(f.absolute_path))
+        .map((f) => f.id);
+
+      if (missingFileIds.length > 0) {
+        const stmt = this.db.prepare('DELETE FROM media_files WHERE id = ?');
+        for (const id of missingFileIds) {
+          stmt.run(id);
+        }
+      }
+
       for (const absolutePath of videoFiles) {
         const existingFile = this.getExistingMediaFileMatch(absolutePath);
         const parsed = existingFile ? null : parseMediaName(absolutePath, normalizedRootPath, options);
@@ -182,6 +200,7 @@ export class LibraryScanner {
           importedFiles += 1;
         }
       }
+      pruneOrphans(this.db);
     });
 
     transaction(files);
@@ -325,10 +344,33 @@ export class LibraryScanner {
   }
 }
 
+function cleanPrefixNumber(title: string): string {
+  // 1. Leading number in brackets, e.g., "[01] Title", "[1] - Title"
+  const bracketMatch = title.match(/^\[\d+\]\s*[\-\._\s]*\s*(.+)$/i);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+
+  // 2. Leading number followed by punctuation separator, e.g., "01 - Title", "1. Title", "01_Title"
+  const sepMatch = title.match(/^\d+\s*[\-\._:]\s*(.+)$/);
+  if (sepMatch) {
+    return sepMatch[1];
+  }
+
+  // 3. Leading number starting with 0 followed by space, e.g., "01 Title"
+  const zeroSpaceMatch = title.match(/^(0\d+)\s+(.+)$/);
+  if (zeroSpaceMatch) {
+    return zeroSpaceMatch[2];
+  }
+
+  return title;
+}
+
 function parseMediaName(absolutePath: string, rootPath: string, options: ScanOptions): ParsedMediaName {
   const fileName = basename(absolutePath);
   const withoutExtension = fileName.replace(/\.[^.]+$/, '');
-  const folderTitle = cleanTitle(basename(dirname(absolutePath)) || basename(rootPath));
+  const rawFolderTitle = basename(dirname(absolutePath)) || basename(rootPath);
+  const folderTitle = cleanTitle(cleanPrefixNumber(rawFolderTitle));
 
   if (options.matcherStrategy === 'folder-name') {
     return {
@@ -346,7 +388,7 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
   if (showMatch && options.mediaKind !== 'movie' && options.matcherStrategy !== 'movie-title-year') {
     return {
       mediaKind: 'show',
-      title: cleanTitle(showMatch[1]),
+      title: cleanTitle(cleanPrefixNumber(showMatch[1])),
       year: null,
       seasonNumber: Number(showMatch[2]),
       episodeNumber: Number(showMatch[3]),
@@ -358,7 +400,7 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
   if (movieMatch && options.mediaKind !== 'show' && options.matcherStrategy !== 'show-season-episode') {
     return {
       mediaKind: 'movie',
-      title: cleanTitle(movieMatch[1]),
+      title: cleanTitle(cleanPrefixNumber(movieMatch[1])),
       year: Number(movieMatch[2]),
       seasonNumber: null,
       episodeNumber: null,
@@ -369,7 +411,7 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
   if (options.mediaKind === 'show' || options.matcherStrategy === 'show-season-episode') {
     return {
       mediaKind: 'show',
-      title: folderTitle || cleanTitle(withoutExtension),
+      title: folderTitle || cleanTitle(cleanPrefixNumber(withoutExtension)),
       year: null,
       seasonNumber: 1,
       episodeNumber: 1,
@@ -379,7 +421,7 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
 
   return {
     mediaKind: 'movie',
-    title: cleanTitle(withoutExtension),
+    title: cleanTitle(cleanPrefixNumber(withoutExtension)),
     year: null,
     seasonNumber: null,
     episodeNumber: null,
