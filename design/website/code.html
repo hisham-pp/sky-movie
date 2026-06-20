@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sky Movie | Your Personal Cinema, Perfected</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#c9e6ff",
+                    "on-tertiary-fixed-variant": "#434750",
+                    "secondary-fixed-dim": "#c4c6ce",
+                    "surface-tint": "#89ceff",
+                    "tertiary": "#c3c6d2",
+                    "surface-bright": "#37393e",
+                    "inverse-surface": "#e2e2e8",
+                    "surface-container-lowest": "#0c0e12",
+                    "secondary-fixed": "#e1e2ea",
+                    "on-surface": "#e2e2e8",
+                    "on-tertiary": "#2c303a",
+                    "tertiary-container": "#989ba6",
+                    "on-primary-fixed": "#001e2f",
+                    "background": "#0F1115",
+                    "on-primary-container": "#003751",
+                    "error": "#ffb4ab",
+                    "secondary": "#c4c6ce",
+                    "primary": "#89ceff",
+                    "on-background": "#e2e2e8",
+                    "surface-variant": "#333539",
+                    "tertiary-fixed-dim": "#c3c6d2",
+                    "tertiary-fixed": "#dfe2ee",
+                    "outline-variant": "#3e4850",
+                    "surface": "#111317",
+                    "on-tertiary-fixed": "#181c24",
+                    "inverse-on-surface": "#2f3035",
+                    "on-secondary-container": "#b6b8c0",
+                    "surface-dim": "#111317",
+                    "surface-container-highest": "#333539",
+                    "secondary-container": "#464950",
+                    "outline": "#88929b",
+                    "on-tertiary-container": "#2f333c",
+                    "on-secondary-fixed-variant": "#44474d",
+                    "on-surface-variant": "#bec8d2",
+                    "on-primary": "#00344d",
+                    "surface-container-high": "#282a2e",
+                    "primary-container": "#0ea5e9",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "on-secondary": "#2d3037",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#004c6e",
+                    "surface-container-low": "#1a1c20",
+                    "on-secondary-fixed": "#191c22",
+                    "inverse-primary": "#006591",
+                    "surface-container": "#1e2024",
+                    "primary-fixed-dim": "#89ceff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "280px",
+                    "stack-lg": "32px",
+                    "stack-md": "16px",
+                    "container-padding": "40px",
+                    "stack-sm": "8px",
+                    "grid-gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0F1115;
+            color: #e2e2e8;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(26, 29, 35, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .movie-card-glow:hover {
+            box-shadow: 0 0 30px rgba(137, 206, 255, 0.15);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #89ceff 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased selection:bg-primary/30">
+<!-- Global Top Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-surface/40 flex justify-between items-center px-container-padding h-20">
+<div class="flex items-center gap-4">
+<span class="font-display-lg text-headline-sm text-primary tracking-tight">Sky Movie</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-secondary font-label-md hover:text-primary transition-colors" href="#features">Features</a>
+<a class="text-secondary font-label-md hover:text-primary transition-colors" href="#downloads">Download</a>
+<a class="text-secondary font-label-md hover:text-primary transition-colors" href="#docs">Docs</a>
+<a class="px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-primary font-label-md transition-all flex items-center gap-2" href="https://github.com">
+<span class="material-symbols-outlined text-sm">code</span>
+                GitHub
+            </a>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative pt-40 pb-20 px-container-padding overflow-hidden">
+<!-- Background Decorative Shader -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] pointer-events-none opacity-40">
+
+</div>
+<div class="max-w-5xl mx-auto text-center relative z-10">
+<h1 class="font-display-lg text-[64px] md:text-[80px] leading-[1.1] mb-6 tracking-tight">
+                    Your Personal Cinema, <span class="gradient-text">Perfected.</span>
+</h1>
+<p class="font-body-lg text-secondary max-w-2xl mx-auto mb-10 text-lg md:text-xl">
+                    The premium media manager for the cinematic connoisseur. Scan local collections, automate metadata, and experience your library in stunning 4K HDR.
+                </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<a class="w-full sm:w-auto px-8 py-4 bg-primary text-on-primary font-label-md text-base rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2" href="#downloads">
+<span class="material-symbols-outlined">download</span>
+                        Download on GitHub
+                    </a>
+<a class="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-primary font-label-md text-base rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2" href="#docs">
+                        View Documentation
+                    </a>
+</div>
+</div>
+</section>
+<!-- Product Preview (Mockup) -->
+<section class="px-container-padding pb-stack-lg max-w-7xl mx-auto">
+<div class="relative group">
+<!-- App Mockup Container -->
+<div class="glass-panel p-2 rounded-[32px] shadow-2xl overflow-hidden group-hover:border-primary/30 transition-colors duration-500">
+<div class="rounded-[24px] overflow-hidden relative aspect-[16/10] bg-surface-container-lowest">
+<!-- Simulated App Shell -->
+<div class="flex h-full">
+<!-- Sidebar Mockup -->
+<div class="w-[200px] border-r border-white/5 h-full bg-surface-dim/80 p-6 flex flex-col gap-6 hidden lg:flex">
+<div class="w-8 h-8 bg-primary rounded-lg mb-4"></div>
+<div class="space-y-4">
+<div class="h-2 w-24 bg-primary/20 rounded"></div>
+<div class="h-2 w-20 bg-white/5 rounded"></div>
+<div class="h-2 w-28 bg-white/5 rounded"></div>
+<div class="h-2 w-16 bg-white/5 rounded"></div>
+</div>
+</div>
+<!-- Main Content Mockup -->
+<div class="flex-1 p-8">
+<div class="flex justify-between items-center mb-8">
+<div class="h-8 w-48 bg-white/10 rounded-lg"></div>
+<div class="flex gap-2">
+<div class="w-8 h-8 bg-white/5 rounded-full"></div>
+<div class="w-8 h-8 bg-white/5 rounded-full"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<div class="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
+<div class="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
+<div class="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
+<div class="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
+</div>
+</div>
+</div>
+<!-- High Fidelity Image Overlay -->
+<div class="absolute inset-0 z-20 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="A high-fidelity mockup of a cinematic movie library desktop application. The interface features a dark glassmorphism sidebar on the left and a fluid grid of vibrant movie posters in the center. The color palette is dominated by deep charcoal and electric sky blue accents. Soft atmospheric lighting highlights the UI depth, with clear metadata chips and professional typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZxW8vNvVuwvdk4tvxNUR7PTXIeSmHwzXlAbdT93zxb6Xzxywv_4MeO_NCt6mg5GxEcMXYVIxY90wqhlPSeNzTK47UUEgmjFyGF3fxcGXnrR1836FseD471ObmKnUZsEewRuAufG-BuzOGw5z15wYgRhN4GfWtZiwkaPUUQ5_MifT-P_r8jYGDka4Fm0aqZAvp__aelIf2CJtNEuMNgIg391nklO7JxB1k3oqHzeogAS6tcUj7aHq40vLha2-ZgrRZauta-k6PilX5"/>
+</div>
+</div>
+</div>
+<!-- Decorative Glow -->
+<div class="absolute -bottom-10 -left-10 w-64 h-64 bg-primary/10 blur-[100px] -z-10"></div>
+<div class="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 blur-[100px] -z-10"></div>
+</div>
+</section>
+<!-- Features Grid -->
+<section class="py-24 px-container-padding max-w-7xl mx-auto" id="features">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-grid-gutter">
+<!-- Feature 1 -->
+<div class="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">folder_managed</span>
+</div>
+<h3 class="font-headline-sm text-xl mb-3">Instant Folder Scanning</h3>
+<p class="text-secondary text-sm leading-relaxed">Point to your movie directory and let Sky Movie do the heavy lifting in seconds.</p>
+</div>
+<!-- Feature 2 -->
+<div class="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">auto_awesome</span>
+</div>
+<h3 class="font-headline-sm text-xl mb-3">Automated Metadata</h3>
+<p class="text-secondary text-sm leading-relaxed">Beautiful posters, backdrops, and cast info fetched automatically for every title.</p>
+</div>
+<!-- Feature 3 -->
+<div class="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">high_quality</span>
+</div>
+<h3 class="font-headline-sm text-xl mb-3">4K &amp; HDR Support</h3>
+<p class="text-secondary text-sm leading-relaxed">Full technical info displays for your high-fidelity collection, including HDR10+ and Dolby Vision.</p>
+</div>
+<!-- Feature 4 -->
+<div class="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">1k</span>
+</div>
+<h3 class="font-headline-sm text-xl mb-3">Clean Management</h3>
+<p class="text-secondary text-sm leading-relaxed">Organize by genre, year, or rating with a UI that stays out of your way.</p>
+</div>
+</div>
+</section>
+<!-- Downloads Section -->
+<section class="py-20 bg-surface-container-low px-container-padding relative overflow-hidden" id="downloads">
+<div class="max-w-5xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-md text-white mb-4">Ready to upgrade your collection?</h2>
+<p class="text-secondary font-body-lg">Download the latest stable release for your operating system.</p>
+</div>
+<div class="space-y-4">
+<!-- Version Item 1 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 border-white/5 hover:border-white/10 transition-colors">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-lg flex items-center gap-2">
+                                    v2.1.0 
+                                    <span class="bg-primary/10 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-primary/20">Latest</span>
+</h4>
+<p class="text-secondary text-sm">Released 2 days ago • macOS, Windows, Linux</p>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
+<button class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-base">desktop_mac</span>
+                                .dmg
+                            </button>
+<button class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-base">window</span>
+                                .exe
+                            </button>
+</div>
+</div>
+<!-- Version Item 2 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-all border-white/5">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">history</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-lg">v2.0.5</h4>
+<p class="text-secondary text-sm">Released 1 month ago</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">View Changes</button>
+<button class="px-4 py-2 bg-white/5 rounded-lg text-secondary text-sm hover:text-white transition-colors">Download Assets</button>
+</div>
+</div>
+</div>
+<div class="mt-12 text-center">
+<a class="text-primary font-label-md flex items-center justify-center gap-2 group" href="https://github.com">
+                        Browse all releases on GitHub
+                        <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Documentation Preview -->
+<section class="py-24 px-container-padding max-w-7xl mx-auto" id="docs">
+<div class="flex flex-col lg:flex-row gap-12 items-start">
+<div class="lg:w-1/3">
+<h2 class="font-headline-md mb-6">Built for enthusiasts, <span class="text-primary">extensible</span> for developers.</h2>
+<p class="text-secondary mb-8">Whether you're just setting up your first library or building a custom integration, our comprehensive docs have you covered.</p>
+<div class="p-1 px-4 bg-primary/5 border border-primary/20 rounded-full inline-flex items-center gap-2 text-primary font-label-sm">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                        Docs updated for v2.1.0
+                    </div>
+</div>
+<div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+<a class="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined text-primary mb-4 block">menu_book</span>
+<h4 class="font-headline-sm text-xl mb-2 group-hover:text-primary">Getting Started</h4>
+<p class="text-secondary text-sm">Installation guide and first-time configuration walkthrough.</p>
+</a>
+<a class="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined text-primary mb-4 block">settings_suggest</span>
+<h4 class="font-headline-sm text-xl mb-2 group-hover:text-primary">Library Setup</h4>
+<p class="text-secondary text-sm">Learn how to optimize your folder structure for best scanning results.</p>
+</a>
+<a class="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined text-primary mb-4 block">api</span>
+<h4 class="font-headline-sm text-xl mb-2 group-hover:text-primary">API Reference</h4>
+<p class="text-secondary text-sm">Hooks and internal API documentation for plugin developers.</p>
+</a>
+<a class="glass-panel p-8 rounded-3xl border-white/5 hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined text-primary mb-4 block">forum</span>
+<h4 class="font-headline-sm text-xl mb-2 group-hover:text-primary">Community Support</h4>
+<p class="text-secondary text-sm">Join the discussion on GitHub and help shape the future of Sky Movie.</p>
+</a>
+</div>
+</div>
+</section>
+<!-- Final CTA Section -->
+<section class="py-32 px-container-padding text-center relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 -z-10"></div>
+<div class="max-w-3xl mx-auto">
+<h2 class="font-headline-md text-4xl mb-8">Experience Cinema at Home.</h2>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="px-10 py-5 bg-primary text-on-primary rounded-2xl font-label-md text-lg hover:shadow-[0_0_40px_rgba(137,206,255,0.3)] transition-all">
+                        Get Started Now
+                    </button>
+<button class="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-label-md text-lg hover:bg-white/10 transition-all">
+                        Star on GitHub
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-background border-t border-white/5 pt-20 pb-10 px-container-padding">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+<div class="col-span-1 md:col-span-1">
+<span class="font-display-lg text-headline-sm text-primary tracking-tight block mb-6">Sky Movie</span>
+<p class="text-secondary text-sm leading-relaxed">The premium open-source movie library manager built for the next generation of cinema lovers.</p>
+</div>
+<div>
+<h5 class="text-white font-label-md mb-6 uppercase tracking-widest text-[10px]">Product</h5>
+<ul class="space-y-4 text-sm text-secondary">
+<li><a class="hover:text-primary transition-colors" href="#">Changelog</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Documentation</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Releases</a></li>
+</ul>
+</div>
+<div>
+<h5 class="text-white font-label-md mb-6 uppercase tracking-widest text-[10px]">Community</h5>
+<ul class="space-y-4 text-sm text-secondary">
+<li><a class="hover:text-primary transition-colors" href="#">GitHub Repository</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Discord Server</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">X / Twitter</a></li>
+</ul>
+</div>
+<div>
+<h5 class="text-white font-label-md mb-6 uppercase tracking-widest text-[10px]">Developer</h5>
+<ul class="space-y-4 text-sm text-secondary">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contributor Guide</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto flex flex-col md:row items-center justify-between gap-6 pt-10 border-t border-white/5">
+<p class="text-secondary text-xs">© 2024 Sky Movie Project. Released under MIT License.</p>
+<div class="flex items-center gap-6">
+<a class="text-secondary hover:text-white transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple reveal animation on scroll
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-panel, h2, p').forEach(el => {
+            el.classList.add('scroll-reveal');
+            observer.observe(el);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body></html>
