@@ -1,6 +1,6 @@
 {
   "name": "sky-movie",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Sky Movie local-first movie and TV library workspace.",
@@ -25,6 +25,10 @@
     "release:r2": "node scripts/release-r2.mjs",
     "release:r2:package": "node scripts/release-r2.mjs --package all",
     "release:github": "node scripts/release-github.mjs",
+    "version:major": "node scripts/version-bump.mjs major",
+    "version:minor": "node scripts/version-bump.mjs minor",
+    "version:patch": "node scripts/version-bump.mjs patch",
+    "version:set": "node scripts/version-bump.mjs",
     "rebuild:native": "pnpm --filter @sky-movie/desktop-app rebuild better-sqlite3",
     "typecheck": "pnpm --filter @sky-movie/desktop-app typecheck",
     "typecheck:website": "pnpm --filter @sky-movie/website typecheck"
