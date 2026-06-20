@@ -1,5 +1,5 @@
 export type MediaKind = 'movie' | 'show';
-export type MatchStatus = 'unmatched' | 'auto_matched' | 'manual_matched';
+export type MatchStatus = 'unmatched' | 'auto_matched' | 'manual_matched' | 'ignored';
 export type SyncType = 'full' | 'partial' | 'metadata-only' | 'files' | 'watch-progress';
 export type LibraryScanMode = MediaKind | 'mixed';
 export type MatcherStrategy = 'auto' | 'movie-title-year' | 'show-season-episode' | 'folder-name';
@@ -270,11 +270,13 @@ export interface SkyMovieApi {
   getMovieById(id: number): Promise<DetailResult<Movie>>;
   getShows(query?: string): Promise<TvShow[]>;
   getShowById(id: number): Promise<DetailResult<TvShow>>;
+  getUnmatchedFiles(): Promise<MediaFile[]>;
   updateMetadata(update: MetadataUpdate): Promise<void>;
   searchMovieMetadata(request: MovieMetadataSearchRequest): Promise<MovieMetadataSearchResult[]>;
   applyMovieMetadata(request: ApplyMovieMetadataRequest): Promise<Movie>;
   searchTvMetadata(request: TvMetadataSearchRequest): Promise<TvMetadataSearchResult[]>;
   applyTvMetadata(request: ApplyTvMetadataRequest): Promise<TvShow>;
+  markFileAsIgnored(fileId: number): Promise<void>;
   playMedia(mediaFileId: number): Promise<PlayMediaResult>;
   openMediaExternally(mediaFileId: number): Promise<void>;
   updateWatchProgress(update: WatchProgressUpdate): Promise<void>;
@@ -298,11 +300,13 @@ export const ipcChannels = {
   getMovieById: 'library:get-movie-by-id',
   getShows: 'library:get-shows',
   getShowById: 'library:get-show-by-id',
+  getUnmatchedFiles: 'library:get-unmatched-files',
   updateMetadata: 'metadata:update',
   searchMovieMetadata: 'metadata:search-movie',
   applyMovieMetadata: 'metadata:apply-movie',
   searchTvMetadata: 'metadata:search-tv',
   applyTvMetadata: 'metadata:apply-tv',
+  markFileAsIgnored: 'metadata:mark-file-ignored',
   playMedia: 'player:play-media',
   openMediaExternally: 'player:open-external',
   updateWatchProgress: 'watch:update-progress',

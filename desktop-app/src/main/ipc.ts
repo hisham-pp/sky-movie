@@ -71,6 +71,7 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.getMovieById, (_event, id: number) => services.catalog.getMovieById(id));
   ipcMain.handle(ipcChannels.getShows, (_event, query?: string) => services.catalog.getShows(query));
   ipcMain.handle(ipcChannels.getShowById, (_event, id: number) => services.catalog.getShowById(id));
+  ipcMain.handle(ipcChannels.getUnmatchedFiles, () => services.catalog.getUnmatchedFiles());
   ipcMain.handle(ipcChannels.getLibrarySummary, () => services.scanner.getSummary());
 
   ipcMain.handle(ipcChannels.updateMetadata, (_event, update: MetadataUpdate) => {
@@ -88,6 +89,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.applyTvMetadata, (_event, request: ApplyTvMetadataRequest) =>
     services.metadata.applyTvMetadata(request)
   );
+  ipcMain.handle(ipcChannels.markFileAsIgnored, (_event, fileId: number) => {
+    services.catalog.markFileAsIgnored(fileId);
+  });
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
   ipcMain.handle(ipcChannels.openMediaExternally, (_event, mediaFileId: number) =>

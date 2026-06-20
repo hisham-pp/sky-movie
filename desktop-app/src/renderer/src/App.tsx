@@ -3,6 +3,7 @@ import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
 import { ScanPanel } from './components/ScanPanel';
 import { SearchModal } from './components/SearchModal';
+import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
@@ -14,6 +15,7 @@ export function App() {
   const theme = library.settings?.theme ?? 'cinema';
   const libraryView = library.view === 'shows' ? 'shows' : 'movies';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,7 +34,11 @@ export function App() {
       <Sidebar view={library.view} summary={library.summary} onViewChange={library.setView} />
 
       <section className="workspace">
-        <Toolbar onOpenSearch={() => setIsSearchOpen(true)} />
+        <Toolbar 
+          onOpenSearch={() => setIsSearchOpen(true)}
+          unmatchedCount={library.unmatchedFiles.length}
+          onOpenUnrecognized={() => setIsUnrecognizedOpen(true)}
+        />
 
         {library.view === 'settings' ? (
           <SettingsPanel
@@ -108,6 +114,16 @@ export function App() {
           onSelectShow={(show) => {
             library.viewShowDetails(show);
           }}
+        />
+
+        <UnrecognizedDrawer
+          isOpen={isUnrecognizedOpen}
+          onClose={() => setIsUnrecognizedOpen(false)}
+          unmatchedFiles={library.unmatchedFiles}
+          busy={library.busy}
+          onSearchMetadata={library.searchUnmatchedFileMetadata}
+          onApplyMetadata={library.applyUnmatchedFileMetadata}
+          onMarkAsIgnored={library.markFileAsIgnored}
         />
       </section>
     </main>

@@ -51,6 +51,7 @@ export function useLibraryController() {
   const [lastScan, setLastScan] = useState<ScanResult | null>(null);
   const [status, setStatus] = useState('Ready');
   const [busy, setBusy] = useState(false);
+  const [unmatchedFiles, setUnmatchedFiles] = useState<MediaFile[]>([]);
 
   useEffect(() => {
     void refreshAll().catch((error) => {
@@ -78,6 +79,7 @@ export function useLibraryController() {
     setLibraryFolders(nextSettings.libraryFolders ?? []);
     setSummary(nextSummary);
     await refreshLists();
+    await refreshUnmatchedFiles();
   }
 
   async function refreshLists() {
@@ -88,6 +90,17 @@ export function useLibraryController() {
     ]);
     setMovies(nextMovies);
     setShows(nextShows);
+  }
+
+  async function refreshUnmatchedFiles() {
+    try {
+      const api = getSkyMovieApi();
+      const files = await api.getUnmatchedFiles();
+      setUnmatchedFiles(files);
+    } catch (error) {
+      console.error('Failed to fetch unmatched files:', error);
+      setUnmatchedFiles([]);
+    }
   }
 
   async function scanLibrary() {
@@ -484,6 +497,84 @@ export function useLibraryController() {
     }
   }
 
+  async function searchUnmatchedFileMetadata(file: MediaFile, query: string): Promise<Array<MovieMetadataSearchResult | TvMetadataSearchResult>> {
+    try {
+      const api = getSkyMovieApi();
+      if (file.mediaKind === 'movie') {
+        return await api.searchMovieMetadata({ query });
+      } else {
+        return await api.searchTvMetadata({ query });
+      }
+    } catch (error) {
+      console.error('Search unmatched file metadata failed:', error);
+      return [];
+    }
+  }
+
+  async function applyUnmatchedFileMetadata(file: MediaFile, result: MovieMetadataSearchResult | TvMetadataSearchResult): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      
+      if (file.mediaKind === 'movie' && 'releaseYear' in result) {
+        // Create or update movie
+        const movie = await api.applyMovieMetadata({
+          movieId: file.matchedMovieId ?? 0,
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        
+        // Update file to link to this movie
+        await api.updateMetadata({
+          table: 'media_files',
+          id: file.id,
+          fields: {
+            matched_movie_id: movie.id,
+            match_status: 'manual_matched',
+            match_confidence: 1.0
+          }
+        });
+      } else if (file.mediaKind === 'show' && 'firstAirYear' in result) {
+        // Create or update show
+        const show = await api.applyTvMetadata({
+          showId: file.matchedShowId ?? 0,
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        
+        // Update file to link to this show
+        await api.updateMetadata({
+          table: 'media_files',
+          id: file.id,
+          fields: {
+            matched_show_id: show.id,
+            match_status: 'manual_matched',
+            match_confidence: 1.0
+          }
+        });
+      }
+      
+      // Refresh the unmatched files list
+      await refreshUnmatchedFiles();
+      await refreshLists();
+      setStatus(`Successfully matched ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to apply metadata: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function markFileAsIgnored(fileId: number): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.markFileAsIgnored(fileId);
+      await refreshUnmatchedFiles();
+      setStatus('File marked as ignored');
+    } catch (error) {
+      setStatus(`Failed to mark file as ignored: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
   async function loadScannedMovieMetadata(movieIds: number[]): Promise<AutoMetadataSummary | null> {
     const uniqueMovieIds = [...new Set(movieIds)];
     if (!uniqueMovieIds.length) {
@@ -613,6 +704,7 @@ export function useLibraryController() {
     lastScan,
     status,
     busy,
+    unmatchedFiles,
     chooseLibraryFolders,
     removeLibraryFolder,
     scanLibrary,
@@ -634,7 +726,10 @@ export function useLibraryController() {
     searchSelectedMetadata,
     applySelectedMetadata,
     applyPromptMetadata,
-    skipPromptMetadata
+    skipPromptMetadata,
+    searchUnmatchedFileMetadata,
+    applyUnmatchedFileMetadata,
+    markFileAsIgnored
   };
 }
 
