@@ -5,6 +5,29 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-06-20
+
+### Added
+
+- add search modal with Ctrl+K shortcut and movie/show listing (Hisham)
+- remove title text from header toolbar (Hisham)
+- make toolbar header transparent (Hisham)
+- remove title and badge from toolbar header (Hisham)
+- reduce sidebar width from 280px to 220px (Hisham)
+- add beta version detection and badge display (Hisham)
+- dynamically load releases from manifest and display in landing page (Hisham)
+- add client-side whats-new page with release history (Hisham)
+
+### Changed
+
+- disable TypeScript auto-closing tags in VSCode (Hisham)
+
+### Other
+
+- Update What's New page styling with modern glass-panel design (Hisham)
+- docs: add code signing guide and update build configuration (Hisham)
+- chore(release): publish Sky Movie 0.2.0 downloads from GitHub (Hisham)
+
 ## [0.2.0] - 2026-06-20
 
 ### Added
@@ -75,3 +98,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.1.5
 [0.1.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.1.6
 [0.2.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.0
+[0.2.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1
