@@ -24,6 +24,7 @@
     "typecheck": "tsc --noEmit"
   },
   "author": "Sky Movie",
+  "desktopName": "sky-movie",
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
     "artplayer": "^5.4.0",
