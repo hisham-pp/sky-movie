@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import * as readline from 'node:readline';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const rootPackagePath = join(repoRoot, 'package.json');
@@ -25,6 +26,7 @@ async function main() {
 
   const bumpType = args[0];
   const customVersion = args.find(arg => arg.match(/^\d+\.\d+\.\d+$/));
+  const skipConfirm = args.includes('--yes') || args.includes('-y');
 
   if (!bumpType && !customVersion) {
     console.error('Error: Specify bump type (major, minor, patch) or custom version (e.g., 1.2.3)');
@@ -49,25 +51,112 @@ async function main() {
     process.exit(1);
   }
 
+  console.log('\n📋 Dry run preview:\n');
+
   // Update desktop-app/package.json
   updatePackageVersion(desktopPackagePath, newVersion);
-  console.log(`✓ Updated desktop-app/package.json`);
+  console.log(`  ✓ Updated desktop-app/package.json`);
 
   // Update root package.json
   updatePackageVersion(rootPackagePath, newVersion);
-  console.log(`✓ Updated package.json`);
+  console.log(`  ✓ Updated package.json`);
 
+  // Get commit count for changelog
+  const commitCount = getCommitCount(currentVersion);
+  
   // Update CHANGELOG.md
   updateChangelog(changelogPath, currentVersion, newVersion);
-  console.log(`✓ Updated CHANGELOG.md with ${getCommitCount(currentVersion)} commits`);
+  console.log(`  ✓ Updated CHANGELOG.md with ${commitCount} commit${commitCount !== 1 ? 's' : ''}`);
 
-  console.log(`\n✅ Version bumped to ${newVersion}`);
-  console.log(`\nNext steps:`);
-  console.log(`  1. Review CHANGELOG.md and edit release notes if needed`);
-  console.log(`  2. git add package.json desktop-app/package.json CHANGELOG.md`);
-  console.log(`  3. git commit -m "chore: release v${newVersion}"`);
-  console.log(`  4. git tag v${newVersion}`);
-  console.log(`  5. git push origin main --tags`);
+  console.log(`\n📦 Version bumped to ${newVersion}`);
+  
+  // Show what will be committed
+  console.log('\n📝 Git operations to be performed:');
+  console.log(`  1. git add package.json desktop-app/package.json CHANGELOG.md`);
+  console.log(`  2. git commit -m "chore: release v${newVersion}"`);
+  console.log(`  3. git tag v${newVersion}`);
+  console.log(`  4. git push origin main`);
+  console.log(`  5. git push origin v${newVersion}`);
+
+  // Ask for confirmation
+  if (!skipConfirm) {
+    const confirmed = await askConfirmation('\n❓ Do you want to commit, tag, and push these changes? (yes/no): ');
+    
+    if (!confirmed) {
+      console.log('\n❌ Aborted. Changes are staged but not committed.');
+      console.log('   You can manually commit with:');
+      console.log(`   git add package.json desktop-app/package.json CHANGELOG.md`);
+      console.log(`   git commit -m "chore: release v${newVersion}"`);
+      return;
+    }
+  }
+
+  console.log('\n🚀 Executing git operations...\n');
+
+  // Git add
+  const addResult = spawnSync('git', ['add', 'package.json', 'desktop-app/package.json', 'CHANGELOG.md'], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (addResult.status !== 0) {
+    console.error('❌ Failed to stage files');
+    process.exit(1);
+  }
+  console.log('  ✓ Staged files');
+
+  // Git commit
+  const commitResult = spawnSync('git', ['commit', '-m', `chore: release v${newVersion}`], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (commitResult.status !== 0) {
+    console.error('❌ Failed to commit changes');
+    process.exit(1);
+  }
+  console.log('  ✓ Created commit');
+
+  // Git tag
+  const tagResult = spawnSync('git', ['tag', `v${newVersion}`], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (tagResult.status !== 0) {
+    console.error('❌ Failed to create tag');
+    process.exit(1);
+  }
+  console.log('  ✓ Created tag');
+
+  // Git push
+  const pushResult = spawnSync('git', ['push', 'origin', 'main'], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (pushResult.status !== 0) {
+    console.error('❌ Failed to push commits');
+    process.exit(1);
+  }
+  console.log('  ✓ Pushed commits');
+
+  // Git push tags
+  const pushTagResult = spawnSync('git', ['push', 'origin', `v${newVersion}`], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  });
+
+  if (pushTagResult.status !== 0) {
+    console.error('❌ Failed to push tag');
+    process.exit(1);
+  }
+  console.log('  ✓ Pushed tag');
+
+  console.log(`\n✅ Successfully released version ${newVersion}!`);
+  console.log(`\n🔗 GitHub Actions will now build and create the release.`);
+  console.log(`   Watch the progress at: https://github.com/${getRepoPath()}/actions`);
+}
 }
 
 main().catch((error) => {
@@ -247,6 +336,35 @@ function getCommitCount(version) {
   return commits.length;
 }
 
+function askConfirmation(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      const normalized = answer.trim().toLowerCase();
+      resolve(normalized === 'yes' || normalized === 'y');
+    });
+  });
+}
+
+function getRepoPath() {
+  const result = spawnSync('git', ['remote', 'get-url', 'origin'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  
+  if (result.status !== 0) {
+    return 'your-org/your-repo';
+  }
+  
+  const match = result.stdout.match(/github\.com[/:]([\w-]+\/[\w-]+)/);
+  return match ? match[1].replace(/\.git$/, '') : 'your-org/your-repo';
+}
+
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
@@ -260,15 +378,21 @@ Usage:
   pnpm version:patch                 Bump patch version (1.0.0 → 1.0.1)
   pnpm version:set <version>         Set specific version (e.g., 2.5.3)
 
+Options:
+  -y, --yes                          Skip confirmation prompt
+
 Examples:
-  pnpm version:major                 # 0.1.4 → 1.0.0
-  pnpm version:minor                 # 0.1.4 → 0.2.0
-  pnpm version:patch                 # 0.1.4 → 0.1.5
+  pnpm version:major                 # 0.1.5 → 1.0.0 (with confirmation)
+  pnpm version:minor                 # 0.1.5 → 0.2.0 (with confirmation)
+  pnpm version:patch                 # 0.1.5 → 0.1.6 (with confirmation)
+  pnpm version:patch -- --yes        # 0.1.5 → 0.1.6 (skip confirmation)
   pnpm version:set 2.0.0            # Set to 2.0.0
 
-The script updates:
-  - package.json
-  - desktop-app/package.json
-  - CHANGELOG.md (adds new version entry)
+The script:
+  1. Updates package.json and desktop-app/package.json
+  2. Generates CHANGELOG.md entry from git commits
+  3. Shows a preview of changes
+  4. Asks for confirmation (unless --yes)
+  5. Commits, tags, and pushes automatically
 `);
 }
