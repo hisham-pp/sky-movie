@@ -29,7 +29,20 @@ interface AutoMetadataSummary {
 }
 
 export function useLibraryController() {
-  const [view, setView] = useState<ViewMode>('movies');
+  // Load persisted view from localStorage, default to 'movies'
+  const getInitialView = (): ViewMode => {
+    try {
+      const savedView = localStorage.getItem('sky-movie-view');
+      if (savedView && ['movies', 'shows', 'scan', 'settings'].includes(savedView)) {
+        return savedView as ViewMode;
+      }
+    } catch (error) {
+      console.error('Failed to load persisted view:', error);
+    }
+    return 'movies';
+  };
+
+  const [view, setView] = useState<ViewMode>(getInitialView());
   const [query, setQuery] = useState('');
   const [movies, setMovies] = useState<Movie[]>([]);
   const [shows, setShows] = useState<TvShow[]>([]);
@@ -208,6 +221,13 @@ export function useLibraryController() {
     setSelectedFiles([]);
     setMetadataResults([]);
     setSelectedTitle('No media selected');
+    
+    // Persist view to localStorage
+    try {
+      localStorage.setItem('sky-movie-view', nextView);
+    } catch (error) {
+      console.error('Failed to persist view:', error);
+    }
   }
 
   function backToLibrary() {
