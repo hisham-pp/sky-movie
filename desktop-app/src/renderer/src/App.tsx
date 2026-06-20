@@ -1,5 +1,6 @@
 import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
+import { ScanPanel } from './components/ScanPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
@@ -9,6 +10,7 @@ import { useLibraryController } from './hooks/useLibraryController';
 export function App() {
   const library = useLibraryController();
   const theme = library.settings?.theme ?? 'cinema';
+  const libraryView = library.view === 'shows' ? 'shows' : 'movies';
 
   return (
     <main className="app-shell" data-theme={theme}>
@@ -31,15 +33,25 @@ export function App() {
             onSave={library.saveSettings}
             onChooseFolders={library.chooseLibraryFolders}
             onRemoveFolder={library.removeLibraryFolder}
-            onScanLibraries={library.scanLibraries}
             onClear={library.clearLocalData}
             onBackup={library.createBackup}
             onRestore={library.restoreBackup}
             onDownloadLocal={library.downloadLocalFiles}
           />
+        ) : library.view === 'scan' ? (
+          <ScanPanel
+            libraryFolders={library.libraryFolders}
+            scanMode={library.scanMode}
+            matcherStrategy={library.matcherStrategy}
+            extractFileMetadata={library.extractFileMetadata}
+            busy={library.busy}
+            lastScan={library.lastScan}
+            onScanLibraries={library.scanLibraries}
+            onOpenSettings={() => library.setView('settings')}
+          />
         ) : (
           <LibraryView
-            view={library.view}
+            view={libraryView}
             movies={library.movies}
             shows={library.shows}
             selectedTitle={library.selectedTitle}
