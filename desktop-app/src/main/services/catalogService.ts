@@ -2,6 +2,10 @@ import type { DetailResult, MediaFile, Movie, TvShow } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { mapEpisode, mapMediaFile, mapMovie, mapShow } from './rowMappers';
 import { pruneOrphans } from '../database/cleanup';
+import { unlink } from 'fs';
+import { promisify } from 'util';
+
+const unlinkAsync = promisify(unlink);
 
 export class CatalogService {
   constructor(private readonly db: SqliteDatabase) {}
@@ -111,6 +115,28 @@ export class CatalogService {
       )
       .run(matchedMovieId, matchedShowId, matchedEpisodeId, fileId);
 
+    pruneOrphans(this.db);
+  }
+
+  async deleteMediaFile(fileId: number): Promise<void> {
+    const file = this.db.prepare('SELECT absolute_path FROM media_files WHERE id = ?').get(fileId) as { absolute_path: string } | undefined;
+    
+    if (!file) {
+      throw new Error('File not found');
+    }
+
+    // Delete the file from disk
+    try {
+      await unlinkAsync(file.absolute_path);
+    } catch (error) {
+      console.error(`Failed to delete file ${file.absolute_path}:`, error);
+      throw new Error('Failed to delete file from disk');
+    }
+
+    // Delete the media file record
+    this.db.prepare('DELETE FROM media_files WHERE id = ?').run(fileId);
+
+    // Clean up orphaned movies, shows, episodes, etc.
     pruneOrphans(this.db);
   }
 }

@@ -92,6 +92,7 @@ export function App() {
             onApplyMetadata={library.applySelectedMetadata}
             onPlay={library.play}
             onOpenExternal={library.openExternal}
+            onDeleteFile={library.deleteFile}
           />
         )}
 

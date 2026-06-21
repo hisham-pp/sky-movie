@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clapperboard, FolderSearch, Play, Star, Tv2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clapperboard, FolderSearch, Play, Star, Tv2, Trash2 } from 'lucide-react';
 import type {
   Episode,
   MediaFile,
@@ -41,7 +41,8 @@ export function LibraryView({
   onSearchMetadata,
   onApplyMetadata,
   onPlay,
-  onOpenExternal
+  onOpenExternal,
+  onDeleteFile
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
@@ -66,6 +67,7 @@ export function LibraryView({
   onApplyMetadata(result: MetadataResult): void;
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
+  onDeleteFile(file: MediaFile): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
   const [showDetailView, setShowDetailView] = useState(false);
@@ -89,6 +91,7 @@ export function LibraryView({
         onApplyMetadata={onApplyMetadata}
         onPlay={onPlay}
         onOpenExternal={onOpenExternal}
+        onDeleteFile={onDeleteFile}
       />
     );
   }
@@ -113,6 +116,7 @@ export function LibraryView({
         onApplyMetadata={onApplyMetadata}
         onPlay={onPlay}
         onOpenExternal={onOpenExternal}
+        onDeleteFile={onDeleteFile}
       />
     );
   }
@@ -360,7 +364,8 @@ function MovieDetailPage({
   onSearchMetadata,
   onApplyMetadata,
   onPlay,
-  onOpenExternal
+  onOpenExternal,
+  onDeleteFile
 }: {
   movie: Movie;
   files: MediaFile[];
@@ -375,6 +380,7 @@ function MovieDetailPage({
   onApplyMetadata(result: MetadataResult): void;
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
+  onDeleteFile(file: MediaFile): void;
 }) {
   const meta = [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
@@ -424,7 +430,7 @@ function MovieDetailPage({
             </div>
             <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
           </section>
-          <FileList files={files} emptyLabel="No local movie files found for this title." onPlay={onPlay} />
+          <FileList files={files} emptyLabel="No local movie files found for this title." onPlay={onPlay} onDelete={onDeleteFile} />
         </div>
 
         <aside className="detail-side-stack">
@@ -459,7 +465,8 @@ function SeriesDetailPage({
   onSearchMetadata,
   onApplyMetadata,
   onPlay,
-  onOpenExternal
+  onOpenExternal,
+  onDeleteFile
 }: {
   show: TvShow;
   episodes: Episode[];
@@ -475,6 +482,7 @@ function SeriesDetailPage({
   onApplyMetadata(result: MetadataResult): void;
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
+  onDeleteFile(file: MediaFile): void;
 }) {
   const seasons = groupEpisodesBySeason(episodes);
   
@@ -576,7 +584,7 @@ function SeriesDetailPage({
             )}
           </section>
 
-          <FileList files={files} emptyLabel="No local series files found for this show." onPlay={onPlay} />
+          <FileList files={files} emptyLabel="No local series files found for this show." onPlay={onPlay} onDelete={onDeleteFile} />
         </div>
 
         <aside className="detail-side-stack">
@@ -607,11 +615,13 @@ function SeriesDetailPage({
 function FileList({
   files,
   emptyLabel,
-  onPlay
+  onPlay,
+  onDelete
 }: {
   files: MediaFile[];
   emptyLabel: string;
   onPlay(file: MediaFile): void;
+  onDelete(file: MediaFile): void;
 }) {
   return (
     <section className="detail-card">
@@ -621,11 +631,20 @@ function FileList({
       </div>
       <div className="file-list">
         {files.map((file) => (
-          <button key={file.id} title={file.fileName} onClick={() => onPlay(file)}>
-            <Play size={16} />
-            <span>{file.fileName}</span>
-            <small>{formatBytes(file.fileSize)}</small>
-          </button>
+          <div key={file.id} className="file-row">
+            <button title={file.fileName} onClick={() => onPlay(file)} className="file-play-button">
+              <Play size={16} />
+              <span>{file.fileName}</span>
+              <small>{formatBytes(file.fileSize)}</small>
+            </button>
+            <button 
+              title="Delete file" 
+              onClick={() => onDelete(file)}
+              className="file-delete-button"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         ))}
         {!files.length ? (
           <div className="detail-empty">

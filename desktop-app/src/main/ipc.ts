@@ -97,6 +97,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.updateFileMatch, (_event, fileId: number, matchedMovieId: number | null, matchedShowId: number | null) => {
     services.catalog.updateFileMatch(fileId, matchedMovieId, matchedShowId);
   });
+  ipcMain.handle(ipcChannels.deleteMediaFile, async (_event, fileId: number) => {
+    await services.catalog.deleteMediaFile(fileId);
+  });
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
   ipcMain.handle(ipcChannels.openMediaExternally, (_event, mediaFileId: number) =>
