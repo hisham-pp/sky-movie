@@ -1,29 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
-import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
-import { PlaylistView } from './components/PlaylistView';
-import { ScanPanel } from './components/ScanPanel';
 import { SearchModal } from './components/SearchModal';
 import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
-import { SettingsPanel } from './components/SettingsPanel';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { useLibraryController } from './hooks/useLibraryController';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
-import type { ViewMode } from './types';
+import { useRouting } from './contexts/RoutingContext';
+import { LibraryRoute } from './routes/LibraryRoute';
+import { SettingsRoute } from './routes/SettingsRoute';
+import { ScanRoute } from './routes/ScanRoute';
+import { PlaylistsRoute } from './routes/PlaylistsRoute';
 
 export function App() {
   const library = useLibraryController();
+  const routing = useRouting();
   const theme = library.settings?.theme ?? 'cinema';
-  const libraryView = library.view === 'shows' ? 'shows' : 'movies';
+  const libraryView = routing.state.view === 'shows' ? 'shows' : 'movies';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
-  const navigationHistoryRef = useRef<ViewMode[]>([]);
+  const navigationHistoryRef = useRef<string[]>([]);
 
   // Track navigation history for back navigation
   useEffect(() => {
-    const currentView = library.view;
+    const currentView = routing.state.view;
     const history = navigationHistoryRef.current;
     
     // Don't add duplicate consecutive views
@@ -34,7 +35,7 @@ export function App() {
       }
       history.push(currentView);
     }
-  }, [library.view]);
+  }, [routing.state.view]);
 
   // Global keyboard shortcuts
   useGlobalKeyboardShortcuts(
@@ -46,8 +47,9 @@ export function App() {
         if (library.selectedMovie || library.selectedShow || library.selectedPlaylist) {
           // If in details view, go back to library
           library.backToLibrary();
+          routing.backToLibrary();
           // Remove the current detail view from history
-          const currentIndex = history.lastIndexOf(library.view);
+          const currentIndex = history.lastIndexOf(routing.state.view);
           if (currentIndex > 0) {
             history.splice(currentIndex, 1);
           }
@@ -56,11 +58,11 @@ export function App() {
           history.pop(); // Remove current view
           const previousView = history[history.length - 1];
           if (previousView) {
-            library.setView(previousView);
+            routing.setView(previousView as any);
           }
         } else {
           // If no history, default to movies
-          library.setView('movies');
+          routing.setView('movies');
         }
       },
       onForward: () => {
@@ -71,20 +73,20 @@ export function App() {
         window.location.reload();
       },
       onHome: () => {
-        library.setView('movies');
+        routing.setView('movies');
       },
       onSettings: () => {
-        library.setView('settings');
+        routing.setView('settings');
       },
       onScan: () => {
-        library.setView('scan');
+        routing.setView('scan');
       },
       onPlaylists: () => {
-        library.setView('playlists');
+        routing.setView('playlists');
       }
     },
     {
-      view: library.view,
+      view: routing.state.view,
       selectedMovie: library.selectedMovie,
       selectedShow: library.selectedShow,
       selectedPlaylist: library.selectedPlaylist
@@ -93,7 +95,7 @@ export function App() {
 
   return (
     <main className="app-shell" data-theme={theme}>
-      <Sidebar view={library.view} summary={library.summary} onViewChange={library.setView} />
+      <Sidebar view={routing.state.view} summary={library.summary} onViewChange={routing.setView} />
 
       <section className="workspace">
         <Toolbar 
@@ -102,8 +104,8 @@ export function App() {
           onOpenUnrecognized={() => setIsUnrecognizedOpen(true)}
         />
 
-        {library.view === 'settings' ? (
-          <SettingsPanel
+        {routing.state.view === 'settings' ? (
+          <SettingsRoute
             settings={library.settings}
             scanMode={library.scanMode}
             matcherStrategy={library.matcherStrategy}
@@ -118,8 +120,8 @@ export function App() {
             onRestore={library.restoreBackup}
             onDownloadLocal={library.downloadLocalFiles}
           />
-        ) : library.view === 'scan' ? (
-          <ScanPanel
+        ) : routing.state.view === 'scan' ? (
+          <ScanRoute
             libraryFolders={library.libraryFolders}
             scanMode={library.scanMode}
             matcherStrategy={library.matcherStrategy}
@@ -127,10 +129,10 @@ export function App() {
             busy={library.busy}
             lastScan={library.lastScan}
             onScanLibraries={library.scanLibraries}
-            onOpenSettings={() => library.setView('settings')}
+            onOpenSettings={() => routing.setView('settings')}
           />
-        ) : library.view === 'playlists' ? (
-          <PlaylistView
+        ) : routing.state.view === 'playlists' ? (
+          <PlaylistsRoute
             playlists={library.playlists}
             selectedPlaylist={library.selectedPlaylist}
             playlistItems={library.playlistItems}
@@ -142,12 +144,15 @@ export function App() {
             onDeletePlaylist={library.deletePlaylist}
             onRemoveFromPlaylist={(playlistId, itemId) => library.removeFromPlaylist({ playlistId, itemId })}
             onReorderPlaylistItem={(playlistId, itemId, newSortOrder) => library.reorderPlaylistItem(playlistId, itemId, newSortOrder)}
-            onBackToLibrary={library.backToLibrary}
+            onBackToLibrary={() => {
+              library.backToLibrary();
+              routing.backToLibrary();
+            }}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
           />
         ) : (
-          <LibraryView
+          <LibraryRoute
             view={libraryView}
             movies={library.movies}
             shows={library.shows}
@@ -162,13 +167,24 @@ export function App() {
             player={library.player}
             lastScan={library.lastScan}
             playlists={library.playlists}
-            showDetailView={library.showDetailView}
-            setShowDetailView={library.setShowDetailView}
+            showDetailView={routing.state.showDetailView}
+            setShowDetailView={routing.setShowDetailView}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
-            onViewMovieDetails={library.viewMovieDetails}
-            onViewShowDetails={library.viewShowDetails}
-            onBackToLibrary={library.backToLibrary}
+            onViewMovieDetails={async (movie) => {
+              await library.viewMovieDetails(movie);
+              routing.setSelectedMovieId(movie.id);
+              routing.setShowDetailView(true);
+            }}
+            onViewShowDetails={async (show) => {
+              await library.viewShowDetails(show);
+              routing.setSelectedShowId(show.id);
+              routing.setShowDetailView(true);
+            }}
+            onBackToLibrary={() => {
+              library.backToLibrary();
+              routing.backToLibrary();
+            }}
             onMetadataQueryChange={library.setMetadataQuery}
             onSearchMetadata={library.searchSelectedMetadata}
             onApplyMetadata={library.applySelectedMetadata}
@@ -176,7 +192,7 @@ export function App() {
             onOpenExternal={library.openExternal}
             onDeleteFile={library.deleteFile}
             onShowInFolder={library.showItemInFolder}
-            onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
+            onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind: mediaKind as any, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
           />
         )}
 
@@ -193,11 +209,15 @@ export function App() {
           onClose={() => setIsSearchOpen(false)}
           movies={library.movies}
           shows={library.shows}
-          onSelectMovie={(movie) => {
-            library.viewMovieDetails(movie);
+          onSelectMovie={async (movie) => {
+            await library.viewMovieDetails(movie);
+            routing.setSelectedMovieId(movie.id);
+            routing.setShowDetailView(true);
           }}
-          onSelectShow={(show) => {
-            library.viewShowDetails(show);
+          onSelectShow={async (show) => {
+            await library.viewShowDetails(show);
+            routing.setSelectedShowId(show.id);
+            routing.setShowDetailView(true);
           }}
         />
 
