@@ -1,34 +1,29 @@
-/* Search Modal */
-.search-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
+/* Search Modal - Uses common modal-overlay with custom positioning */
+.modal-overlay:has(.search-modal) {
   align-items: flex-start;
-  justify-content: center;
   padding-top: 10vh;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .search-modal {
   width: 90%;
   max-width: 520px;
   background: var(--panel-solid);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+  animation: searchModalSlideDown 0.3s ease;
+}
+
+@keyframes searchModalSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .search-modal-header {
