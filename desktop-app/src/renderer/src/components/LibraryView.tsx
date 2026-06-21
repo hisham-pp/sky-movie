@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clapperboard, FolderSearch, Play, Star, Tv2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clapperboard, FolderOpen, FolderSearch, Play, Star, Tv2, Trash2 } from 'lucide-react';
 import type {
   Episode,
   MediaFile,
@@ -42,7 +42,8 @@ export function LibraryView({
   onApplyMetadata,
   onPlay,
   onOpenExternal,
-  onDeleteFile
+  onDeleteFile,
+  onShowInFolder
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
@@ -68,6 +69,7 @@ export function LibraryView({
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
+  onShowInFolder(file: MediaFile): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
   const [showDetailView, setShowDetailView] = useState(false);
@@ -92,6 +94,7 @@ export function LibraryView({
         onPlay={onPlay}
         onOpenExternal={onOpenExternal}
         onDeleteFile={onDeleteFile}
+        onShowInFolder={onShowInFolder}
       />
     );
   }
@@ -117,6 +120,7 @@ export function LibraryView({
         onPlay={onPlay}
         onOpenExternal={onOpenExternal}
         onDeleteFile={onDeleteFile}
+        onShowInFolder={onShowInFolder}
       />
     );
   }
@@ -365,7 +369,8 @@ function MovieDetailPage({
   onApplyMetadata,
   onPlay,
   onOpenExternal,
-  onDeleteFile
+  onDeleteFile,
+  onShowInFolder
 }: {
   movie: Movie;
   files: MediaFile[];
@@ -381,6 +386,7 @@ function MovieDetailPage({
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
+  onShowInFolder(file: MediaFile): void;
 }) {
   const meta = [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
@@ -430,7 +436,7 @@ function MovieDetailPage({
             </div>
             <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
           </section>
-          <FileList files={files} emptyLabel="No local movie files found for this title." onPlay={onPlay} onDelete={onDeleteFile} />
+          <FileList files={files} emptyLabel="No local movie files found for this title." onPlay={onPlay} onDelete={onDeleteFile} onShowInFolder={onShowInFolder} />
         </div>
 
         <aside className="detail-side-stack">
@@ -466,7 +472,8 @@ function SeriesDetailPage({
   onApplyMetadata,
   onPlay,
   onOpenExternal,
-  onDeleteFile
+  onDeleteFile,
+  onShowInFolder
 }: {
   show: TvShow;
   episodes: Episode[];
@@ -483,6 +490,7 @@ function SeriesDetailPage({
   onPlay(file: MediaFile): void;
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
+  onShowInFolder(file: MediaFile): void;
 }) {
   const seasons = groupEpisodesBySeason(episodes);
   
@@ -584,7 +592,7 @@ function SeriesDetailPage({
             )}
           </section>
 
-          <FileList files={files} emptyLabel="No local series files found for this show." onPlay={onPlay} onDelete={onDeleteFile} />
+          <FileList files={files} emptyLabel="No local series files found for this show." onPlay={onPlay} onDelete={onDeleteFile} onShowInFolder={onShowInFolder} />
         </div>
 
         <aside className="detail-side-stack">
@@ -616,12 +624,14 @@ function FileList({
   files,
   emptyLabel,
   onPlay,
-  onDelete
+  onDelete,
+  onShowInFolder
 }: {
   files: MediaFile[];
   emptyLabel: string;
   onPlay(file: MediaFile): void;
   onDelete(file: MediaFile): void;
+  onShowInFolder(file: MediaFile): void;
 }) {
   return (
     <section className="detail-card">
@@ -637,13 +647,22 @@ function FileList({
               <span>{file.fileName}</span>
               <small>{formatBytes(file.fileSize)}</small>
             </button>
-            <button 
-              title="Delete file" 
-              onClick={() => onDelete(file)}
-              className="file-delete-button"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="file-actions">
+              <button 
+                title="Show in file manager" 
+                onClick={() => onShowInFolder(file)}
+                className="file-action-button"
+              >
+                <FolderOpen size={16} />
+              </button>
+              <button 
+                title="Delete file" 
+                onClick={() => onDelete(file)}
+                className="file-action-button file-delete-button"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         ))}
         {!files.length ? (

@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
   MetadataUpdate,
@@ -99,6 +99,12 @@ export function registerIpcHandlers(services: IpcServices): void {
   });
   ipcMain.handle(ipcChannels.deleteMediaFile, async (_event, fileId: number) => {
     await services.catalog.deleteMediaFile(fileId);
+  });
+  ipcMain.handle(ipcChannels.showItemInFolder, async (_event, fileId: number) => {
+    const file = services.catalog.getMediaFile(fileId);
+    if (file) {
+      shell.showItemInFolder(file.absolutePath);
+    }
   });
 
   ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
