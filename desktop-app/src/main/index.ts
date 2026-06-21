@@ -69,17 +69,15 @@ function resolvePreloadPath(): string {
   return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
 }
 
+// Enable hardware acceleration for better video rendering
+// Must be set before app is ready
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,AudioContext,WebAudio');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('audio-buffer-size', '2048');
+
 app.whenReady().then(() => {
-  // Enable hardware acceleration for better video rendering
-  app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization');
-  app.commandLine.appendSwitch('ignore-gpu-blocklist');
-  app.commandLine.appendSwitch('enable-gpu-rasterization');
-  app.commandLine.appendSwitch('enable-zero-copy');
-  
-  // Enable additional audio codec support
-  app.commandLine.appendSwitch('audio-buffer-size', '2048');
-  app.commandLine.appendSwitch('enable-features', 'AudioContext,WebAudio');
-  
   const paths = ensureAppDataLayout();
   const { sqlite } = createDatabaseContext(paths);
 
