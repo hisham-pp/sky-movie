@@ -7,9 +7,9 @@ export const metadata: Metadata = {
     "The premium media manager for the cinematic connoisseur. Scan local collections, automate metadata, and experience your library in stunning 4K HDR.",
   metadataBase: new URL("https://github.com/hisham-pp/sky-movie"),
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     title: "Sky Movie | Your Personal Cinema, Perfected",

@@ -2,6 +2,7 @@ appId: com.skymovie.desktop
 productName: Sky Movie
 copyright: Copyright 2026 Sky Movie
 executableName: sky-movie
+icon: build/favicon.png
 
 directories:
   output: dist
