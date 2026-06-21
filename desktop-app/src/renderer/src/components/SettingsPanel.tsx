@@ -294,6 +294,7 @@ export function SettingsPanel({
               <label>
                 TMDB API key
                 <input
+                  type="password"
                   value={tmdbApiKey}
                   onChange={(event) => setTmdbApiKey(event.target.value)}
                   onBlur={() => onSave({ tmdbApiKey })}
