@@ -1,12 +1,16 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type {
+  AddToPlaylistRequest,
   ApplyMovieMetadataRequest,
   ApplyTvMetadataRequest,
+  CreatePlaylistRequest,
   MetadataUpdate,
   MovieMetadataSearchRequest,
+  RemoveFromPlaylistRequest,
   SkyMovieApi,
   SyncRequest,
   TvMetadataSearchRequest,
+  UpdatePlaylistRequest,
   WatchProgressUpdate
 } from '../shared/ipc';
 import { ipcChannels } from '../shared/ipc';
@@ -46,7 +50,16 @@ const api: SkyMovieApi = {
   checkForUpdates: () => ipcRenderer.invoke(ipcChannels.checkForUpdates),
   downloadAndInstallUpdate: () => ipcRenderer.invoke(ipcChannels.downloadAndInstallUpdate),
   getUpdateStatus: () => ipcRenderer.invoke(ipcChannels.getUpdateStatus),
-  dismissUpdateNotification: () => ipcRenderer.invoke(ipcChannels.dismissUpdateNotification)
+  dismissUpdateNotification: () => ipcRenderer.invoke(ipcChannels.dismissUpdateNotification),
+  getPlaylists: () => ipcRenderer.invoke(ipcChannels.getPlaylists),
+  getPlaylistById: (id: number) => ipcRenderer.invoke(ipcChannels.getPlaylistById, id),
+  createPlaylist: (request: CreatePlaylistRequest) => ipcRenderer.invoke(ipcChannels.createPlaylist, request),
+  updatePlaylist: (request: UpdatePlaylistRequest) => ipcRenderer.invoke(ipcChannels.updatePlaylist, request),
+  deletePlaylist: (id: number) => ipcRenderer.invoke(ipcChannels.deletePlaylist, id),
+  addToPlaylist: (request: AddToPlaylistRequest) => ipcRenderer.invoke(ipcChannels.addToPlaylist, request),
+  removeFromPlaylist: (request: RemoveFromPlaylistRequest) => ipcRenderer.invoke(ipcChannels.removeFromPlaylist, request),
+  reorderPlaylistItem: (playlistId: number, itemId: number, newSortOrder: number) => 
+    ipcRenderer.invoke(ipcChannels.reorderPlaylistItem, playlistId, itemId, newSortOrder)
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);
