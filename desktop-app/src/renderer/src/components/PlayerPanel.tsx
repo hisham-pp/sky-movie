@@ -57,7 +57,7 @@ export function PlayerPanel({
       container,
       url: player.mediaUrl,
       theme: '#89ceff',
-      volume: 0.8,
+      volume: 1.0,
       autoplay: false,
       pip: true,
       mutex: true,
@@ -73,9 +73,12 @@ export function PlayerPanel({
       // @ts-ignore - rotate is valid but not in type definitions
       rotate: true,
       moreVideoAttr: {
-        preload: 'metadata',
+        preload: 'auto',
         playsInline: true,
-        crossOrigin: 'anonymous'
+        crossOrigin: 'anonymous',
+        'webkit-playsinline': 'true',
+        'x5-playsinline': 'true',
+        controls: false
       },
       settings: [
         {
@@ -133,9 +136,9 @@ export function PlayerPanel({
     const loadTimer = window.setTimeout(() => {
       const video = art.video;
       if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) {
-        setPlaybackError('The built-in player did not load this file. HEVC/x265 videos usually need the system player.');
+        setPlaybackError('The built-in player did not load this file. HEVC/x265 videos may need the system player.');
       }
-    }, 5000);
+    }, 8000);
 
     const updateProgress = async (force = false) => {
       const video = art.video;
@@ -186,7 +189,17 @@ export function PlayerPanel({
     };
 
     const handlePlaybackError = () => {
-      setPlaybackError('The built-in player cannot decode this file. HEVC/x265 videos usually need the system player.');
+      const video = art.video;
+      const error = video?.error;
+      let errorMsg = 'The built-in player cannot decode this file. ';
+      
+      if (error) {
+        if (error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED || error.code === MediaError.MEDIA_ERR_DECODE) {
+          errorMsg += 'Video codec (HEVC/x265) or audio codec (AC3/DTS/EAC3) may not be supported. ';
+        }
+      }
+      errorMsg += 'Try the system player.';
+      setPlaybackError(errorMsg);
     };
 
     art.on('video:pause', () => void updateProgress(true));
@@ -199,8 +212,16 @@ export function PlayerPanel({
       setPlaybackError(null);
       restorePosition();
       
-      // Populate audio tracks
+      // Check if audio is available and not muted
       const video = art.video as ExtendedHTMLVideoElement;
+      if (video) {
+        video.muted = false;
+        if (video.volume === 0) {
+          video.volume = 1.0;
+        }
+      }
+      
+      // Populate audio tracks
       if (video.audioTracks && video.audioTracks.length > 0) {
         const audioSettings = (art.setting as any).find((s: Setting) => s.html === 'Audio Track');
         if (audioSettings) {
@@ -236,6 +257,12 @@ export function PlayerPanel({
       window.clearTimeout(loadTimer);
       setPlaybackError(null);
       restorePosition();
+      
+      // Ensure audio is enabled on canplay
+      const video = art.video;
+      if (video) {
+        video.muted = false;
+      }
     });
 
     return () => {
