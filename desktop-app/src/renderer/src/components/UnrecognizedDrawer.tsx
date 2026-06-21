@@ -36,8 +36,10 @@ export function UnrecognizedDrawer({
       const cleanTitle = currentFile.fileName
         .replace(/\.[^/.]+$/, '') // Remove extension
         .replace(/[._]/g, ' ') // Replace dots and underscores with spaces
-        .replace(/\d{4}/g, '') // Remove years
+        .replace(/\(?\d{4}\)?/g, '') // Remove years with optional parentheses
+        .replace(/\(\s*\)/g, '') // Remove empty parentheses
         .replace(/\b(720p|1080p|2160p|4K|BluRay|WEB|DL|HEVC|x264|x265)\b/gi, '') // Remove quality tags
+        .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
         .trim();
       
       setSearchQuery(cleanTitle);
