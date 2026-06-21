@@ -224,4 +224,49 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
       tokenize='porter unicode61'
     );
   `);
+
+  // Migration: Add missing columns to existing tables
+  try {
+    // Check if created_at column exists in collections
+    const columns = db.pragma('table_info(collections)') as Array<{ name: string }>;
+    const hasCreatedAt = columns.some(col => col.name === 'created_at');
+    const hasUpdatedAt = columns.some(col => col.name === 'updated_at');
+
+    if (!hasCreatedAt) {
+      db.exec('ALTER TABLE collections ADD COLUMN created_at TEXT');
+    }
+    if (!hasUpdatedAt) {
+      db.exec('ALTER TABLE collections ADD COLUMN updated_at TEXT');
+    }
+  } catch (error) {
+    // Column might already exist or table structure is different
+    console.warn('Migration for collections table skipped or failed:', error);
+  }
+
+  try {
+    // Check if id column exists in collection_items
+    const columns = db.pragma('table_info(collection_items)') as Array<{ name: string }>;
+    const hasId = columns.some(col => col.name === 'id');
+
+    if (!hasId) {
+      // For SQLite, we need to recreate the table to add a PRIMARY KEY
+      // This is a more complex migration
+      db.exec(`
+        CREATE TABLE collection_items_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          collection_id INTEGER NOT NULL,
+          media_kind TEXT NOT NULL,
+          movie_id INTEGER,
+          show_id INTEGER,
+          sort_order INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT INTO collection_items_new (collection_id, media_kind, movie_id, show_id, sort_order)
+        SELECT collection_id, media_kind, movie_id, show_id, sort_order FROM collection_items;
+        DROP TABLE collection_items;
+        ALTER TABLE collection_items_new RENAME TO collection_items;
+      `);
+    }
+  } catch (error) {
+    console.warn('Migration for collection_items table skipped or failed:', error);
+  }
 }
