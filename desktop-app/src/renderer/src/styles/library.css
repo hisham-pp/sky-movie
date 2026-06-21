@@ -20,7 +20,7 @@
 .hero-strip {
   position: relative;
   display: block;
-  min-height: 430px;
+  min-height: 50vh;
   overflow: hidden;
   width: calc(100% + 80px);
   margin: 0 -40px 32px;
@@ -56,7 +56,7 @@
 
 .hero-copy {
   position: absolute;
-  top: 56px;
+  top: 80px;
   left: 40px;
   z-index: 2;
   display: block;
@@ -227,11 +227,11 @@
 
 .hero-player {
   position: absolute;
-  top: 56px;
+  top: 80px;
   right: 40px;
   z-index: 3;
-  width: 440px;
-  max-width: 440px;
+  width: 640px;
+  max-width: 640px;
 }
 
 .hero-player .player {
@@ -511,7 +511,7 @@
 .rotating-banner {
   position: relative;
   width: calc(100% + 80px);
-  height: 420px;
+  height: 50vh;
   margin: 0 -40px 32px;
   overflow: hidden;
   border-radius: 0;
