@@ -1,69 +1,82 @@
+import { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { LibraryView } from '../components/LibraryView';
+import { useLibraryController } from '../hooks/useLibraryController';
 
 interface LibraryRouteProps {
-  view: 'movies' | 'shows';
-  movies: any[];
-  shows: any[];
-  selectedTitle: string;
-  selectedMovie: any;
-  selectedShow: any;
-  selectedEpisodes: any[];
-  selectedFiles: any[];
-  metadataQuery: string;
-  metadataResults: any[];
-  busy: boolean;
-  player: any;
-  lastScan: any;
-  playlists: any[];
-  showDetailView: boolean;
-  setShowDetailView: (show: boolean) => void;
-  onSelectMovie: (movie: any) => Promise<void>;
-  onSelectShow: (show: any) => Promise<void>;
-  onViewMovieDetails: (movie: any) => Promise<void>;
-  onViewShowDetails: (show: any) => Promise<void>;
-  onBackToLibrary: () => void;
-  onMetadataQueryChange: (query: string) => void;
-  onSearchMetadata: () => Promise<void>;
-  onApplyMetadata: (result: any) => Promise<void>;
-  onPlay: (file: any) => Promise<void>;
-  onOpenExternal: (mediaFileId: number) => Promise<void>;
-  onDeleteFile: (file: any) => Promise<void>;
-  onShowInFolder: (file: any) => Promise<void>;
-  onAddToPlaylist: (playlistId: number, mediaKind: string, itemId: number) => Promise<void>;
+  view?: 'movies' | 'shows';
 }
 
 export function LibraryRoute(props: LibraryRouteProps) {
+  const library = useLibraryController();
+  const navigate = useNavigate();
+  const params = useParams<{ id?: string }>();
+  const view = props.view || 'movies';
+  const selectedId = params.id ? parseInt(params.id, 10) : undefined;
+
+  // Handle URL parameter changes to select movie/show
+  useEffect(() => {
+    if (selectedId && view === 'movies') {
+      const movie = library.movies.find(m => m.id === selectedId);
+      if (movie && library.selectedMovie?.id !== selectedId) {
+        library.selectMovie(movie);
+      }
+    } else if (selectedId && view === 'shows') {
+      const show = library.shows.find(s => s.id === selectedId);
+      if (show && library.selectedShow?.id !== selectedId) {
+        library.selectShow(show);
+      }
+    }
+  }, [selectedId, view, library]);
+
+  const handleViewMovieDetails = async (movie: any) => {
+    await library.selectMovie(movie);
+    navigate(`/movies/${movie.id}`);
+  };
+
+  const handleViewShowDetails = async (show: any) => {
+    await library.selectShow(show);
+    navigate(`/shows/${show.id}`);
+  };
+
+  const handleBackToLibrary = () => {
+    library.backToLibrary();
+    navigate(view === 'movies' ? '/' : '/shows');
+  };
+
+  const showDetailView = !!selectedId;
+
   return (
     <LibraryView
-      view={props.view}
-      movies={props.movies}
-      shows={props.shows}
-      selectedTitle={props.selectedTitle}
-      selectedMovie={props.selectedMovie}
-      selectedShow={props.selectedShow}
-      selectedEpisodes={props.selectedEpisodes}
-      selectedFiles={props.selectedFiles}
-      metadataQuery={props.metadataQuery}
-      metadataResults={props.metadataResults}
-      busy={props.busy}
-      player={props.player}
-      lastScan={props.lastScan}
-      playlists={props.playlists}
-      showDetailView={props.showDetailView}
-      setShowDetailView={props.setShowDetailView}
-      onSelectMovie={props.onSelectMovie}
-      onSelectShow={props.onSelectShow}
-      onViewMovieDetails={props.onViewMovieDetails}
-      onViewShowDetails={props.onViewShowDetails}
-      onBackToLibrary={props.onBackToLibrary}
-      onMetadataQueryChange={props.onMetadataQueryChange}
-      onSearchMetadata={props.onSearchMetadata}
-      onApplyMetadata={props.onApplyMetadata}
-      onPlay={props.onPlay}
-      onOpenExternal={props.onOpenExternal}
-      onDeleteFile={props.onDeleteFile}
-      onShowInFolder={props.onShowInFolder}
-      onAddToPlaylist={props.onAddToPlaylist}
+      view={view}
+      movies={library.movies}
+      shows={library.shows}
+      selectedTitle={library.selectedTitle}
+      selectedMovie={library.selectedMovie}
+      selectedShow={library.selectedShow}
+      selectedEpisodes={library.selectedEpisodes}
+      selectedFiles={library.selectedFiles}
+      metadataQuery={library.metadataQuery}
+      metadataResults={library.metadataResults}
+      busy={library.busy}
+      player={library.player}
+      lastScan={library.lastScan}
+      playlists={library.playlists}
+      showDetailView={showDetailView}
+      setShowDetailView={() => {}}
+      onSelectMovie={library.selectMovie}
+      onSelectShow={library.selectShow}
+      onViewMovieDetails={handleViewMovieDetails}
+      onViewShowDetails={handleViewShowDetails}
+      onBackToLibrary={handleBackToLibrary}
+      onMetadataQueryChange={library.setMetadataQuery}
+      onSearchMetadata={library.searchSelectedMetadata}
+      onApplyMetadata={library.applySelectedMetadata}
+      onPlay={library.play}
+      onOpenExternal={library.openExternal}
+      onDeleteFile={library.deleteFile}
+      onShowInFolder={library.showItemInFolder}
+      onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind: mediaKind as any, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
     />
   );
 }

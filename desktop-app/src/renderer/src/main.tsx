@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { App } from './App';
-import { RoutingProvider } from './contexts/RoutingContext';
+import { Router } from './router';
 import './styles/themes.css';
 import './styles/base.css';
 import './styles/layout.css';
@@ -19,8 +18,6 @@ import './styles/playlist.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RoutingProvider>
-      <App />
-    </RoutingProvider>
+    <Router />
   </React.StrictMode>
 );
