@@ -58,7 +58,7 @@ export function PlayerPanel({
       url: player.mediaUrl,
       theme: '#89ceff',
       volume: 0.8,
-      autoplay: true,
+      autoplay: false,
       pip: true,
       mutex: true,
       hotkey: true,
