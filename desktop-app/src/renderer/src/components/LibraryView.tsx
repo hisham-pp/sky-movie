@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clapperboard, FolderOpen, FolderSearch, Play, Star, Tv2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clapperboard, FolderOpen, FolderSearch, ListMusic, Play, Plus, Star, Tv2, Trash2, X } from 'lucide-react';
 import type {
   Episode,
   MediaFile,
   Movie,
   MovieMetadataSearchResult,
   PlayMediaResult,
+  Playlist,
   ScanResult,
   TvMetadataSearchResult,
   TvShow
@@ -32,6 +33,7 @@ export function LibraryView({
   busy,
   player,
   lastScan,
+  playlists,
   onSelectMovie,
   onSelectShow,
   onViewMovieDetails,
@@ -43,7 +45,8 @@ export function LibraryView({
   onPlay,
   onOpenExternal,
   onDeleteFile,
-  onShowInFolder
+  onShowInFolder,
+  onAddToPlaylist
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
@@ -58,6 +61,7 @@ export function LibraryView({
   busy: boolean;
   player: PlayMediaResult | null;
   lastScan: ScanResult | null;
+  playlists: Playlist[];
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
   onViewMovieDetails(movie: Movie): void;
@@ -70,6 +74,7 @@ export function LibraryView({
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
+  onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
   const [showDetailView, setShowDetailView] = useState(false);
@@ -84,6 +89,7 @@ export function LibraryView({
         busy={busy}
         player={player}
         playingFile={playingFile}
+        playlists={playlists}
         onBack={() => {
           setShowDetailView(false);
           onBackToLibrary();
@@ -95,6 +101,7 @@ export function LibraryView({
         onOpenExternal={onOpenExternal}
         onDeleteFile={onDeleteFile}
         onShowInFolder={onShowInFolder}
+        onAddToPlaylist={onAddToPlaylist}
       />
     );
   }
@@ -110,6 +117,7 @@ export function LibraryView({
         busy={busy}
         player={player}
         playingFile={playingFile}
+        playlists={playlists}
         onBack={() => {
           setShowDetailView(false);
           onBackToLibrary();
@@ -121,6 +129,7 @@ export function LibraryView({
         onOpenExternal={onOpenExternal}
         onDeleteFile={onDeleteFile}
         onShowInFolder={onShowInFolder}
+        onAddToPlaylist={onAddToPlaylist}
       />
     );
   }
@@ -363,6 +372,7 @@ function MovieDetailPage({
   busy,
   player,
   playingFile,
+  playlists,
   onBack,
   onMetadataQueryChange,
   onSearchMetadata,
@@ -370,7 +380,8 @@ function MovieDetailPage({
   onPlay,
   onOpenExternal,
   onDeleteFile,
-  onShowInFolder
+  onShowInFolder,
+  onAddToPlaylist
 }: {
   movie: Movie;
   files: MediaFile[];
@@ -379,6 +390,7 @@ function MovieDetailPage({
   busy: boolean;
   player: PlayMediaResult | null;
   playingFile: MediaFile | null | undefined;
+  playlists: Playlist[];
   onBack(): void;
   onMetadataQueryChange(value: string): void;
   onSearchMetadata(): void;
@@ -387,7 +399,9 @@ function MovieDetailPage({
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
+  onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }) {
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const meta = [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
     movie.runtimeMinutes ? `${movie.runtimeMinutes} min` : null,
@@ -423,6 +437,15 @@ function MovieDetailPage({
                 <span>{playingFile.fileName}</span>
               </div>
             ) : null}
+            <button
+              className="add-to-playlist-button"
+              onClick={() => setShowPlaylistDialog(true)}
+              disabled={busy || playlists.length === 0}
+              title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
+            >
+              <ListMusic size={16} />
+              Add to Playlist
+            </button>
           </div>
         </div>
       </div>
@@ -453,6 +476,17 @@ function MovieDetailPage({
           />
         </aside>
       </div>
+
+      {showPlaylistDialog && (
+        <PlaylistSelectorDialog
+          playlists={playlists}
+          onSelect={(playlistId) => {
+            onAddToPlaylist(playlistId, 'movie', movie.id);
+            setShowPlaylistDialog(false);
+          }}
+          onClose={() => setShowPlaylistDialog(false)}
+        />
+      )}
     </section>
   );
 }
@@ -466,6 +500,7 @@ function SeriesDetailPage({
   busy,
   player,
   playingFile,
+  playlists,
   onBack,
   onMetadataQueryChange,
   onSearchMetadata,
@@ -473,7 +508,8 @@ function SeriesDetailPage({
   onPlay,
   onOpenExternal,
   onDeleteFile,
-  onShowInFolder
+  onShowInFolder,
+  onAddToPlaylist
 }: {
   show: TvShow;
   episodes: Episode[];
@@ -483,6 +519,7 @@ function SeriesDetailPage({
   busy: boolean;
   player: PlayMediaResult | null;
   playingFile: MediaFile | null | undefined;
+  playlists: Playlist[];
   onBack(): void;
   onMetadataQueryChange(value: string): void;
   onSearchMetadata(): void;
@@ -491,7 +528,9 @@ function SeriesDetailPage({
   onOpenExternal(mediaFileId: number): void;
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
+  onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }) {
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const seasons = groupEpisodesBySeason(episodes);
   
   // Map files to episodes based on filename patterns
@@ -544,6 +583,15 @@ function SeriesDetailPage({
             <span>{playingFile.fileName}</span>
           </div>
         ) : null}
+        <button
+          className="add-to-playlist-button"
+          onClick={() => setShowPlaylistDialog(true)}
+          disabled={busy || playlists.length === 0}
+          title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
+        >
+          <ListMusic size={16} />
+          Add to Playlist
+        </button>
       </div>
 
       <div className="series-detail-grid">
@@ -616,6 +664,17 @@ function SeriesDetailPage({
           />
         </aside>
       </div>
+
+      {showPlaylistDialog && (
+        <PlaylistSelectorDialog
+          playlists={playlists}
+          onSelect={(playlistId) => {
+            onAddToPlaylist(playlistId, 'show', show.id);
+            setShowPlaylistDialog(false);
+          }}
+          onClose={() => setShowPlaylistDialog(false)}
+        />
+      )}
     </section>
   );
 }
@@ -756,4 +815,51 @@ function groupEpisodesBySeason(episodes: Episode[]) {
       seasonNumber,
       episodes: seasonEpisodes.sort((left, right) => left.episodeNumber - right.episodeNumber)
     }));
+}
+
+function PlaylistSelectorDialog({
+  playlists,
+  onSelect,
+  onClose
+}: {
+  playlists: Playlist[];
+  onSelect(playlistId: number): void;
+  onClose(): void;
+}) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content playlist-selector" onClick={(e) => e.stopPropagation()}>
+        <div className="playlist-selector-header">
+          <h3>Add to Playlist</h3>
+          <button className="close-button" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        {playlists.length ? (
+          <div className="playlist-selector-list">
+            {playlists.map((playlist) => (
+              <button
+                key={playlist.id}
+                className="playlist-selector-item"
+                onClick={() => onSelect(playlist.id)}
+              >
+                <ListMusic size={18} />
+                <div className="playlist-selector-info">
+                  <strong>{playlist.name}</strong>
+                  <small>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</small>
+                </div>
+                <Plus size={16} />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="playlist-selector-empty">
+            <ListMusic size={24} />
+            <span>No playlists yet</span>
+            <p>Create a playlist first to add items to it.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -18,6 +18,7 @@ import { LibraryScanner } from './services/libraryScanner';
 import { MaintenanceService } from './services/maintenanceService';
 import { MetadataProviderManager } from './services/metadataProvider';
 import { PlayerService } from './services/playerService';
+import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
@@ -32,6 +33,7 @@ interface IpcServices {
   settings: SettingsService;
   sync: LocalSyncEngine;
   update: UpdateService;
+  playlist: PlaylistService;
   getMainWindow(): BrowserWindow | null;
 }
 
@@ -168,6 +170,18 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.downloadAndInstallUpdate, () => services.update.downloadAndInstallUpdate());
   ipcMain.handle(ipcChannels.getUpdateStatus, () => services.update.getStatus());
   ipcMain.handle(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification());
+
+  // Playlist handlers
+  ipcMain.handle(ipcChannels.getPlaylists, () => services.playlist.getPlaylists());
+  ipcMain.handle(ipcChannels.getPlaylistById, (_event, id: number) => services.playlist.getPlaylistById(id));
+  ipcMain.handle(ipcChannels.createPlaylist, (_event, request) => services.playlist.createPlaylist(request));
+  ipcMain.handle(ipcChannels.updatePlaylist, (_event, request) => services.playlist.updatePlaylist(request));
+  ipcMain.handle(ipcChannels.deletePlaylist, (_event, id: number) => services.playlist.deletePlaylist(id));
+  ipcMain.handle(ipcChannels.addToPlaylist, (_event, request) => services.playlist.addToPlaylist(request));
+  ipcMain.handle(ipcChannels.removeFromPlaylist, (_event, request) => services.playlist.removeFromPlaylist(request));
+  ipcMain.handle(ipcChannels.reorderPlaylistItem, (_event, playlistId: number, itemId: number, newSortOrder: number) =>
+    services.playlist.reorderPlaylistItem(playlistId, itemId, newSortOrder)
+  );
 }
 
 function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibraryRequest {

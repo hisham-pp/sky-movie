@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
+import { PlaylistView } from './components/PlaylistView';
 import { ScanPanel } from './components/ScanPanel';
 import { SearchModal } from './components/SearchModal';
 import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
@@ -107,6 +108,23 @@ export function App() {
             onScanLibraries={library.scanLibraries}
             onOpenSettings={() => library.setView('settings')}
           />
+        ) : library.view === 'playlists' ? (
+          <PlaylistView
+            playlists={library.playlists}
+            selectedPlaylist={library.selectedPlaylist}
+            playlistItems={library.playlistItems}
+            selectedTitle={library.selectedTitle}
+            busy={library.busy}
+            onSelectPlaylist={library.selectPlaylist}
+            onCreatePlaylist={(name, description) => library.createPlaylist({ name, description })}
+            onUpdatePlaylist={(id, name, description) => library.updatePlaylist({ id, name, description })}
+            onDeletePlaylist={library.deletePlaylist}
+            onRemoveFromPlaylist={(playlistId, itemId) => library.removeFromPlaylist({ playlistId, itemId })}
+            onReorderPlaylistItem={(playlistId, itemId, newSortOrder) => library.reorderPlaylistItem(playlistId, itemId, newSortOrder)}
+            onBackToLibrary={library.backToLibrary}
+            onSelectMovie={library.selectMovie}
+            onSelectShow={library.selectShow}
+          />
         ) : (
           <LibraryView
             view={libraryView}
@@ -122,6 +140,7 @@ export function App() {
             busy={library.busy}
             player={library.player}
             lastScan={library.lastScan}
+            playlists={library.playlists}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
             onViewMovieDetails={library.viewMovieDetails}
@@ -134,6 +153,7 @@ export function App() {
             onOpenExternal={library.openExternal}
             onDeleteFile={library.deleteFile}
             onShowInFolder={library.showItemInFolder}
+            onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
           />
         )}
 
