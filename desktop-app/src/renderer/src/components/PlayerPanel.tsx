@@ -44,6 +44,7 @@ export function PlayerPanel({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const artRef = useRef<Artplayer | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -195,11 +196,33 @@ export function PlayerPanel({
       
       if (error) {
         if (error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED || error.code === MediaError.MEDIA_ERR_DECODE) {
-          errorMsg += 'Video codec (HEVC/x265) or audio codec (AC3/DTS/EAC3) may not be supported. ';
+          errorMsg += 'Video codec (HEVC/x265) or audio codec (AC3/DTS/EAC3/TrueHD/AAC-HE) may not be supported. ';
         }
       }
       errorMsg += 'Try the system player.';
       setPlaybackError(errorMsg);
+    };
+
+    // Additional handler to check for silent audio
+    const checkAudioOnPlay = () => {
+      const video = art.video as ExtendedHTMLVideoElement;
+      if (video && !video.muted && video.volume > 0) {
+        // If video is playing but audio context is suspended, try to resume it
+        // This can happen in Chromium-based browsers due to autoplay policies
+        try {
+          if (!audioContextRef.current && ((window as any).AudioContext || (window as any).webkitAudioContext)) {
+            const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+            audioContextRef.current = new AudioContextClass();
+          }
+          if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().catch(() => {
+              // Ignore errors - this is a best-effort attempt
+            });
+          }
+        } catch (e) {
+          // Ignore errors creating audio context
+        }
+      }
     };
 
     art.on('video:pause', () => void updateProgress(true));
@@ -207,17 +230,33 @@ export function PlayerPanel({
     art.on('video:timeupdate', () => void updateProgress());
     art.on('video:ended', () => void updateProgress(true));
     art.on('video:error', handlePlaybackError);
+    art.on('video:play', checkAudioOnPlay);
     art.on('video:loadedmetadata', () => {
       window.clearTimeout(loadTimer);
       setPlaybackError(null);
       restorePosition();
       
-      // Check if audio is available and not muted
+      // Ensure audio is enabled and unmuted
       const video = art.video as ExtendedHTMLVideoElement;
       if (video) {
         video.muted = false;
         if (video.volume === 0) {
           video.volume = 1.0;
+        }
+        
+        // Force enable first audio track if audioTracks API is supported
+        if (video.audioTracks && video.audioTracks.length > 0) {
+          let hasEnabledTrack = false;
+          for (let i = 0; i < video.audioTracks.length; i++) {
+            if (video.audioTracks[i].enabled) {
+              hasEnabledTrack = true;
+              break;
+            }
+          }
+          // If no track is enabled, enable the first one
+          if (!hasEnabledTrack && video.audioTracks.length > 0) {
+            video.audioTracks[0].enabled = true;
+          }
         }
       }
       
@@ -259,15 +298,36 @@ export function PlayerPanel({
       restorePosition();
       
       // Ensure audio is enabled on canplay
-      const video = art.video;
+      const video = art.video as ExtendedHTMLVideoElement;
       if (video) {
         video.muted = false;
+        if (video.volume === 0) {
+          video.volume = 1.0;
+        }
+        
+        // Double-check audio track is enabled
+        if (video.audioTracks && video.audioTracks.length > 0) {
+          let hasEnabledTrack = false;
+          for (let i = 0; i < video.audioTracks.length; i++) {
+            if (video.audioTracks[i].enabled) {
+              hasEnabledTrack = true;
+              break;
+            }
+          }
+          if (!hasEnabledTrack) {
+            video.audioTracks[0].enabled = true;
+          }
+        }
       }
     });
 
     return () => {
       window.clearTimeout(loadTimer);
       void updateProgress(true);
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = null;
+      }
       art.destroy(false);
       artRef.current = null;
       container.textContent = '';
