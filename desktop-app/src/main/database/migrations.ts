@@ -160,10 +160,13 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     CREATE TABLE IF NOT EXISTS collections (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
-      description TEXT
+      description TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS collection_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       collection_id INTEGER NOT NULL,
       media_kind TEXT NOT NULL,
       movie_id INTEGER,
@@ -208,6 +211,9 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     CREATE INDEX IF NOT EXISTS media_files_show_idx ON media_files(matched_show_id);
     CREATE INDEX IF NOT EXISTS media_files_episode_idx ON media_files(matched_episode_id);
     CREATE INDEX IF NOT EXISTS watch_history_media_file_idx ON watch_history(media_file_id);
+    CREATE INDEX IF NOT EXISTS collection_items_collection_idx ON collection_items(collection_id);
+    CREATE INDEX IF NOT EXISTS collection_items_movie_idx ON collection_items(movie_id);
+    CREATE INDEX IF NOT EXISTS collection_items_show_idx ON collection_items(show_id);
 
     CREATE VIRTUAL TABLE IF NOT EXISTS library_search USING fts5(
       media_kind,
