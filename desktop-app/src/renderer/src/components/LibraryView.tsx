@@ -156,31 +156,48 @@ export function LibraryView({
 
   if (showDetailView && view === 'playlists' && selectedPlaylist) {
     return (
-      <PlaylistDetailPage
-        playlist={selectedPlaylist}
-        items={playlistItems}
-        busy={busy}
-        movies={movies}
-        shows={shows}
-        selectedFiles={selectedFiles}
-        onBack={() => {
-          onSelectPlaylist(null);
-          onBackToLibrary();
-        }}
-        onEdit={() => {
-          setEditingPlaylist(selectedPlaylist);
-          setShowEditModal(true);
-        }}
-        onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
-        onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
-        onReorderItem={onReorderPlaylistItem}
-        onSelectMovie={onSelectMovie}
-        onSelectShow={onSelectShow}
-        onAddToPlaylist={onAddToPlaylist}
-        onViewMovieDetails={onViewMovieDetails}
-        onViewShowDetails={onViewShowDetails}
-        onPlay={onPlay}
-      />
+      <>
+        <PlaylistDetailPage
+          playlist={selectedPlaylist}
+          items={playlistItems}
+          busy={busy}
+          movies={movies}
+          shows={shows}
+          selectedFiles={selectedFiles}
+          onBack={() => {
+            onSelectPlaylist(null);
+            onBackToLibrary();
+          }}
+          onEdit={() => {
+            setEditingPlaylist(selectedPlaylist);
+            setShowEditModal(true);
+          }}
+          onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
+          onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
+          onReorderItem={onReorderPlaylistItem}
+          onSelectMovie={onSelectMovie}
+          onSelectShow={onSelectShow}
+          onAddToPlaylist={onAddToPlaylist}
+          onViewMovieDetails={onViewMovieDetails}
+          onViewShowDetails={onViewShowDetails}
+          onPlay={onPlay}
+        />
+        {showEditModal && editingPlaylist && (
+          <EditPlaylistModal
+            playlist={editingPlaylist}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditingPlaylist(null);
+            }}
+            onUpdate={(id, name, description) => {
+              onUpdatePlaylist(id, name, description);
+              setShowEditModal(false);
+              setEditingPlaylist(null);
+            }}
+            busy={busy}
+          />
+        )}
+      </>
     );
   }
 
@@ -225,18 +242,6 @@ export function LibraryView({
           onCreate={(name, description) => {
             onCreatePlaylist(name, description);
             setShowCreateModal(false);
-          }}
-          busy={busy}
-        />
-      )}
-
-      {showEditModal && editingPlaylist && (
-        <EditPlaylistModal
-          playlist={editingPlaylist}
-          onClose={() => setShowEditModal(false)}
-          onUpdate={(id, name, description) => {
-            onUpdatePlaylist(id, name, description);
-            setShowEditModal(false);
           }}
           busy={busy}
         />

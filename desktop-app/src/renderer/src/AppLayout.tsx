@@ -22,7 +22,7 @@ export function AppLayout() {
   const getCurrentView = (): ViewMode => {
     if (location.pathname === '/settings') return 'settings';
     if (location.pathname === '/scan') return 'scan';
-    if (location.pathname === '/playlists') return 'playlists';
+    if (location.pathname.startsWith('/playlists')) return 'playlists';
     if (location.pathname.startsWith('/shows')) return 'shows';
     if (location.pathname.startsWith('/movies')) return 'movies';
     return 'movies';
