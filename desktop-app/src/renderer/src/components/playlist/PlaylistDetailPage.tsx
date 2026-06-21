@@ -122,6 +122,20 @@ export function PlaylistDetailPage({
 
   return (
     <section className="media-detail-page playlist-detail-page">
+      {items.length > 0 && (
+        <div className="playlist-backdrop">
+          <div className="playlist-backdrop-collage">
+            {items.slice(0, 6).map((item, index) => {
+              const posterPath = item.movie?.posterPath || item.show?.posterPath;
+              return posterPath ? (
+                <img key={item.id} src={posterPath} alt="" style={{ '--delay': index } as any} />
+              ) : null;
+            })}
+          </div>
+          <div className="playlist-backdrop-overlay"></div>
+        </div>
+      )}
+      
       <div className="detail-hero">
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={17} />
@@ -130,7 +144,27 @@ export function PlaylistDetailPage({
 
         <div className="playlist-detail-layout">
           <div className="detail-poster playlist-poster-large">
-            <ListMusic size={48} />
+            {items.length > 0 ? (
+              <div className="playlist-poster-grid">
+                {items.slice(0, 4).map((item, index) => {
+                  const posterPath = item.movie?.posterPath || item.show?.posterPath;
+                  return posterPath ? (
+                    <img key={item.id} src={posterPath} alt="" />
+                  ) : (
+                    <div key={item.id} className="playlist-poster-placeholder">
+                      {item.mediaKind === 'movie' ? <Film size={20} /> : <Tv size={20} />}
+                    </div>
+                  );
+                })}
+                {items.length < 4 && Array.from({ length: 4 - Math.min(items.length, 4) }).map((_, i) => (
+                  <div key={`empty-${i}`} className="playlist-poster-placeholder">
+                    <ListMusic size={20} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ListMusic size={48} />
+            )}
           </div>
           <div className="detail-copy">
             <span className="detail-kicker">Playlist</span>
