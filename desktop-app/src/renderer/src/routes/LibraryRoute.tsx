@@ -13,6 +13,7 @@ export function LibraryRoute(props: LibraryRouteProps) {
   const params = useParams<{ id?: string }>();
   const view = props.view || 'movies';
   const selectedId = params.id ? parseInt(params.id, 10) : undefined;
+  const showDetailView = !!selectedId;
 
   // Handle URL parameter changes to select movie/show
   useEffect(() => {
@@ -44,11 +45,10 @@ export function LibraryRoute(props: LibraryRouteProps) {
     navigate(view === 'movies' ? '/' : '/shows');
   };
 
-  const showDetailView = !!selectedId;
-
   return (
     <LibraryView
       view={view}
+      showDetailView={showDetailView}
       movies={library.movies}
       shows={library.shows}
       selectedTitle={library.selectedTitle}

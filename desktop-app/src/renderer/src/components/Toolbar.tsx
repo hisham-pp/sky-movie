@@ -11,6 +11,8 @@ export function Toolbar({
 }) {
   return (
     <header className="toolbar">
+      <div className="toolbar-spacer"></div>
+      
       <div className="search" onClick={onOpenSearch}>
         <Search size={18} />
         <input
@@ -25,10 +27,10 @@ export function Toolbar({
       </div>
       
       {unmatchedCount && unmatchedCount > 0 && onOpenUnrecognized ? (
-        <button className="unrecognized-badge" onClick={onOpenUnrecognized}>
+        <button className="toolbar-badge" onClick={onOpenUnrecognized}>
           <AlertTriangle size={18} />
           <span>Unrecognized</span>
-          <span className="unrecognized-badge-count">{unmatchedCount}</span>
+          <span className="badge-count">{unmatchedCount}</span>
         </button>
       ) : null}
     </header>
