@@ -9,7 +9,7 @@ interface UnrecognizedDrawerProps {
   onClose: () => void;
   unmatchedFiles: MediaFile[];
   busy: boolean;
-  onSearchMetadata: (file: MediaFile, query: string) => Promise<MetadataResult[]>;
+  onSearchMetadata: (file: MediaFile, query: string, year?: number) => Promise<MetadataResult[]>;
   onApplyMetadata: (file: MediaFile, result: MetadataResult) => Promise<void>;
   onMarkAsIgnored: (fileId: number) => Promise<void>;
 }
@@ -25,6 +25,7 @@ export function UnrecognizedDrawer({
 }: UnrecognizedDrawerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [extractedYear, setExtractedYear] = useState<number | undefined>(undefined);
   const [searchResults, setSearchResults] = useState<MetadataResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -32,6 +33,10 @@ export function UnrecognizedDrawer({
 
   useEffect(() => {
     if (currentFile && isOpen) {
+      // Extract year from filename
+      const yearMatch = currentFile.fileName.match(/\(?\b(19\d{2}|20\d{2})\b\)?/);
+      const year = yearMatch ? parseInt(yearMatch[1], 10) : undefined;
+      
       // Extract clean title from filename
       const cleanTitle = currentFile.fileName
         .replace(/\.[^/.]+$/, '') // Remove extension
@@ -43,16 +48,17 @@ export function UnrecognizedDrawer({
         .trim();
       
       setSearchQuery(cleanTitle);
-      handleAutoSearch(currentFile, cleanTitle);
+      setExtractedYear(year);
+      handleAutoSearch(currentFile, cleanTitle, year);
     }
   }, [currentIndex, currentFile, isOpen]);
 
-  const handleAutoSearch = async (file: MediaFile, query: string) => {
+  const handleAutoSearch = async (file: MediaFile, query: string, year?: number) => {
     if (!query.trim()) return;
     
     setIsSearching(true);
     try {
-      const results = await onSearchMetadata(file, query);
+      const results = await onSearchMetadata(file, query, year);
       setSearchResults(results);
     } catch (error) {
       console.error('Auto-search failed:', error);
@@ -67,7 +73,7 @@ export function UnrecognizedDrawer({
     
     setIsSearching(true);
     try {
-      const results = await onSearchMetadata(currentFile, searchQuery);
+      const results = await onSearchMetadata(currentFile, searchQuery, extractedYear);
       setSearchResults(results);
     } catch (error) {
       console.error('Manual search failed:', error);
