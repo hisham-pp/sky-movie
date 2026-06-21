@@ -34,6 +34,8 @@ export function LibraryView({
   player,
   lastScan,
   playlists,
+  showDetailView,
+  setShowDetailView,
   onSelectMovie,
   onSelectShow,
   onViewMovieDetails,
@@ -62,6 +64,8 @@ export function LibraryView({
   player: PlayMediaResult | null;
   lastScan: ScanResult | null;
   playlists: Playlist[];
+  showDetailView: boolean;
+  setShowDetailView(showDetailView: boolean): void;
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
   onViewMovieDetails(movie: Movie): void;
@@ -77,7 +81,6 @@ export function LibraryView({
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
-  const [showDetailView, setShowDetailView] = useState(false);
 
   if (view === 'movies' && selectedMovie && showDetailView) {
     return (
@@ -146,14 +149,8 @@ export function LibraryView({
       lastScan={lastScan}
       onSelectMovie={onSelectMovie}
       onSelectShow={onSelectShow}
-      onViewMovieDetails={(movie) => {
-        onViewMovieDetails(movie);
-        setShowDetailView(true);
-      }}
-      onViewShowDetails={(show) => {
-        onViewShowDetails(show);
-        setShowDetailView(true);
-      }}
+      onViewMovieDetails={onViewMovieDetails}
+      onViewShowDetails={onViewShowDetails}
       onOpenExternal={onOpenExternal}
     />
   );
