@@ -20,14 +20,15 @@
 .hero-strip {
   position: relative;
   display: block;
-  min-height: 50vh;
+  height: 64vh;
+  max-height: 580px;
   overflow: hidden;
   width: calc(100% + 80px);
-  margin: 0 -40px 32px;
+  margin: 0 -40px -80px;
+  padding-bottom: 80px;
   background:
     linear-gradient(90deg, rgba(15, 17, 21, 0.95) 0%, rgba(15, 17, 21, 0.60) 50%, rgba(15, 17, 21, 0.90) 100%),
     var(--surface-lowest);
-  padding: 0;
 }
 
 .hero-strip::before {
@@ -45,6 +46,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   opacity: 0.75;
   filter: saturate(0.95) contrast(1.05);
 }
@@ -107,6 +109,7 @@
   letter-spacing: -0.02em;
   line-height: 1.08;
   overflow-wrap: anywhere;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8), 0 4px 48px rgba(0, 0, 0, 0.6);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -121,6 +124,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
 }
 
 .hero-strip > span {
@@ -134,6 +138,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   border-radius: 4px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .hero-chips {
@@ -162,7 +167,7 @@
 
 .banner-indicators {
   position: absolute;
-  bottom: 18px;
+  bottom: 90px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -260,6 +265,9 @@
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 18px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 5;
 }
 
 .section-title h2 {
@@ -287,6 +295,8 @@
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 24px;
   min-width: 0;
+  position: relative;
+  z-index: 5;
 }
 
 .tile {
@@ -511,8 +521,10 @@
 .rotating-banner {
   position: relative;
   width: calc(100% + 80px);
-  height: 50vh;
-  margin: 0 -40px 32px;
+  height: 64vh;
+  max-height: 580px;
+  margin: 0 -40px -80px;
+  padding-bottom: 80px;
   overflow: hidden;
   border-radius: 0;
 }
@@ -523,6 +535,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   opacity: 0.7;
   filter: saturate(0.9) brightness(0.85);
   animation: bannerFadeIn 0.8s ease;
