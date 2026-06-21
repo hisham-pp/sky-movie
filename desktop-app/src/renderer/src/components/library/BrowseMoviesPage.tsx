@@ -59,6 +59,7 @@ export function BrowseMoviesPage({
               <Clapperboard size={34} />
             )
           }
+          label={bannerMovie ? 'Now Playing' : 'Browse library'}
           title={bannerMovie?.title || 'Movie Library'}
           overview={
             bannerMovie?.overview ||
@@ -75,13 +76,11 @@ export function BrowseMoviesPage({
             )
           }
           indicators={
-            bannerMovie && (
-              <BannerIndicators
-                total={moviesWithBackdrop.length}
-                current={currentBannerIndex}
-                onSelect={setCurrentBannerIndex}
-              />
-            )
+            <BannerIndicators
+              total={moviesWithBackdrop.length}
+              current={currentBannerIndex}
+              onSelect={setCurrentBannerIndex}
+            />
           }
           player={player}
           onOpenExternal={onOpenExternal}
