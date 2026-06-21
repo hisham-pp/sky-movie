@@ -15,7 +15,7 @@ export function LibraryRoute(props: LibraryRouteProps) {
   const selectedId = params.id ? parseInt(params.id, 10) : undefined;
   const showDetailView = !!selectedId;
 
-  // Handle URL parameter changes to select movie/show
+  // Handle URL parameter changes to select movie/show/playlist
   useEffect(() => {
     if (selectedId && view === 'movies') {
       const movie = library.movies.find(m => m.id === selectedId);
@@ -26,6 +26,11 @@ export function LibraryRoute(props: LibraryRouteProps) {
       const show = library.shows.find(s => s.id === selectedId);
       if (show && library.selectedShow?.id !== selectedId) {
         library.selectShow(show);
+      }
+    } else if (selectedId && view === 'playlists') {
+      const playlist = library.playlists.find(p => p.id === selectedId);
+      if (playlist && library.selectedPlaylist?.id !== selectedId) {
+        library.selectPlaylist(playlist);
       }
     }
   }, [selectedId, view, library]);
@@ -42,7 +47,17 @@ export function LibraryRoute(props: LibraryRouteProps) {
 
   const handleBackToLibrary = () => {
     library.backToLibrary();
-    navigate(view === 'movies' ? '/' : '/shows');
+    const basePath = view === 'movies' ? '/' : view === 'shows' ? '/shows' : '/playlists';
+    navigate(basePath);
+  };
+
+  const handleSelectPlaylist = async (playlist: any) => {
+    if (playlist) {
+      await library.selectPlaylist(playlist);
+      navigate(`/playlists/${playlist.id}`);
+    } else {
+      navigate('/playlists');
+    }
   };
 
   return (
@@ -77,11 +92,12 @@ export function LibraryRoute(props: LibraryRouteProps) {
       onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind: mediaKind as any, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
       selectedPlaylist={library.selectedPlaylist}
       playlistItems={library.playlistItems}
-      onSelectPlaylist={library.selectPlaylist}
+      onSelectPlaylist={handleSelectPlaylist}
       onCreatePlaylist={(name, description) => library.createPlaylist({ name, description })}
       onUpdatePlaylist={(id, name, description) => library.updatePlaylist({ id, name, description })}
       onDeletePlaylist={library.deletePlaylist}
       onRemoveFromPlaylist={(playlistId, itemId) => library.removeFromPlaylist({ playlistId, itemId })}
+      onReorderPlaylistItem={library.reorderPlaylistItem}
     />
   );
 }

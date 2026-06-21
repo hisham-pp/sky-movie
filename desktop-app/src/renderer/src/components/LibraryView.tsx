@@ -59,7 +59,8 @@ export function LibraryView({
   onCreatePlaylist,
   onUpdatePlaylist,
   onDeletePlaylist,
-  onRemoveFromPlaylist
+  onRemoveFromPlaylist,
+  onReorderPlaylistItem
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   showDetailView: boolean;
@@ -96,6 +97,7 @@ export function LibraryView({
   onUpdatePlaylist(id: number, name?: string, description?: string): void;
   onDeletePlaylist(id: number): void;
   onRemoveFromPlaylist(playlistId: number, itemId: number): void;
+  onReorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): void;
 }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -158,6 +160,9 @@ export function LibraryView({
         playlist={selectedPlaylist}
         items={playlistItems}
         busy={busy}
+        movies={movies}
+        shows={shows}
+        selectedFiles={selectedFiles}
         onBack={() => {
           onSelectPlaylist(null);
           onBackToLibrary();
@@ -168,8 +173,13 @@ export function LibraryView({
         }}
         onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
         onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
+        onReorderItem={onReorderPlaylistItem}
         onSelectMovie={onSelectMovie}
         onSelectShow={onSelectShow}
+        onAddToPlaylist={onAddToPlaylist}
+        onViewMovieDetails={onViewMovieDetails}
+        onViewShowDetails={onViewShowDetails}
+        onPlay={onPlay}
       />
     );
   }
