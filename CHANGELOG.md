@@ -5,6 +5,53 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-21
+
+### Added
+
+- add backdrop collage and poster grid to playlist detail page (Hisham)
+- add item reordering and improve playlist management UI (Hisham)
+- add ignore/unignore toggle and improve file navigation (Hisham)
+- add year extraction and filtering to metadata search (Hisham)
+- refactor hero banner layout and toolbar styling for improved responsive design (Hisham)
+- implement browse TV shows page with auto-rotating banner hero and responsive grid layout (Hisham)
+- implement video player component with Artplayer, progress tracking, and track selection (Hisham)
+- implement library module with browse views and media display components (Hisham)
+- add UnrecognizedDrawer component for manual media metadata matching and file management (Hisham)
+- implement video playback component using Artplayer with progress tracking and custom styling (Hisham)
+- implement SettingsPanel component with library, metadata, and theme management configurations (Hisham)
+- implement browse library page with dynamic header and media grid views (Hisham)
+- implement LibraryScanner service for automated file discovery, metadata parsing, and database synchronization (Hisham)
+- add BrowseLibraryPage component and implement libraryScanner service for local media discovery (Hisham)
+- implement library navigation and playlist management UI components (Hisham)
+- initialize electron-builder configuration and packaging scripts for desktop app distribution (Hisham)
+- implement persistent routing with session history and centralized library navigation view (Hisham)
+- implement persistent router history and global keyboard navigation shortcuts in the renderer application (Hisham)
+- implement application routing, layout, and view structure for the desktop renderer (Hisham)
+- initialize desktop-app renderer with routing, hooks, and library controller logic (Hisham)
+- configure electron-builder and add favicon assets for website and desktop app (Hisham)
+- initialize SQLite database schema and implement Playlist management UI components (Hisham)
+- implement library controller hook and UI components for media management (Hisham)
+- implement playlist UI styles and initialize database schema for library management (Hisham)
+- implement global keyboard shortcuts for navigation and application control (Hisham)
+- implement preload script to expose SkyMovieApi via contextBridge (Hisham)
+- implement playlist management system and integrate IPC handlers for CRUD and reordering operations (Hisham)
+- implement App component with navigation, keyboard shortcuts, and library view management (Hisham)
+- implement electron IPC layer and initial renderer UI for movie library management (Hisham)
+- implement core IPC handlers and service wiring for library management, metadata, and media playback (Hisham)
+- add automated version bumping and release script (Hisham)
+
+### Fixed
+
+- disable autoplay by default in PlayerPanel component (Hisham)
+
+### Other
+
+- style(playlist): improve spacing and layout hierarchy in playlist content (Hisham)
+- style(layout,library): enhance toolbar, search, and hero section styling with improved visual hierarchy (Hisham)
+- style(layout,library): adjust toolbar positioning and hero section dimensions (Hisham)
+- chore(release): publish Sky Movie 0.3.1 downloads from GitHub (Hisham)
+
 ## [0.3.1] - 2026-06-20
 
 ### Added
@@ -142,3 +189,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.2.1
 [0.3.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.0
 [0.3.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.1
+[0.4.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0
