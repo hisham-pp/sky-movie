@@ -43,7 +43,9 @@ function createWindow(): BrowserWindow {
       preload: resolvePreloadPath(),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      webgl: true,
+      enableBlinkFeatures: 'PlatformHEVCDecoderSupport'
     }
   });
 
@@ -68,6 +70,16 @@ function resolvePreloadPath(): string {
 }
 
 app.whenReady().then(() => {
+  // Enable hardware acceleration for better video rendering
+  app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization');
+  app.commandLine.appendSwitch('ignore-gpu-blocklist');
+  app.commandLine.appendSwitch('enable-gpu-rasterization');
+  app.commandLine.appendSwitch('enable-zero-copy');
+  
+  // Enable additional audio codec support
+  app.commandLine.appendSwitch('audio-buffer-size', '2048');
+  app.commandLine.appendSwitch('enable-features', 'AudioContext,WebAudio');
+  
   const paths = ensureAppDataLayout();
   const { sqlite } = createDatabaseContext(paths);
 
