@@ -8,6 +8,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .artplayer-host,
@@ -20,6 +21,97 @@
 
 .player .artplayer-app {
   --art-theme: var(--primary);
+  --art-bottom-gap: 20px;
+  --art-control-height: 50px;
+  --art-control-icon-scale: 1.1;
+}
+
+/* Enhanced video quality */
+.player video {
+  object-fit: contain;
+  image-rendering: high-quality;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Better subtitle styling */
+.player .artplayer-app .artplayer-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    -1px -1px 2px rgba(0, 0, 0, 0.7);
+  line-height: 1.5;
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* Enhanced controls */
+.player .artplayer-app .artplayer-controls {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  padding: 12px 16px;
+}
+
+.player .artplayer-app .artplayer-control {
+  transition: transform 0.2s ease;
+}
+
+.player .artplayer-app .artplayer-control:hover {
+  transform: scale(1.15);
+}
+
+/* Settings panel enhancement */
+.player .artplayer-app .artplayer-setting-panel {
+  background: rgba(20, 20, 20, 0.96);
+  backdrop-filter: blur(12px);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.player .artplayer-app .artplayer-setting-item {
+  padding: 10px 14px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.player .artplayer-app .artplayer-setting-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.player .artplayer-app .artplayer-setting-item-right-icon {
+  opacity: 0.7;
+}
+
+/* Progress bar enhancement */
+.player .artplayer-app .artplayer-progress {
+  height: 5px;
+  transition: height 0.2s ease;
+}
+
+.player .artplayer-app:hover .artplayer-progress {
+  height: 8px;
+}
+
+.player .artplayer-app .artplayer-progress-indicator {
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Loading spinner enhancement */
+.player .artplayer-app .artplayer-loading {
+  width: 60px;
+  height: 60px;
+}
+
+/* Info panel enhancement */
+.player .artplayer-app .artplayer-info-panel {
+  background: rgba(20, 20, 20, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
 }
 
 .player-empty {
@@ -61,6 +153,17 @@
   color: #fff;
   padding: 0 10px;
   white-space: nowrap;
+  border-radius: 6px;
+  transition: background 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 13px;
+}
+
+.player-error button:hover,
+.player-external-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
 }
 
 .player-external-button {
