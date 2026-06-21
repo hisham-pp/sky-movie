@@ -61,6 +61,9 @@ export function AppLayout() {
       },
       onPlaylists: () => {
         navigate('/playlists');
+      },
+      onShows: () => {
+        navigate('/shows');
       }
     },
     {

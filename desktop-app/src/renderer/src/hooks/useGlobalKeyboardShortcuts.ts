@@ -10,6 +10,7 @@ interface KeyboardShortcutHandlers {
   onSettings: () => void;
   onScan: () => void;
   onPlaylists: () => void;
+  onShows?: () => void;
 }
 
 interface NavigationState {
@@ -50,15 +51,7 @@ export function useGlobalKeyboardShortcuts(
       // Back navigation: Alt + Left Arrow (Windows/Linux) or Cmd + [ (Mac)
       if ((e.altKey && e.key === 'ArrowLeft') || (e.metaKey && e.key === '[')) {
         e.preventDefault();
-        // Back works when:
-        // - In movie/show details view
-        // - In playlist details view
-        // - In settings or scan views (go back to last library view)
-        if (state.selectedMovie || state.selectedShow || state.selectedPlaylist) {
-          currentHandlers.onBack();
-        } else if (state.view === 'settings' || state.view === 'scan' || state.view === 'playlists') {
-          currentHandlers.onBack();
-        }
+        currentHandlers.onBack();
         return;
       }
 
@@ -114,10 +107,8 @@ export function useGlobalKeyboardShortcuts(
       // Shows: Ctrl/Cmd + 2
       if ((e.metaKey || e.ctrlKey) && e.key === '2') {
         e.preventDefault();
-        // Navigate to shows view
-        if (typeof currentHandlers.onHome === 'function') {
-          // We'll need to add a onShows handler or modify onHome
-          // For now, this is a placeholder
+        if (currentHandlers.onShows) {
+          currentHandlers.onShows();
         }
         return;
       }
