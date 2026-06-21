@@ -579,6 +579,48 @@ export function useLibraryController() {
     }
   }
 
+  async function deleteFile(file: MediaFile): Promise<void> {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${file.fileName}"?\n\nThis will:\n• Permanently delete the file from disk\n• Remove it from the database\n• Clean up associated movie/series if no other files exist`
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const api = getSkyMovieApi();
+      await api.deleteMediaFile(file.id);
+      
+      // Refresh the current view
+      if (selectedMovie) {
+        const details = await api.getMovieById(selectedMovie.id);
+        setSelectedFiles(details.files);
+        // If movie has no more files, go back to library
+        if (details.files.length === 0) {
+          backToLibrary();
+        }
+      } else if (selectedShow) {
+        const details = await api.getShowById(selectedShow.id);
+        setSelectedFiles(details.files);
+        setSelectedEpisodes(details.episodes ?? []);
+        // If show has no more files, go back to library
+        if (details.files.length === 0) {
+          backToLibrary();
+        }
+      }
+      
+      await refreshLists();
+      setStatus(`Deleted ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to delete file: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function loadScannedMovieMetadata(movieIds: number[]): Promise<AutoMetadataSummary | null> {
     const uniqueMovieIds = [...new Set(movieIds)];
     if (!uniqueMovieIds.length) {
@@ -733,7 +775,8 @@ export function useLibraryController() {
     skipPromptMetadata,
     searchUnmatchedFileMetadata,
     applyUnmatchedFileMetadata,
-    markFileAsIgnored
+    markFileAsIgnored,
+    deleteFile
   };
 }
 

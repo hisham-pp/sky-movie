@@ -29,6 +29,7 @@ const api: SkyMovieApi = {
   markFileAsIgnored: (fileId: number) => ipcRenderer.invoke(ipcChannels.markFileAsIgnored, fileId),
   updateFileMatch: (fileId: number, matchedMovieId: number | null, matchedShowId: number | null) => 
     ipcRenderer.invoke(ipcChannels.updateFileMatch, fileId, matchedMovieId, matchedShowId),
+  deleteMediaFile: (fileId: number) => ipcRenderer.invoke(ipcChannels.deleteMediaFile, fileId),
   playMedia: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.playMedia, mediaFileId),
   openMediaExternally: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.openMediaExternally, mediaFileId),
   updateWatchProgress: (update: WatchProgressUpdate) => ipcRenderer.invoke(ipcChannels.updateWatchProgress, update),
