@@ -162,6 +162,8 @@ export function App() {
             player={library.player}
             lastScan={library.lastScan}
             playlists={library.playlists}
+            showDetailView={library.showDetailView}
+            setShowDetailView={library.setShowDetailView}
             onSelectMovie={library.selectMovie}
             onSelectShow={library.selectShow}
             onViewMovieDetails={library.viewMovieDetails}
