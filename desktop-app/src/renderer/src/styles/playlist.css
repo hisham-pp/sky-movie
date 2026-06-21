@@ -108,6 +108,7 @@
 
 /* ===== Playlist Detail Page ===== */
 .playlist-detail-page {
+  position: relative;
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -118,7 +119,104 @@
 
 .playlist-detail-page .detail-hero {
   min-height: auto;
-  padding: 34px 0 28px;
+  padding: 110px 0 28px;
+}
+
+/* Playlist Backdrop Collage */
+.playlist-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 500px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.playlist-backdrop-collage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 20px;
+  filter: blur(2px);
+  opacity: 0.4;
+}
+
+.playlist-backdrop-collage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  animation: fadeInScale 0.6s ease-out forwards;
+  animation-delay: calc(var(--delay) * 0.1s);
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+@keyframes fadeInScale {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.playlist-backdrop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 14, 18, 0.4) 0%,
+    rgba(12, 14, 18, 0.85) 50%,
+    var(--background) 100%
+  );
+}
+
+/* Playlist Poster Grid (2x2 grid of posters) */
+.playlist-poster-large {
+  width: 160px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--poster-a), var(--poster-b) 52%, var(--poster-c));
+  color: white;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.playlist-poster-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+  background: var(--background);
+  padding: 2px;
+}
+
+.playlist-poster-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.playlist-poster-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, var(--poster-a), var(--poster-b) 52%, var(--poster-c));
+  color: white;
+  border-radius: 4px;
 }
 
 .playlist-detail-layout {
@@ -211,7 +309,7 @@
 .playlist-content {
   display: grid;
   gap: 24px;
-  padding-top: 0;
+  padding-top: 20px;
 }
 
 .playlist-toolbar {
@@ -219,7 +317,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .view-mode-toggle {
