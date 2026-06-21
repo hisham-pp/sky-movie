@@ -494,13 +494,13 @@ export function useLibraryController() {
     }
   }
 
-  async function searchUnmatchedFileMetadata(file: MediaFile, query: string): Promise<Array<MovieMetadataSearchResult | TvMetadataSearchResult>> {
+  async function searchUnmatchedFileMetadata(file: MediaFile, query: string, year?: number): Promise<Array<MovieMetadataSearchResult | TvMetadataSearchResult>> {
     try {
       const api = getSkyMovieApi();
       if (file.mediaKind === 'movie') {
-        return await api.searchMovieMetadata({ query });
+        return await api.searchMovieMetadata({ query, year: year ?? null });
       } else {
-        return await api.searchTvMetadata({ query });
+        return await api.searchTvMetadata({ query, year: year ?? null });
       }
     } catch (error) {
       console.error('Search unmatched file metadata failed:', error);
