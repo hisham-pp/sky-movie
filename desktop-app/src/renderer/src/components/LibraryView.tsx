@@ -26,6 +26,7 @@ type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
 export function LibraryView({
   view,
+  showDetailView,
   movies,
   shows,
   selectedTitle,
@@ -61,6 +62,7 @@ export function LibraryView({
   onRemoveFromPlaylist
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
+  showDetailView: boolean;
   movies: Movie[];
   shows: TvShow[];
   selectedTitle: string;
@@ -101,7 +103,7 @@ export function LibraryView({
 
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
 
-  if (view === 'movies' && selectedMovie) {
+  if (showDetailView && view === 'movies' && selectedMovie) {
     return (
       <MovieDetailPage
         movie={selectedMovie}
@@ -125,7 +127,7 @@ export function LibraryView({
     );
   }
 
-  if (view === 'shows' && selectedShow) {
+  if (showDetailView && view === 'shows' && selectedShow) {
     return (
       <SeriesDetailPage
         show={selectedShow}
@@ -150,7 +152,7 @@ export function LibraryView({
     );
   }
 
-  if (view === 'playlists' && selectedPlaylist) {
+  if (showDetailView && view === 'playlists' && selectedPlaylist) {
     return (
       <PlaylistDetailPage
         playlist={selectedPlaylist}

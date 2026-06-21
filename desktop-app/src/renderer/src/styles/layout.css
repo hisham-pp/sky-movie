@@ -20,14 +20,16 @@
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(280px, 430px) auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   border-bottom: 1px solid transparent;
   background: transparent;
   padding: 0 40px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+}
+
+.toolbar-spacer {
+  /* Empty spacer to push content to the right */
 }
 
 .toolbar-title {
@@ -59,6 +61,7 @@
   align-items: center;
   gap: 10px;
   height: 44px;
+  width: 280px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   background: var(--surface-low);
@@ -118,6 +121,20 @@
 
 .toolbar-badge svg {
   color: var(--primary);
+}
+
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0 6px;
 }
 
 .browse-grid,

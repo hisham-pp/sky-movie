@@ -19,28 +19,22 @@
 
 .hero-strip {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(430px, auto);
-  gap: 32px;
-  align-items: end;
+  display: block;
+  min-height: 430px;
   overflow: hidden;
-  max-width: calc(100% + 80px);
-  min-width: 0;
+  width: calc(100% + 80px);
   margin: 0 -40px 32px;
   background:
-    linear-gradient(90deg, rgba(15, 17, 21, 0.92) 0%, rgba(15, 17, 21, 0.52) 58%, rgba(15, 17, 21, 0.86) 100%),
-    linear-gradient(180deg, transparent 0%, var(--bg-deep) 100%),
+    linear-gradient(90deg, rgba(15, 17, 21, 0.95) 0%, rgba(15, 17, 21, 0.60) 50%, rgba(15, 17, 21, 0.90) 100%),
     var(--surface-lowest);
-  padding: 42px 40px 40px;
+  padding: 0;
 }
 
 .hero-strip::before {
   position: absolute;
-  inset: auto 0 0;
-  height: 42%;
+  inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, var(--bg-deep));
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 17, 21, 0.85) 100%);
   content: "";
   z-index: 1;
 }
@@ -51,8 +45,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.58;
-  filter: saturate(0.92) contrast(1.06);
+  opacity: 0.75;
+  filter: saturate(0.95) contrast(1.05);
 }
 
 .hero-strip > * {
@@ -61,18 +55,23 @@
 }
 
 .hero-copy {
-  display: grid;
-  grid-template-columns: 138px minmax(0, 1fr);
-  gap: 24px;
-  align-items: end;
-  min-width: 0;
+  position: absolute;
+  top: 56px;
+  left: 40px;
+  z-index: 2;
+  display: block;
+  max-width: 580px;
 }
 
 .hero-copy > div {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+.hero-poster {
+  display: none;
 }
 
 .hero-poster {
@@ -99,28 +98,42 @@
 .hero-strip h2 {
   display: -webkit-box;
   max-width: 100%;
-  margin: 8px 0 10px;
+  margin: 0 0 8px;
   overflow: hidden;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Inter, sans-serif;
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .hero-strip p {
-  margin: 0 0 4px;
-  max-width: 58ch;
-  font-size: 15px;
-  line-height: 1.6;
+  margin: 0 0 10px;
+  max-width: 52ch;
+  font-size: 14.5px;
+  line-height: 1.58;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hero-strip > span {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 4px;
 }
 
 .hero-chips {
@@ -148,10 +161,14 @@
 }
 
 .banner-indicators {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  margin-top: 16px;
 }
 
 .banner-dot {
@@ -160,18 +177,18 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.28s ease;
 }
 
 .banner-dot:hover {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.6);
   transform: scale(1.2);
 }
 
 .banner-dot.active {
-  width: 24px;
+  width: 32px;
   border-radius: 4px;
   background: var(--primary);
 }
@@ -210,16 +227,16 @@
 
 .hero-player {
   position: absolute;
-  top: 40px;
+  top: 56px;
   right: 40px;
   z-index: 3;
-  width: min(440px, 38%);
+  width: 440px;
   max-width: 440px;
 }
 
 .hero-player .player {
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
 }
 
 .filter-row,

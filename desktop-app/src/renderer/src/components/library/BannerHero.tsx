@@ -29,16 +29,14 @@ export function BannerHero({
     <div className="hero-strip browse-hero">
       {backdropPath && <img className="hero-backdrop-image" src={backdropPath} alt="" />}
       <div className="hero-copy">
-        <div className="hero-poster">{posterContent}</div>
         <div>
           <span>{label}</span>
           <h2 title={title}>{title}</h2>
           <p>{overview}</p>
           <div className="hero-chips">{badges}</div>
-          {indicators}
-          {actions}
         </div>
       </div>
+      {indicators}
       {player && (
         <div className="hero-player">
           <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
