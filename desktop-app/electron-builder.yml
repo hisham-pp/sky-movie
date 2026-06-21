@@ -2,7 +2,6 @@ appId: com.skymovie.desktop
 productName: Sky Movie
 copyright: Copyright 2026 Sky Movie
 executableName: sky-movie
-icon: build/favicon.png
 
 directories:
   output: dist
@@ -20,6 +19,7 @@ npmRebuild: true
 buildDependenciesFromSource: false
 
 win:
+  icon: build/favicon.ico
   target:
     - target: nsis
       arch:
@@ -41,6 +41,7 @@ win:
   # signDlls: true
 
 mac:
+  icon: build/favicon.png
   category: public.app-category.video
   target:
     - target: dmg
@@ -66,6 +67,7 @@ mac:
   #   appleIdPassword: ${env.APPLE_APP_SPECIFIC_PASSWORD}
 
 linux:
+  icon: build/favicon.png
   category: AudioVideo
   maintainer: Sky Movie
   syncDesktopName: true
