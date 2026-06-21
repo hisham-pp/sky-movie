@@ -19,15 +19,55 @@ export function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Search: Ctrl/Cmd + K
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
+      }
+      
+      // Back navigation: Alt + Left Arrow (Windows/Linux) or Cmd + [ (Mac)
+      if ((e.altKey && e.key === 'ArrowLeft') || (e.metaKey && e.key === '[')) {
+        e.preventDefault();
+        if (library.selectedMovie || library.selectedShow) {
+          library.backToLibrary();
+        }
+      }
+      
+      // Forward navigation: Alt + Right Arrow (Windows/Linux) or Cmd + ] (Mac)
+      if ((e.altKey && e.key === 'ArrowRight') || (e.metaKey && e.key === ']')) {
+        e.preventDefault();
+        // Navigate forward if there's history (currently not implemented, but placeholder for future)
+      }
+      
+      // Refresh: F5 or Ctrl/Cmd + R
+      if (e.key === 'F5' || ((e.metaKey || e.ctrlKey) && e.key === 'r')) {
+        e.preventDefault();
+        // Trigger refresh of current view
+        window.location.reload();
+      }
+      
+      // Home: Alt + Home (Windows/Linux) or Cmd + Shift + H (Mac)
+      if ((e.altKey && e.key === 'Home') || (e.metaKey && e.shiftKey && e.key === 'h')) {
+        e.preventDefault();
+        library.setView('movies');
+      }
+      
+      // Settings: Ctrl/Cmd + ,
+      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault();
+        library.setView('settings');
+      }
+      
+      // Scan: Ctrl/Cmd + Shift + S
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        library.setView('scan');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [library]);
 
   return (
     <main className="app-shell" data-theme={theme}>
