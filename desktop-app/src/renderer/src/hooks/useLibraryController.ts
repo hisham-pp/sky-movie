@@ -556,6 +556,18 @@ export function useLibraryController() {
     }
   }
 
+  async function unmarkFileAsIgnored(fileId: number): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.unmarkFileAsIgnored(fileId);
+      await refreshUnmatchedFiles();
+      setStatus('File unmarked as ignored');
+    } catch (error) {
+      setStatus(`Failed to unmark file as ignored: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
   async function deleteFile(file: MediaFile): Promise<void> {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${file.fileName}"?\n\nThis will:\n• Permanently delete the file from disk\n• Remove it from the database\n• Clean up associated movie/series if no other files exist`
@@ -888,6 +900,7 @@ export function useLibraryController() {
     searchUnmatchedFileMetadata,
     applyUnmatchedFileMetadata,
     markFileAsIgnored,
+    unmarkFileAsIgnored,
     deleteFile,
     showItemInFolder,
     createPlaylist,

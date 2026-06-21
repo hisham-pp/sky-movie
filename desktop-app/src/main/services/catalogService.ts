@@ -73,9 +73,9 @@ export class CatalogService {
     const rows = this.db
       .prepare(
         `SELECT * FROM media_files
-         WHERE match_status = 'unmatched'
-         AND match_confidence < 0.5
-         ORDER BY file_name ASC`
+         WHERE (match_status = 'unmatched' AND match_confidence < 0.5)
+         OR match_status = 'ignored'
+         ORDER BY match_status ASC, file_name ASC`
       )
       .all() as Record<string, unknown>[];
 
@@ -87,6 +87,16 @@ export class CatalogService {
       .prepare(
         `UPDATE media_files
          SET match_status = 'ignored'
+         WHERE id = ?`
+      )
+      .run(fileId);
+  }
+
+  unmarkFileAsIgnored(fileId: number): void {
+    this.db
+      .prepare(
+        `UPDATE media_files
+         SET match_status = 'unmatched'
          WHERE id = ?`
       )
       .run(fileId);
