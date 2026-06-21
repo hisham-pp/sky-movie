@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { ListMusic } from 'lucide-react';
 import type {
   Episode,
   MediaFile,
@@ -14,8 +13,9 @@ import type {
   TvShow
 } from '@shared/ipc';
 import type { ViewMode } from '../types';
-import { MovieTile, ShowTile } from './LibraryTile';
-import { BrowseLibraryPage } from './library/BrowseLibraryPage';
+import { BrowseMoviesPage } from './library/BrowseMoviesPage';
+import { BrowseTvShowsPage } from './library/BrowseTvShowsPage';
+import { BrowsePlaylistsPage } from './library/BrowsePlaylistsPage';
 import { MovieDetailPage } from './library/MovieDetailPage';
 import { SeriesDetailPage } from './library/SeriesDetailPage';
 import { PlaylistDetailPage } from './playlist/PlaylistDetailPage';
@@ -95,14 +95,11 @@ export function LibraryView({
   onDeletePlaylist(id: number): void;
   onRemoveFromPlaylist(playlistId: number, itemId: number): void;
 }) {
-  const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
+
+  const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
 
   if (view === 'movies' && selectedMovie) {
     return (
@@ -115,9 +112,7 @@ export function LibraryView({
         player={player}
         playingFile={playingFile}
         playlists={playlists}
-        onBack={() => {
-          onBackToLibrary();
-        }}
+        onBack={onBackToLibrary}
         onMetadataQueryChange={onMetadataQueryChange}
         onSearchMetadata={onSearchMetadata}
         onApplyMetadata={onApplyMetadata}
@@ -142,9 +137,7 @@ export function LibraryView({
         player={player}
         playingFile={playingFile}
         playlists={playlists}
-        onBack={() => {
-          onBackToLibrary();
-        }}
+        onBack={onBackToLibrary}
         onMetadataQueryChange={onMetadataQueryChange}
         onSearchMetadata={onSearchMetadata}
         onApplyMetadata={onApplyMetadata}
@@ -169,8 +162,6 @@ export function LibraryView({
         }}
         onEdit={() => {
           setEditingPlaylist(selectedPlaylist);
-          setEditName(selectedPlaylist.name);
-          setEditDescription(selectedPlaylist.description || '');
           setShowEditModal(true);
         }}
         onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
@@ -183,27 +174,39 @@ export function LibraryView({
 
   return (
     <>
-      <BrowseLibraryPage
-        view={view}
-        movies={movies}
-        shows={shows}
-        playlists={playlists}
-        selectedMovie={selectedMovie}
-        selectedShow={selectedShow}
-        selectedTitle={selectedTitle}
-        player={player}
-        lastScan={lastScan}
-        onSelectMovie={onSelectMovie}
-        onSelectShow={onSelectShow}
-        onSelectPlaylist={onSelectPlaylist}
-        onViewMovieDetails={onViewMovieDetails}
-        onViewShowDetails={onViewShowDetails}
-        onOpenExternal={onOpenExternal}
-        onCreatePlaylist={onCreatePlaylist}
-        showCreateModal={showCreateModal}
-        setShowCreateModal={setShowCreateModal}
-        busy={busy}
-      />
+      {view === 'movies' && (
+        <BrowseMoviesPage
+          movies={movies}
+          selectedMovie={selectedMovie}
+          player={player}
+          onSelectMovie={onSelectMovie}
+          onViewMovieDetails={onViewMovieDetails}
+          onOpenExternal={onOpenExternal}
+        />
+      )}
+
+      {view === 'shows' && (
+        <BrowseTvShowsPage
+          shows={shows}
+          selectedShow={selectedShow}
+          player={player}
+          onSelectShow={onSelectShow}
+          onViewShowDetails={onViewShowDetails}
+          onOpenExternal={onOpenExternal}
+        />
+      )}
+
+      {view === 'playlists' && (
+        <BrowsePlaylistsPage
+          playlists={playlists}
+          onSelectPlaylist={onSelectPlaylist}
+          onCreatePlaylist={onCreatePlaylist}
+          showCreateModal={showCreateModal}
+          setShowCreateModal={setShowCreateModal}
+          busy={busy}
+        />
+      )}
+
       {showCreateModal && (
         <CreatePlaylistModal
           onClose={() => setShowCreateModal(false)}
@@ -214,6 +217,7 @@ export function LibraryView({
           busy={busy}
         />
       )}
+
       {showEditModal && editingPlaylist && (
         <EditPlaylistModal
           playlist={editingPlaylist}
