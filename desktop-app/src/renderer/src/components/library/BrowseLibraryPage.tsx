@@ -93,16 +93,18 @@ export function BrowseLibraryPage({
                   <span>{visibleCount} {view === 'playlists' ? 'playlist' : view === 'movies' ? 'movie' : 'show'}{visibleCount !== 1 ? 's' : ''}</span>
                 </div>
                 {view === 'playlists' && (
-                  <button
-                    className="create-playlist-button"
-                    onClick={() => {
-                      setShowCreateModal(true);
-                    }}
-                    disabled={busy}
-                  >
-                    <Plus size={16} />
-                    Create Playlist
-                  </button>
+                  <div className="hero-actions">
+                    <button
+                      className="create-playlist-button"
+                      onClick={() => {
+                        setShowCreateModal(true);
+                      }}
+                      disabled={busy}
+                    >
+                      <Plus size={16} />
+                      Create Playlist
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -126,16 +128,18 @@ export function BrowseLibraryPage({
                   <span>{visibleCount} {view === 'playlists' ? 'playlist' : view === 'movies' ? 'movie' : 'show'}{visibleCount !== 1 ? 's' : ''}</span>
                 </div>
                 {view === 'playlists' && (
-                  <button
-                    className="create-playlist-button"
-                    onClick={() => {
-                      setShowCreateModal(true);
-                    }}
-                    disabled={busy}
-                  >
-                    <Plus size={16} />
-                    Create Playlist
-                  </button>
+                  <div className="hero-actions">
+                    <button
+                      className="create-playlist-button"
+                      onClick={() => {
+                        setShowCreateModal(true);
+                      }}
+                      disabled={busy}
+                    >
+                      <Plus size={16} />
+                      Create Playlist
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
