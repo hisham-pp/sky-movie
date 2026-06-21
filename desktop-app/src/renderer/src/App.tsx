@@ -93,6 +93,7 @@ export function App() {
             onPlay={library.play}
             onOpenExternal={library.openExternal}
             onDeleteFile={library.deleteFile}
+            onShowInFolder={library.showItemInFolder}
           />
         )}
 

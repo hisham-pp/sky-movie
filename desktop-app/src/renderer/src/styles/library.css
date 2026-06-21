@@ -669,26 +669,56 @@
   font-weight: 600;
 }
 
-.file-delete-button {
+.file-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.file-action-button {
   display: grid;
   place-items: center;
   min-height: 44px;
   min-width: 44px;
   padding: 0;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--surface-low);
+  color: var(--soft);
+  border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.file-action-button:hover {
+  background: var(--surface-high);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.file-action-button svg {
+  color: var(--soft);
+}
+
+.file-action-button:hover svg {
+  color: var(--ink);
+}
+
+.file-delete-button {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 .file-delete-button:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
 }
 
 .file-delete-button svg {
+  color: #ef4444;
+}
+
+.file-delete-button:hover svg {
   color: #ef4444;
 }
 

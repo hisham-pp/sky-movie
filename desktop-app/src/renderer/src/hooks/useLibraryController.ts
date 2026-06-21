@@ -621,6 +621,17 @@ export function useLibraryController() {
     }
   }
 
+  async function showItemInFolder(file: MediaFile): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.showItemInFolder(file.id);
+      setStatus(`Opened file manager for ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to open file manager: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
   async function loadScannedMovieMetadata(movieIds: number[]): Promise<AutoMetadataSummary | null> {
     const uniqueMovieIds = [...new Set(movieIds)];
     if (!uniqueMovieIds.length) {
@@ -776,7 +787,8 @@ export function useLibraryController() {
     searchUnmatchedFileMetadata,
     applyUnmatchedFileMetadata,
     markFileAsIgnored,
-    deleteFile
+    deleteFile,
+    showItemInFolder
   };
 }
 
