@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -167,7 +167,7 @@ async function main() {
   
   for (let i = 0; i < 6; i++) {
     console.log(`\nAttempt ${i + 1}/6: Checking for newer version...`);
-    const newerVersion = checkForNewerVersion(newVersion);
+    const newerVersion = await checkForNewerVersion();
     
     if (newerVersion) {
       newerVersionFound = newerVersion;
@@ -419,83 +419,78 @@ function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
 
-function checkForNewerVersion(currentVersion) {
-  console.log(`   Current version: ${currentVersion}`);
+async function checkForNewerVersion() {
+  // Get current version from website releases.json
+  const manifestPath = join(repoRoot, 'website', 'public', 'releases.json');
   
-  // Fetch all tags from remote
-  const fetchResult = spawnSync('git', ['fetch', '--tags', '--force'], {
-    cwd: repoRoot,
-    stdio: 'inherit'
-  });
-
-  if (fetchResult.status !== 0) {
-    console.error('❌ Failed to fetch tags');
-    return null;
-  }
-
-  // Get all version tags from remote
-  const tagResult = spawnSync('git', ['ls-remote', '--tags', 'origin'], {
-    cwd: repoRoot,
-    encoding: 'utf8'
-  });
-
-  if (tagResult.status !== 0) {
-    console.error('❌ Failed to get remote tags');
-    return null;
-  }
-
-  const tags = tagResult.stdout
-    .trim()
-    .split('\n')
-    .filter(line => line.trim())
-    .map(line => line.split('\t')[1].replace(/^refs\/tags\//, '').replace(/\^\{\}$/, ''));
-
-  console.log(`   Found ${tags.length} remote tags: ${tags.slice(0, 5).join(', ')}${tags.length > 5 ? '...' : ''}`);
-
-  // Filter version tags
-  const versionTags = tags
-    .filter(tag => tag.match(/^v\d+\.\d+\.\d+$/))
-    .map(tag => tag.replace(/^v/, ''));
-
-  console.log(`   Version tags: ${versionTags.join(', ')}`);
-
-  if (versionTags.length === 0) {
-    console.log('   No version tags found');
-    return null;
-  }
-
-  // Find the latest version
-  const latestVersion = versionTags
-    .sort((a, b) => {
-      const aParts = a.split('.').map(Number);
-      const bParts = b.split('.').map(Number);
-      for (let i = 0; i < 3; i++) {
-        if (aParts[i] !== bParts[i]) {
-          return bParts[i] - aParts[i];
-        }
-      }
-      return 0;
-    })[0];
-
-  console.log(`   Latest version: ${latestVersion}`);
-
-  // Compare versions
-  const currentParts = currentVersion.split('.').map(Number);
-  const latestParts = latestVersion.split('.').map(Number);
-
-  for (let i = 0; i < 3; i++) {
-    if (latestParts[i] > currentParts[i]) {
-      console.log(`   ✅ ${latestVersion} is newer than ${currentVersion}`);
-      return latestVersion;
-    }
-    if (latestParts[i] < currentParts[i]) {
-      console.log(`   ${latestVersion} is older than ${currentVersion}`);
+  let currentVersion;
+  try {
+    if (existsSync(manifestPath)) {
+      const manifest = readJson(manifestPath);
+      currentVersion = manifest.latestVersion;
+      console.log(`   Current version from website: ${currentVersion}`);
+    } else {
+      console.log(`   Website releases.json not found locally`);
       return null;
     }
+  } catch (error) {
+    console.log(`   Could not read local releases.json: ${error.message}`);
+    return null;
   }
+  
+  if (!currentVersion) {
+    console.log(`   No current version found in website manifest`);
+    return null;
+  }
+  
+  // Fetch latest version from GitHub Releases API
+  console.log(`   Fetching latest release from GitHub...`);
+  
+  try {
+    const repoPath = getRepoPath();
+    const response = await fetch(`https://api.github.com/repos/${repoPath}/releases/latest`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'sky-movie-version-checker'
+      }
+    });
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`   No GitHub releases found yet`);
+        return null;
+      }
+      console.log(`   GitHub API error: ${response.status}`);
+      return null;
+    }
+    
+    const release = await response.json();
+    const latestVersion = release.tag_name.replace(/^v/, '');
+    
+    console.log(`   Latest GitHub release: ${latestVersion}`);
 
-  console.log(`   ${latestVersion} is the same as ${currentVersion}`);
-  return null;
+    // Compare versions
+    const currentParts = currentVersion.split('.').map(Number);
+    const latestParts = latestVersion.split('.').map(Number);
+
+    for (let i = 0; i < 3; i++) {
+      if (latestParts[i] > currentParts[i]) {
+        console.log(`   ✅ ${latestVersion} is newer than ${currentVersion}`);
+        return latestVersion;
+      }
+      if (latestParts[i] < currentParts[i]) {
+        console.log(`   ${latestVersion} is older than ${currentVersion}`);
+        return null;
+      }
+    }
+
+    console.log(`   ${latestVersion} is the same as ${currentVersion}`);
+    return null;
+    
+  } catch (error) {
+    console.log(`   Error fetching GitHub release: ${error.message}`);
+    return null;
+  }
 }
 
 function sleep(ms) {
