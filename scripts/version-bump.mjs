@@ -196,6 +196,20 @@ async function main() {
     }
     
     console.log(`\n✅ Successfully ran release:github --skip-sha for version ${newerVersionFound}`);
+    
+    // Auto push the updated releases.json
+    console.log(`\n📤 Pushing updated releases.json to remote...`);
+    const pushResult = spawnSync('git', ['push', 'origin', 'main'], {
+      cwd: repoRoot,
+      stdio: 'inherit'
+    });
+
+    if (pushResult.status !== 0) {
+      console.error(`❌ Failed to push changes`);
+      process.exit(1);
+    }
+    
+    console.log(`✅ Successfully pushed changes to remote`);
   } else {
     console.log(`\n✅ No newer version found after 6 attempts. Script completed.`);
   }
