@@ -20,7 +20,6 @@ import type {
   TvShow,
   UpdatePlaylistRequest
 } from '@shared/ipc';
-import type { ViewMode } from '../types';
 
 interface PendingMovieMetadataPrompt {
   movie: Movie;
@@ -35,33 +34,6 @@ interface AutoMetadataSummary {
 }
 
 export function useLibraryController() {
-  // Load persisted view from localStorage, default to 'movies'
-  const getInitialView = (): ViewMode => {
-    try {
-      const savedView = localStorage.getItem('sky-movie-view');
-      if (savedView && ['movies', 'shows', 'playlists', 'scan', 'settings'].includes(savedView)) {
-        return savedView as ViewMode;
-      }
-    } catch (error) {
-      console.error('Failed to load persisted view:', error);
-    }
-    return 'movies';
-  };
-
-  // Load persisted detail view state
-  const getInitialDetailViewState = () => {
-    try {
-      const savedState = localStorage.getItem('sky-movie-detail-view');
-      if (savedState) {
-        return JSON.parse(savedState) as { showDetailView: boolean; selectedMovieId: number | null; selectedShowId: number | null };
-      }
-    } catch (error) {
-      console.error('Failed to load persisted detail view state:', error);
-    }
-    return { showDetailView: false, selectedMovieId: null, selectedShowId: null };
-  };
-
-  const [view, setView] = useState<ViewMode>(getInitialView());
   const [query, setQuery] = useState('');
   const [movies, setMovies] = useState<Movie[]>([]);
   const [shows, setShows] = useState<TvShow[]>([]);
@@ -87,31 +59,12 @@ export function useLibraryController() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
-  const [showDetailView, setShowDetailView] = useState(getInitialDetailViewState().showDetailView);
 
   useEffect(() => {
     void refreshAll().catch((error) => {
       setStatus(`Startup failed: ${formatError(error)}`);
     });
   }, []);
-
-  // Restore persisted movie/show selection after library is loaded
-  useEffect(() => {
-    const detailViewState = getInitialDetailViewState();
-    if (detailViewState.selectedMovieId && movies.length > 0) {
-      const movie = movies.find(m => m.id === detailViewState.selectedMovieId);
-      if (movie) {
-        void selectMovie(movie);
-        setShowDetailView(detailViewState.showDetailView);
-      }
-    } else if (detailViewState.selectedShowId && shows.length > 0) {
-      const show = shows.find(s => s.id === detailViewState.selectedShowId);
-      if (show) {
-        void selectShow(show);
-        setShowDetailView(detailViewState.showDetailView);
-      }
-    }
-  }, [movies, shows]);
 
   useEffect(() => {
     void refreshLists().catch((error) => {
@@ -256,25 +209,6 @@ export function useLibraryController() {
     }
   }
 
-  function changeView(nextView: ViewMode) {
-    setView(nextView);
-    setSelectedMovie(null);
-    setSelectedShow(null);
-    setSelectedEpisodes([]);
-    setSelectedFiles([]);
-    setMetadataResults([]);
-    setSelectedTitle('No media selected');
-    setShowDetailView(false);
-    
-    // Persist view to localStorage
-    try {
-      localStorage.setItem('sky-movie-view', nextView);
-      localStorage.removeItem('sky-movie-detail-view');
-    } catch (error) {
-      console.error('Failed to persist view:', error);
-    }
-  }
-
   function backToLibrary() {
     setSelectedMovie(null);
     setSelectedShow(null);
@@ -282,15 +216,8 @@ export function useLibraryController() {
     setSelectedFiles([]);
     setMetadataResults([]);
     setSelectedTitle('No media selected');
-    setShowDetailView(false);
     // Clear player when going back to library
     setPlayer(null);
-    // Clear persisted detail view state
-    try {
-      localStorage.removeItem('sky-movie-detail-view');
-    } catch (error) {
-      console.error('Failed to clear persisted detail view state:', error);
-    }
   }
 
   async function selectMovie(movie: Movie) {
@@ -307,17 +234,6 @@ export function useLibraryController() {
     // Clear player when selecting a different movie
     setPlayer(null);
     
-    // Persist selected movie ID
-    try {
-      localStorage.setItem('sky-movie-detail-view', JSON.stringify({
-        showDetailView: false,
-        selectedMovieId: selected.id,
-        selectedShowId: null
-      }));
-    } catch (error) {
-      console.error('Failed to persist selected movie:', error);
-    }
-    
     // Auto-play first file if available
     if (details.files.length > 0) {
       const firstFile = details.files[0];
@@ -329,18 +245,6 @@ export function useLibraryController() {
 
   async function viewMovieDetails(movie: Movie) {
     await selectMovie(movie);
-    setView('movies');
-    setShowDetailView(true);
-    // Persist detail view state
-    try {
-      localStorage.setItem('sky-movie-detail-view', JSON.stringify({
-        showDetailView: true,
-        selectedMovieId: movie.id,
-        selectedShowId: null
-      }));
-    } catch (error) {
-      console.error('Failed to persist detail view state:', error);
-    }
   }
 
   async function selectShow(show: TvShow) {
@@ -356,17 +260,6 @@ export function useLibraryController() {
     
     // Clear player when selecting a different show
     setPlayer(null);
-    
-    // Persist selected show ID
-    try {
-      localStorage.setItem('sky-movie-detail-view', JSON.stringify({
-        showDetailView: false,
-        selectedMovieId: null,
-        selectedShowId: selected.id
-      }));
-    } catch (error) {
-      console.error('Failed to persist selected show:', error);
-    }
     
     // Auto-play first episode file if available
     if (details.files.length > 0) {
@@ -384,18 +277,6 @@ export function useLibraryController() {
 
   async function viewShowDetails(show: TvShow) {
     await selectShow(show);
-    setView('shows');
-    setShowDetailView(true);
-    // Persist detail view state
-    try {
-      localStorage.setItem('sky-movie-detail-view', JSON.stringify({
-        showDetailView: true,
-        selectedMovieId: null,
-        selectedShowId: show.id
-      }));
-    } catch (error) {
-      console.error('Failed to persist detail view state:', error);
-    }
   }
 
   async function play(file: MediaFile) {
@@ -951,8 +832,6 @@ export function useLibraryController() {
   }
 
   return {
-    view,
-    setView: changeView,
     query,
     setQuery,
     movies,
@@ -983,8 +862,6 @@ export function useLibraryController() {
     playlists,
     selectedPlaylist,
     playlistItems,
-    showDetailView,
-    setShowDetailView,
     chooseLibraryFolders,
     removeLibraryFolder,
     scanLibrary,
