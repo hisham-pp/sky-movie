@@ -80,7 +80,7 @@ export function BrowseLibraryPage({
       <section className="library-list">
         {currentBannerItem && (
           <div className="hero-strip browse-hero">
-            {currentBannerPath && <img className="hero-backdrop" src={currentBannerPath} alt="" />}
+            {currentBannerPath && <img className="hero-backdrop-image" src={currentBannerPath} alt="" />}
             <div className="hero-copy">
               <div className="hero-poster">
                 {view === 'movies' ? <Clapperboard size={34} /> : view === 'shows' ? <Tv2 size={34} /> : <ListMusic size={34} />}
