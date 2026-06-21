@@ -5,6 +5,26 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-06-21
+
+### Added
+
+- enhance video and audio codec support with hardware acceleration (Hisham)
+
+### Fixed
+
+- move hardware acceleration setup before app ready and improve audio handling (Hisham)
+
+### Other
+
+- style(modal): enhance backdrop blur and reduce modal width constraints (Hisham)
+- refactor(playlist): move edit modal into detail page and fix routing (Hisham)
+- refactor(playlist): extract modals to use common Modal components (Hisham)
+- refactor(components): extract common Button and Modal components (Hisham)
+- chore(version-bump): auto-push releases.json after GitHub release (Hisham)
+- refactor(version-bump): switch to GitHub API for version checking (Hisham)
+- chore(release): publish Sky Movie 0.4.0 downloads from GitHub (Hisham)
+
 ## [0.4.0] - 2026-06-21
 
 ### Added
@@ -190,3 +210,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.3.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.0
 [0.3.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.1
 [0.4.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0
+[0.4.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.1
