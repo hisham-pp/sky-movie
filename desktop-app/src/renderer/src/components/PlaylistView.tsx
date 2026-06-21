@@ -33,8 +33,8 @@ export function PlaylistView({
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
 }) {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
@@ -54,7 +54,7 @@ export function PlaylistView({
           setEditingPlaylist(selectedPlaylist);
           setEditName(selectedPlaylist.name);
           setEditDescription(selectedPlaylist.description || '');
-          setShowEditDialog(true);
+          setShowEditModal(true);
         }}
         onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
         onRemoveItem={(itemId) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
@@ -95,7 +95,7 @@ export function PlaylistView({
             onClick={() => {
               setNewPlaylistName('');
               setNewPlaylistDescription('');
-              setShowCreateDialog(true);
+              setShowCreateModal(true);
             }}
             disabled={busy}
           >
@@ -134,76 +134,27 @@ export function PlaylistView({
           </div>
         )}
 
-        {showCreateDialog && (
-          <div className="modal-overlay" onClick={() => setShowCreateDialog(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Create New Playlist</h3>
-              <input
-                type="text"
-                placeholder="Playlist name"
-                value={newPlaylistName}
-                onChange={(e) => setNewPlaylistName(e.target.value)}
-                autoFocus
-              />
-              <textarea
-                placeholder="Description (optional)"
-                value={newPlaylistDescription}
-                onChange={(e) => setNewPlaylistDescription(e.target.value)}
-                rows={3}
-              />
-              <div className="modal-actions">
-                <button onClick={() => setShowCreateDialog(false)}>Cancel</button>
-                <button
-                  className="primary"
-                  onClick={() => {
-                    if (newPlaylistName.trim()) {
-                      onCreatePlaylist(newPlaylistName.trim(), newPlaylistDescription.trim() || undefined);
-                      setShowCreateDialog(false);
-                    }
-                  }}
-                  disabled={!newPlaylistName.trim() || busy}
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
+        {showCreateModal && (
+          <CreatePlaylistModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={(name, description) => {
+              onCreatePlaylist(name, description);
+              setShowCreateModal(false);
+            }}
+            busy={busy}
+          />
         )}
 
-        {showEditDialog && editingPlaylist && (
-          <div className="modal-overlay" onClick={() => setShowEditDialog(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Edit Playlist</h3>
-              <input
-                type="text"
-                placeholder="Playlist name"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                autoFocus
-              />
-              <textarea
-                placeholder="Description (optional)"
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                rows={3}
-              />
-              <div className="modal-actions">
-                <button onClick={() => setShowEditDialog(false)}>Cancel</button>
-                <button
-                  className="primary"
-                  onClick={() => {
-                    if (editName.trim()) {
-                      onUpdatePlaylist(editingPlaylist.id, editName.trim(), editDescription.trim() || undefined);
-                      setShowEditDialog(false);
-                    }
-                  }}
-                  disabled={!editName.trim() || busy}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
+        {showEditModal && editingPlaylist && (
+          <EditPlaylistModal
+            playlist={editingPlaylist}
+            onClose={() => setShowEditModal(false)}
+            onUpdate={(id, name, description) => {
+              onUpdatePlaylist(id, name, description);
+              setShowEditModal(false);
+            }}
+            busy={busy}
+          />
         )}
       </section>
     </div>
@@ -340,5 +291,125 @@ function PlaylistDetailPage({
         </section>
       </div>
     </section>
+  );
+}
+
+function CreatePlaylistModal({
+  onClose,
+  onCreate,
+  busy
+}: {
+  onClose(): void;
+  onCreate(name: string, description?: string): void;
+  busy: boolean;
+}) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Create New Playlist</h3>
+          <button className="close-button" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        <div className="modal-body">
+          <label htmlFor="playlist-name">Playlist Name</label>
+          <input
+            id="playlist-name"
+            type="text"
+            placeholder="Enter playlist name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+          <label htmlFor="playlist-description">Description (optional)</label>
+          <textarea
+            id="playlist-description"
+            placeholder="Enter a description for your playlist"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <div className="modal-actions">
+          <button onClick={onClose}>Cancel</button>
+          <button
+            className="primary"
+            onClick={() => {
+              if (name.trim()) {
+                onCreate(name.trim(), description.trim() || undefined);
+              }
+            }}
+            disabled={!name.trim() || busy}
+          >
+            Create Playlist
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditPlaylistModal({
+  playlist,
+  onClose,
+  onUpdate,
+  busy
+}: {
+  playlist: Playlist;
+  onClose(): void;
+  onUpdate(id: number, name?: string, description?: string): void;
+  busy: boolean;
+}) {
+  const [name, setName] = useState(playlist.name);
+  const [description, setDescription] = useState(playlist.description || '');
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Edit Playlist</h3>
+          <button className="close-button" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        <div className="modal-body">
+          <label htmlFor="edit-playlist-name">Playlist Name</label>
+          <input
+            id="edit-playlist-name"
+            type="text"
+            placeholder="Enter playlist name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+          <label htmlFor="edit-playlist-description">Description (optional)</label>
+          <textarea
+            id="edit-playlist-description"
+            placeholder="Enter a description for your playlist"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <div className="modal-actions">
+          <button onClick={onClose}>Cancel</button>
+          <button
+            className="primary"
+            onClick={() => {
+              if (name.trim()) {
+                onUpdate(playlist.id, name.trim(), description.trim() || undefined);
+              }
+            }}
+            disabled={!name.trim() || busy}
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
