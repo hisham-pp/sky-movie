@@ -1,27 +1,21 @@
+import { useNavigate } from 'react-router-dom';
 import { ScanPanel } from '../components/ScanPanel';
+import { useLibraryController } from '../hooks/useLibraryController';
 
-interface ScanRouteProps {
-  libraryFolders: any[];
-  scanMode: any;
-  matcherStrategy: any;
-  extractFileMetadata: any;
-  busy: boolean;
-  lastScan: any;
-  onScanLibraries: () => Promise<void>;
-  onOpenSettings: () => void;
-}
-
-export function ScanRoute(props: ScanRouteProps) {
+export function ScanRoute() {
+  const library = useLibraryController();
+  const navigate = useNavigate();
+  
   return (
     <ScanPanel
-      libraryFolders={props.libraryFolders}
-      scanMode={props.scanMode}
-      matcherStrategy={props.matcherStrategy}
-      extractFileMetadata={props.extractFileMetadata}
-      busy={props.busy}
-      lastScan={props.lastScan}
-      onScanLibraries={props.onScanLibraries}
-      onOpenSettings={props.onOpenSettings}
+      libraryFolders={library.libraryFolders}
+      scanMode={library.scanMode}
+      matcherStrategy={library.matcherStrategy}
+      extractFileMetadata={library.extractFileMetadata}
+      busy={library.busy}
+      lastScan={library.lastScan}
+      onScanLibraries={library.scanLibraries}
+      onOpenSettings={() => navigate('/settings')}
     />
   );
 }
