@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clapperboard, FolderOpen, FolderSearch, ListMusic, Play, Plus, Star, Tv2, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Clapperboard, FolderOpen, FolderSearch, ListMusic, Play, Plus, Star, Tv2, Trash2, X, Edit2, Film, Tv, GripVertical } from 'lucide-react';
 import type {
   Episode,
   MediaFile,
@@ -8,6 +8,7 @@ import type {
   MovieMetadataSearchResult,
   PlayMediaResult,
   Playlist,
+  PlaylistItem,
   ScanResult,
   TvMetadataSearchResult,
   TvShow
@@ -48,7 +49,14 @@ export function LibraryView({
   onOpenExternal,
   onDeleteFile,
   onShowInFolder,
-  onAddToPlaylist
+  onAddToPlaylist,
+  selectedPlaylist,
+  playlistItems,
+  onSelectPlaylist,
+  onCreatePlaylist,
+  onUpdatePlaylist,
+  onDeletePlaylist,
+  onRemoveFromPlaylist
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
@@ -79,6 +87,13 @@ export function LibraryView({
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
+  selectedPlaylist: Playlist | null;
+  playlistItems: any[];
+  onSelectPlaylist(playlist: Playlist): void;
+  onCreatePlaylist(name: string, description?: string): void;
+  onUpdatePlaylist(id: number, name?: string, description?: string): void;
+  onDeletePlaylist(id: number): void;
+  onRemoveFromPlaylist(playlistId: number, itemId: number): void;
 }) {
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
 
@@ -137,11 +152,36 @@ export function LibraryView({
     );
   }
 
+  if (view === 'playlists' && selectedPlaylist) {
+    return (
+      <PlaylistDetailPage
+        playlist={selectedPlaylist}
+        items={playlistItems}
+        busy={busy}
+        onBack={() => {
+          onSelectPlaylist(null as any);
+          onBackToLibrary();
+        }}
+        onEdit={() => {
+          const newName = prompt('Edit playlist name:', selectedPlaylist.name);
+          if (newName) {
+            onUpdatePlaylist(selectedPlaylist.id, newName, selectedPlaylist.description || undefined);
+          }
+        }}
+        onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
+        onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
+        onSelectMovie={onSelectMovie}
+        onSelectShow={onSelectShow}
+      />
+    );
+  }
+
   return (
     <BrowseLibraryPage
       view={view}
       movies={movies}
       shows={shows}
+      playlists={playlists}
       selectedMovie={selectedMovie}
       selectedShow={selectedShow}
       selectedTitle={selectedTitle}
@@ -149,9 +189,11 @@ export function LibraryView({
       lastScan={lastScan}
       onSelectMovie={onSelectMovie}
       onSelectShow={onSelectShow}
+      onSelectPlaylist={onSelectPlaylist}
       onViewMovieDetails={onViewMovieDetails}
       onViewShowDetails={onViewShowDetails}
       onOpenExternal={onOpenExternal}
+      onCreatePlaylist={onCreatePlaylist}
     />
   );
 }
@@ -160,6 +202,7 @@ function BrowseLibraryPage({
   view,
   movies,
   shows,
+  playlists,
   selectedMovie,
   selectedShow,
   selectedTitle,
@@ -167,13 +210,16 @@ function BrowseLibraryPage({
   lastScan,
   onSelectMovie,
   onSelectShow,
+  onSelectPlaylist,
   onViewMovieDetails,
   onViewShowDetails,
-  onOpenExternal
+  onOpenExternal,
+  onCreatePlaylist
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   movies: Movie[];
   shows: TvShow[];
+  playlists: Playlist[];
   selectedMovie: Movie | null;
   selectedShow: TvShow | null;
   selectedTitle: string;
@@ -181,21 +227,25 @@ function BrowseLibraryPage({
   lastScan: ScanResult | null;
   onSelectMovie(movie: Movie): void;
   onSelectShow(show: TvShow): void;
+  onSelectPlaylist(playlist: Playlist | null): void;
   onViewMovieDetails(movie: Movie): void;
   onViewShowDetails(show: TvShow): void;
   onOpenExternal(mediaFileId: number): void;
+  onCreatePlaylist(name: string, description?: string): void;
 }) {
-  const visibleCount = view === 'movies' ? movies.length : shows.length;
-  const heroTitle = view === 'movies' ? 'Movie Library' : 'Series Library';
+  const visibleCount = view === 'movies' ? movies.length : view === 'shows' ? shows.length : playlists.length;
+  const heroTitle = view === 'movies' ? 'Movie Library' : view === 'shows' ? 'Series Library' : 'Playlist Library';
   const heroCopy =
     view === 'movies'
       ? 'Browse local films, open a movie page, and play files from your private collection.'
-      : 'Browse local TV shows, open a series page, and review seasons, episodes, and files.';
+      : view === 'shows'
+      ? 'Browse local TV shows, open a series page, and review seasons, episodes, and files.'
+      : 'Create and manage your custom playlists with movies and TV shows.';
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const items = view === 'movies' ? movies : shows;
+  const items = view === 'movies' ? movies : view === 'shows' ? shows : playlists;
   const itemsWithBackdrop = items.filter((item) => 
-    view === 'movies' ? (item as Movie).backdropPath : (item as TvShow).backdropPath
+    view === 'movies' ? (item as Movie).backdropPath : view === 'shows' ? (item as TvShow).backdropPath : false
   );
 
   useEffect(() => {
@@ -291,21 +341,30 @@ function BrowseLibraryPage({
           <div className="hero-strip browse-hero">
             <div className="hero-copy">
               <div className="hero-poster">
-                {view === 'movies' ? <Clapperboard size={34} /> : <Tv2 size={34} />}
+                {view === 'movies' ? <Clapperboard size={34} /> : view === 'shows' ? <Tv2 size={34} /> : <ListMusic size={34} />}
               </div>
               <div>
                 <span>{player ? 'Now playing' : 'Browse library'}</span>
                 <h2 title={heroTitle}>{heroTitle}</h2>
                 <p>{heroCopy}</p>
                 <div className="hero-chips">
-                  <span>{view === 'movies' ? 'Movies' : 'TV Shows'}</span>
-                  <span>{visibleCount} items</span>
-                  {lastScan ? <span>{lastScan.folder.name}</span> : null}
+                  <span>{visibleCount} {view === 'playlists' ? 'playlist' : view === 'movies' ? 'movie' : 'show'}{visibleCount !== 1 ? 's' : ''}</span>
                 </div>
+                {view === 'playlists' && (
+                  <button
+                    className="create-playlist-button"
+                    onClick={() => {
+                      const name = prompt('Enter playlist name:');
+                      if (name) {
+                        onCreatePlaylist(name);
+                      }
+                    }}
+                  >
+                    <Plus size={16} />
+                    Create Playlist
+                  </button>
+                )}
               </div>
-            </div>
-            <div className="hero-player">
-              <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
             </div>
           </div>
         )}
@@ -318,7 +377,7 @@ function BrowseLibraryPage({
         </div>
 
         <div className="section-title">
-          <h2>{view === 'movies' ? 'Current Movies' : 'Current TV Shows'}</h2>
+          <h2>{view === 'movies' ? 'Current Movies' : view === 'shows' ? 'Current TV Shows' : 'Your Playlists'}</h2>
           <span>{visibleCount} items</span>
         </div>
 
@@ -334,7 +393,8 @@ function BrowseLibraryPage({
                     isSelected={selectedMovie?.id === movie.id}
                   />
                 ))
-              : shows.map((show) => (
+              : view === 'shows'
+              ? shows.map((show) => (
                   <ShowTile 
                     key={show.id} 
                     show={show} 
@@ -342,16 +402,33 @@ function BrowseLibraryPage({
                     onViewDetails={() => onViewShowDetails(show)}
                     isSelected={selectedShow?.id === show.id}
                   />
-                ))}
+                ))
+              : playlists.map((playlist) => (
+                  <div
+                    key={playlist.id}
+                    className="playlist-card"
+                    onClick={() => onSelectPlaylist(playlist)}
+                  >
+                    <div className="playlist-icon">
+                      <ListMusic size={32} />
+                    </div>
+                    <div className="playlist-info">
+                      <h3>{playlist.name}</h3>
+                      <p>{playlist.description || 'No description'}</p>
+                      <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                ))
+            }
           </div>
         ) : (
           <div className="library-empty-state">
             <div className="empty-orbit" aria-hidden="true">
-              <Clapperboard size={34} />
+              {view === 'playlists' ? <ListMusic size={34} /> : <Clapperboard size={34} />}
             </div>
-            <span>{view === 'movies' ? 'No movies yet' : 'No TV shows yet'}</span>
-            <h3>Scan a local folder to build your cinema library.</h3>
-            <p>Use Settings to add one or more folders. Sky Movie will import files, enrich metadata, and keep the library local-first.</p>
+            <span>{view === 'playlists' ? 'No playlists yet' : view === 'movies' ? 'No movies yet' : 'No TV shows yet'}</span>
+            <h3>{view === 'playlists' ? 'Create your first playlist' : 'Scan a local folder to build your cinema library.'}</h3>
+            <p>{view === 'playlists' ? 'Organize your favorite movies and TV shows into custom playlists.' : 'Use Settings to add one or more folders. Sky Movie will import files, enrich metadata, and keep the library local-first.'}</p>
           </div>
         )}
 
@@ -858,5 +935,136 @@ function PlaylistSelectorDialog({
         )}
       </div>
     </div>
+  );
+}
+
+function PlaylistDetailPage({
+  playlist,
+  items,
+  busy,
+  onBack,
+  onEdit,
+  onDelete,
+  onRemoveItem,
+  onSelectMovie,
+  onSelectShow
+}: {
+  playlist: Playlist;
+  items: PlaylistItem[];
+  busy: boolean;
+  onBack(): void;
+  onEdit(): void;
+  onDelete(): void;
+  onRemoveItem(itemId: number): void;
+  onSelectMovie(movie: Movie): void;
+  onSelectShow(show: TvShow): void;
+}) {
+  const [draggedItem, setDraggedItem] = useState<PlaylistItem | null>(null);
+
+  const handleDragStart = (item: PlaylistItem) => {
+    setDraggedItem(item);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (targetItem: PlaylistItem) => {
+    if (draggedItem && draggedItem.id !== targetItem.id) {
+      onRemoveItem(draggedItem.id);
+    }
+    setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  return (
+    <section className="media-detail-page playlist-detail-page">
+      <div className="detail-hero">
+        <button className="back-button" onClick={onBack}>
+          <ArrowLeft size={17} />
+          Back to playlists
+        </button>
+
+        <div className="playlist-detail-layout">
+          <div className="detail-poster">
+            <ListMusic size={48} />
+          </div>
+          <div className="detail-copy">
+            <span className="detail-kicker">Playlist</span>
+            <h2>{playlist.name}</h2>
+            <p>{playlist.description || 'No description'}</p>
+            <div className="hero-chips">
+              <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="playlist-actions">
+              <button onClick={onEdit} disabled={busy}>
+                <Edit2 size={16} />
+                Edit
+              </button>
+              <button onClick={onDelete} disabled={busy} className="delete-button">
+                <Trash2 size={16} />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="playlist-detail-grid">
+        <section className="detail-card">
+          <div className="section-title">
+            <h2>Playlist Items</h2>
+            <span>{items.length} items</span>
+          </div>
+
+          {items.length ? (
+            <div className="playlist-items-list">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className={`playlist-item-row ${draggedItem?.id === item.id ? 'dragging' : ''}`}
+                  draggable
+                  onDragStart={() => handleDragStart(item)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(item)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="playlist-item-drag-handle">
+                    <GripVertical size={16} />
+                  </div>
+                  <div className="playlist-item-icon">
+                    {item.mediaKind === 'movie' ? <Film size={20} /> : <Tv size={20} />}
+                  </div>
+                  <div className="playlist-item-info">
+                    <strong>{item.movie?.title || item.show?.title}</strong>
+                    <small>
+                      {item.mediaKind === 'movie'
+                        ? `Movie • ${item.movie?.releaseYear || 'Unknown year'}`
+                        : `TV Show • ${item.show?.firstAirYear || 'Unknown year'}`}
+                    </small>
+                  </div>
+                  <button
+                    className="playlist-item-remove"
+                    onClick={() => onRemoveItem(item.id)}
+                    disabled={busy}
+                    title="Remove from playlist"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="detail-empty">
+              <ListMusic size={22} />
+              <span>This playlist is empty</span>
+            </div>
+          )}
+        </section>
+      </div>
+    </section>
   );
 }

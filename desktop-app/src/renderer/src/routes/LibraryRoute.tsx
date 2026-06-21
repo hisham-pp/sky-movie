@@ -4,7 +4,7 @@ import { LibraryView } from '../components/LibraryView';
 import { useLibraryController } from '../hooks/useLibraryController';
 
 interface LibraryRouteProps {
-  view?: 'movies' | 'shows';
+  view?: 'movies' | 'shows' | 'playlists';
 }
 
 export function LibraryRoute(props: LibraryRouteProps) {
@@ -77,6 +77,13 @@ export function LibraryRoute(props: LibraryRouteProps) {
       onDeleteFile={library.deleteFile}
       onShowInFolder={library.showItemInFolder}
       onAddToPlaylist={(playlistId, mediaKind, itemId) => library.addToPlaylist({ playlistId, mediaKind: mediaKind as any, movieId: mediaKind === 'movie' ? itemId : undefined, showId: mediaKind === 'show' ? itemId : undefined })}
+      selectedPlaylist={library.selectedPlaylist}
+      playlistItems={library.playlistItems}
+      onSelectPlaylist={library.selectPlaylist}
+      onCreatePlaylist={(name, description) => library.createPlaylist({ name, description })}
+      onUpdatePlaylist={(id, name, description) => library.updatePlaylist({ id, name, description })}
+      onDeletePlaylist={library.deletePlaylist}
+      onRemoveFromPlaylist={(playlistId, itemId) => library.removeFromPlaylist({ playlistId, itemId })}
     />
   );
 }
