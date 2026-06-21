@@ -12,13 +12,18 @@
 
 .workspace {
   display: grid;
-  grid-template-rows: 80px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
 .toolbar {
+  position: absolute;
+  top: 0;
+  left: 220px;
+  right: 0;
+  z-index: 10;
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
