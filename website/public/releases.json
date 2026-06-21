@@ -1,7 +1,168 @@
 {
-  "latestVersion": "0.3.1",
-  "updatedAt": "2026-06-20T16:26:26.196Z",
+  "latestVersion": "0.4.0",
+  "updatedAt": "2026-06-21T11:42:23.008Z",
   "releases": [
+    {
+      "version": "0.4.0",
+      "releasedAt": "2026-06-21T11:39:30Z",
+      "storageProvider": "github-releases",
+      "storageFolderUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0",
+      "sourceCommit": {
+        "sha": "main",
+        "message": "Release 0.4.0"
+      },
+      "notes": "Sky Movie 0.4.0",
+      "changes": [
+        "- add backdrop collage and poster grid to playlist detail page (Hisham)",
+        "- add item reordering and improve playlist management UI (Hisham)",
+        "- add ignore/unignore toggle and improve file navigation (Hisham)",
+        "- add year extraction and filtering to metadata search (Hisham)",
+        "- refactor hero banner layout and toolbar styling for improved responsive design (Hisham)",
+        "- implement browse TV shows page with auto-rotating banner hero and responsive grid layout (Hisham)",
+        "- implement video player component with Artplayer, progress tracking, and track selection (Hisham)",
+        "- implement library module with browse views and media display components (Hisham)",
+        "- add UnrecognizedDrawer component for manual media metadata matching and file management (Hisham)",
+        "- implement video playback component using Artplayer with progress tracking and custom styling (Hisham)",
+        "- implement SettingsPanel component with library, metadata, and theme management configurations (Hisham)",
+        "- implement browse library page with dynamic header and media grid views (Hisham)",
+        "- implement LibraryScanner service for automated file discovery, metadata parsing, and database synchronization (Hisham)",
+        "- add BrowseLibraryPage component and implement libraryScanner service for local media discovery (Hisham)",
+        "- implement library navigation and playlist management UI components (Hisham)",
+        "- initialize electron-builder configuration and packaging scripts for desktop app distribution (Hisham)",
+        "- implement persistent routing with session history and centralized library navigation view (Hisham)",
+        "- implement persistent router history and global keyboard navigation shortcuts in the renderer application (Hisham)",
+        "- implement application routing, layout, and view structure for the desktop renderer (Hisham)",
+        "- initialize desktop-app renderer with routing, hooks, and library controller logic (Hisham)",
+        "- configure electron-builder and add favicon assets for website and desktop app (Hisham)",
+        "- initialize SQLite database schema and implement Playlist management UI components (Hisham)",
+        "- implement library controller hook and UI components for media management (Hisham)",
+        "- implement playlist UI styles and initialize database schema for library management (Hisham)",
+        "- implement global keyboard shortcuts for navigation and application control (Hisham)",
+        "- implement preload script to expose SkyMovieApi via contextBridge (Hisham)",
+        "- implement playlist management system and integrate IPC handlers for CRUD and reordering operations (Hisham)",
+        "- implement App component with navigation, keyboard shortcuts, and library view management (Hisham)",
+        "- implement electron IPC layer and initial renderer UI for movie library management (Hisham)",
+        "- implement core IPC handlers and service wiring for library management, metadata, and media playback (Hisham)",
+        "- add automated version bumping and release script (Hisham)",
+        "- disable autoplay by default in PlayerPanel component (Hisham)",
+        "- style(playlist): improve spacing and layout hierarchy in playlist content (Hisham)",
+        "- style(layout,library): enhance toolbar, search, and hero section styling with improved visual hierarchy (Hisham)",
+        "- style(layout,library): adjust toolbar positioning and hero section dimensions (Hisham)",
+        "- chore(release): publish Sky Movie 0.3.1 downloads from GitHub (Hisham)"
+      ],
+      "artifacts": [
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.4.0-amd64.deb",
+          "size": 100106104,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-amd64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.4.0-arm64.AppImage",
+          "size": 129850720,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-arm64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.4.0-arm64.deb",
+          "size": 94663328,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-arm64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.4.0-arm64.dmg",
+          "size": 126948028,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-arm64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.4.0-arm64.tar.gz",
+          "size": 120950544,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-arm64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.4.0-arm64.zip",
+          "size": 123368791,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-arm64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "windows",
+          "arch": "x64",
+          "kind": "installer",
+          "fileName": "Sky-Movie-0.4.0-x64-Setup.exe",
+          "size": 100639553,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-x64-Setup.exe",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.4.0-x64.dmg",
+          "size": 131736841,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-x64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.4.0-x64.tar.gz",
+          "size": 121004488,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-x64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.4.0-x64.zip",
+          "size": 128212338,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-x64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "ia32",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.4.0-x86_64.AppImage",
+          "size": 129631417,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.4.0/Sky-Movie-0.4.0-x86_64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0"
+        }
+      ]
+    },
     {
       "version": "0.3.1",
       "releasedAt": "2026-06-20T16:24:25Z",
