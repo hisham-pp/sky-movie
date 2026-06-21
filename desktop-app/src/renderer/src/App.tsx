@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LibraryView } from './components/LibraryView';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
 import { PlaylistView } from './components/PlaylistView';
@@ -10,6 +10,8 @@ import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { useLibraryController } from './hooks/useLibraryController';
+import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
+import type { ViewMode } from './types';
 
 export function App() {
   const library = useLibraryController();
@@ -17,58 +19,77 @@ export function App() {
   const libraryView = library.view === 'shows' ? 'shows' : 'movies';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
+  const navigationHistoryRef = useRef<ViewMode[]>([]);
 
+  // Track navigation history for back navigation
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Search: Ctrl/Cmd + K
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
+    const currentView = library.view;
+    const history = navigationHistoryRef.current;
+    
+    // Don't add duplicate consecutive views
+    if (history.length === 0 || history[history.length - 1] !== currentView) {
+      // Keep only last 10 views to prevent memory issues
+      if (history.length >= 10) {
+        history.shift();
       }
-      
-      // Back navigation: Alt + Left Arrow (Windows/Linux) or Cmd + [ (Mac)
-      if ((e.altKey && e.key === 'ArrowLeft') || (e.metaKey && e.key === '[')) {
-        e.preventDefault();
-        if (library.selectedMovie || library.selectedShow) {
-          library.backToLibrary();
-        }
-      }
-      
-      // Forward navigation: Alt + Right Arrow (Windows/Linux) or Cmd + ] (Mac)
-      if ((e.altKey && e.key === 'ArrowRight') || (e.metaKey && e.key === ']')) {
-        e.preventDefault();
-        // Navigate forward if there's history (currently not implemented, but placeholder for future)
-      }
-      
-      // Refresh: F5 or Ctrl/Cmd + R
-      if (e.key === 'F5' || ((e.metaKey || e.ctrlKey) && e.key === 'r')) {
-        e.preventDefault();
-        // Trigger refresh of current view
-        window.location.reload();
-      }
-      
-      // Home: Alt + Home (Windows/Linux) or Cmd + Shift + H (Mac)
-      if ((e.altKey && e.key === 'Home') || (e.metaKey && e.shiftKey && e.key === 'h')) {
-        e.preventDefault();
-        library.setView('movies');
-      }
-      
-      // Settings: Ctrl/Cmd + ,
-      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
-        e.preventDefault();
-        library.setView('settings');
-      }
-      
-      // Scan: Ctrl/Cmd + Shift + S
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 's') {
-        e.preventDefault();
-        library.setView('scan');
-      }
-    };
+      history.push(currentView);
+    }
+  }, [library.view]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [library]);
+  // Global keyboard shortcuts
+  useGlobalKeyboardShortcuts(
+    {
+      onSearchToggle: () => setIsSearchOpen((prev) => !prev),
+      onBack: () => {
+        const history = navigationHistoryRef.current;
+        
+        if (library.selectedMovie || library.selectedShow || library.selectedPlaylist) {
+          // If in details view, go back to library
+          library.backToLibrary();
+          // Remove the current detail view from history
+          const currentIndex = history.lastIndexOf(library.view);
+          if (currentIndex > 0) {
+            history.splice(currentIndex, 1);
+          }
+        } else if (history.length > 1) {
+          // Navigate back to previous view in history
+          history.pop(); // Remove current view
+          const previousView = history[history.length - 1];
+          if (previousView) {
+            library.setView(previousView);
+          }
+        } else {
+          // If no history, default to movies
+          library.setView('movies');
+        }
+      },
+      onForward: () => {
+        // Placeholder for future forward navigation history
+        console.log('Forward navigation not implemented yet');
+      },
+      onRefresh: () => {
+        window.location.reload();
+      },
+      onHome: () => {
+        library.setView('movies');
+      },
+      onSettings: () => {
+        library.setView('settings');
+      },
+      onScan: () => {
+        library.setView('scan');
+      },
+      onPlaylists: () => {
+        library.setView('playlists');
+      }
+    },
+    {
+      view: library.view,
+      selectedMovie: library.selectedMovie,
+      selectedShow: library.selectedShow,
+      selectedPlaylist: library.selectedPlaylist
+    }
+  );
 
   return (
     <main className="app-shell" data-theme={theme}>
