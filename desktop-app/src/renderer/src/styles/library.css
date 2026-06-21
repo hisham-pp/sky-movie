@@ -14,13 +14,13 @@
 }
 
 .browse-hero {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 440px);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .hero-strip {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, min(420px, 38%));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(430px, auto);
   gap: 32px;
   align-items: end;
@@ -209,14 +209,17 @@
 }
 
 .hero-player {
-  align-self: end;
-  max-width: 100%;
-  min-width: 0;
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  z-index: 3;
+  width: min(440px, 38%);
+  max-width: 440px;
 }
 
 .hero-player .player {
   border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 .filter-row,

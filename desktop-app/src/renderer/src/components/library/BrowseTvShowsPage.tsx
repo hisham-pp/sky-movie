@@ -59,6 +59,7 @@ export function BrowseTvShowsPage({
               <Tv2 size={34} />
             )
           }
+          label={bannerShow ? 'Now Playing' : 'Browse library'}
           title={bannerShow?.title || 'Series Library'}
           overview={
             bannerShow?.overview ||
@@ -75,13 +76,11 @@ export function BrowseTvShowsPage({
             )
           }
           indicators={
-            bannerShow && (
-              <BannerIndicators
-                total={showsWithBackdrop.length}
-                current={currentBannerIndex}
-                onSelect={setCurrentBannerIndex}
-              />
-            )
+            <BannerIndicators
+              total={showsWithBackdrop.length}
+              current={currentBannerIndex}
+              onSelect={setCurrentBannerIndex}
+            />
           }
           player={player}
           onOpenExternal={onOpenExternal}

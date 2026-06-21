@@ -5,19 +5,23 @@ import { PlayerPanel } from '../PlayerPanel';
 export function BannerHero({
   backdropPath,
   posterContent,
+  label,
   title,
   overview,
   badges,
   indicators,
+  actions,
   player,
   onOpenExternal
 }: {
   backdropPath: string | null;
   posterContent: ReactNode;
+  label: string;
   title: string;
   overview: string | null;
   badges: ReactNode;
   indicators?: ReactNode;
+  actions?: ReactNode;
   player: PlayMediaResult | null;
   onOpenExternal: (mediaFileId: number) => void;
 }) {
@@ -27,16 +31,19 @@ export function BannerHero({
       <div className="hero-copy">
         <div className="hero-poster">{posterContent}</div>
         <div>
-          <span>Browse library</span>
+          <span>{label}</span>
           <h2 title={title}>{title}</h2>
           <p>{overview}</p>
           <div className="hero-chips">{badges}</div>
           {indicators}
+          {actions}
         </div>
       </div>
-      <div className="hero-player">
-        <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-      </div>
+      {player && (
+        <div className="hero-player">
+          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
+        </div>
+      )}
     </div>
   );
 }
