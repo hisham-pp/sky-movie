@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type {
+  AddToPlaylistRequest,
   AppSettings,
+  CreatePlaylistRequest,
   Episode,
   LibraryScanMode,
   LibrarySummary,
@@ -8,11 +10,15 @@ import type {
   MediaFile,
   Movie,
   MovieMetadataSearchResult,
+  Playlist,
+  PlaylistItem,
   PlayMediaResult,
+  RemoveFromPlaylistRequest,
   ScanResult,
   SkyMovieApi,
   TvMetadataSearchResult,
-  TvShow
+  TvShow,
+  UpdatePlaylistRequest
 } from '@shared/ipc';
 import type { ViewMode } from '../types';
 
@@ -33,7 +39,7 @@ export function useLibraryController() {
   const getInitialView = (): ViewMode => {
     try {
       const savedView = localStorage.getItem('sky-movie-view');
-      if (savedView && ['movies', 'shows', 'scan', 'settings'].includes(savedView)) {
+      if (savedView && ['movies', 'shows', 'playlists', 'scan', 'settings'].includes(savedView)) {
         return savedView as ViewMode;
       }
     } catch (error) {
@@ -65,6 +71,9 @@ export function useLibraryController() {
   const [status, setStatus] = useState('Ready');
   const [busy, setBusy] = useState(false);
   const [unmatchedFiles, setUnmatchedFiles] = useState<MediaFile[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
 
   useEffect(() => {
     void refreshAll().catch((error) => {
@@ -80,9 +89,10 @@ export function useLibraryController() {
 
   async function refreshAll() {
     const api = getSkyMovieApi();
-    const [nextSettings, nextSummary] = await Promise.all([
+    const [nextSettings, nextSummary, nextPlaylists] = await Promise.all([
       api.getSettings(),
-      api.getLibrarySummary()
+      api.getLibrarySummary(),
+      api.getPlaylists()
     ]);
 
     setSettings(nextSettings);
@@ -91,6 +101,7 @@ export function useLibraryController() {
     setExtractFileMetadata(nextSettings.extractFileMetadata);
     setLibraryFolders(nextSettings.libraryFolders ?? []);
     setSummary(nextSummary);
+    setPlaylists(nextPlaylists);
     await refreshLists();
     await refreshUnmatchedFiles();
   }
@@ -632,6 +643,128 @@ export function useLibraryController() {
     }
   }
 
+  async function createPlaylist(request: CreatePlaylistRequest): Promise<void> {
+    setBusy(true);
+    try {
+      const api = getSkyMovieApi();
+      const newPlaylist = await api.createPlaylist(request);
+      setPlaylists((prev) => [...prev, newPlaylist]);
+      setStatus(`Created playlist "${newPlaylist.name}"`);
+    } catch (error) {
+      setStatus(`Failed to create playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updatePlaylist(request: UpdatePlaylistRequest): Promise<void> {
+    setBusy(true);
+    try {
+      const api = getSkyMovieApi();
+      const updatedPlaylist = await api.updatePlaylist(request);
+      setPlaylists((prev) => prev.map((p) => (p.id === updatedPlaylist.id ? updatedPlaylist : p)));
+      if (selectedPlaylist?.id === updatedPlaylist.id) {
+        setSelectedPlaylist(updatedPlaylist);
+      }
+      setStatus(`Updated playlist "${updatedPlaylist.name}"`);
+    } catch (error) {
+      setStatus(`Failed to update playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deletePlaylist(id: number): Promise<void> {
+    const confirmed = window.confirm('Are you sure you want to delete this playlist?');
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const api = getSkyMovieApi();
+      await api.deletePlaylist(id);
+      setPlaylists((prev) => prev.filter((p) => p.id !== id));
+      if (selectedPlaylist?.id === id) {
+        setSelectedPlaylist(null);
+        setPlaylistItems([]);
+      }
+      setStatus('Playlist deleted');
+    } catch (error) {
+      setStatus(`Failed to delete playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function selectPlaylist(playlist: Playlist): Promise<void> {
+    setSelectedPlaylist(playlist);
+    try {
+      const api = getSkyMovieApi();
+      const items = await api.getPlaylistById(playlist.id);
+      setPlaylistItems(items);
+      setSelectedTitle(playlist.name);
+    } catch (error) {
+      setStatus(`Failed to load playlist: ${formatError(error)}`);
+    }
+  }
+
+  async function addToPlaylist(request: AddToPlaylistRequest): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.addToPlaylist(request);
+      setStatus('Added to playlist');
+      await refreshPlaylists();
+      if (selectedPlaylist?.id === request.playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+    } catch (error) {
+      setStatus(`Failed to add to playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function removeFromPlaylist(request: RemoveFromPlaylistRequest): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.removeFromPlaylist(request);
+      setStatus('Removed from playlist');
+      if (selectedPlaylist?.id === request.playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+      await refreshPlaylists();
+    } catch (error) {
+      setStatus(`Failed to remove from playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function reorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      await api.reorderPlaylistItem(playlistId, itemId, newSortOrder);
+      if (selectedPlaylist?.id === playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+    } catch (error) {
+      setStatus(`Failed to reorder playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function refreshPlaylists(): Promise<void> {
+    try {
+      const api = getSkyMovieApi();
+      const nextPlaylists = await api.getPlaylists();
+      setPlaylists(nextPlaylists);
+    } catch (error) {
+      console.error('Failed to refresh playlists:', error);
+    }
+  }
+
   async function loadScannedMovieMetadata(movieIds: number[]): Promise<AutoMetadataSummary | null> {
     const uniqueMovieIds = [...new Set(movieIds)];
     if (!uniqueMovieIds.length) {
@@ -762,12 +895,16 @@ export function useLibraryController() {
     status,
     busy,
     unmatchedFiles,
+    playlists,
+    selectedPlaylist,
+    playlistItems,
     chooseLibraryFolders,
     removeLibraryFolder,
     scanLibrary,
     scanLibraries,
     selectMovie,
     selectShow,
+    selectPlaylist,
     viewMovieDetails,
     viewShowDetails,
     backToLibrary,
@@ -788,7 +925,13 @@ export function useLibraryController() {
     applyUnmatchedFileMetadata,
     markFileAsIgnored,
     deleteFile,
-    showItemInFolder
+    showItemInFolder,
+    createPlaylist,
+    updatePlaylist,
+    deletePlaylist,
+    addToPlaylist,
+    removeFromPlaylist,
+    reorderPlaylistItem
   };
 }
 

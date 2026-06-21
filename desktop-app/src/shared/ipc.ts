@@ -86,6 +86,49 @@ export interface LibrarySummary {
   libraryFolderCount: number;
 }
 
+export interface Playlist {
+  id: number;
+  name: string;
+  description: string | null;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlaylistItem {
+  id: number;
+  playlistId: number;
+  mediaKind: MediaKind;
+  movieId: number | null;
+  showId: number | null;
+  sortOrder: number;
+  movie: Movie | null;
+  show: TvShow | null;
+}
+
+export interface CreatePlaylistRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdatePlaylistRequest {
+  id: number;
+  name?: string;
+  description?: string;
+}
+
+export interface AddToPlaylistRequest {
+  playlistId: number;
+  mediaKind: MediaKind;
+  movieId?: number;
+  showId?: number;
+}
+
+export interface RemoveFromPlaylistRequest {
+  playlistId: number;
+  itemId: number;
+}
+
 export interface ScanResult {
   folder: LibraryFolder;
   scannedFiles: number;
@@ -322,6 +365,14 @@ export interface SkyMovieApi {
   downloadAndInstallUpdate(): Promise<void>;
   getUpdateStatus(): Promise<UpdateStatus>;
   dismissUpdateNotification(): Promise<void>;
+  getPlaylists(): Promise<Playlist[]>;
+  getPlaylistById(id: number): Promise<PlaylistItem[]>;
+  createPlaylist(request: CreatePlaylistRequest): Promise<Playlist>;
+  updatePlaylist(request: UpdatePlaylistRequest): Promise<Playlist>;
+  deletePlaylist(id: number): Promise<void>;
+  addToPlaylist(request: AddToPlaylistRequest): Promise<void>;
+  removeFromPlaylist(request: RemoveFromPlaylistRequest): Promise<void>;
+  reorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): Promise<void>;
 }
 
 export const ipcChannels = {
@@ -359,5 +410,13 @@ export const ipcChannels = {
   downloadAndInstallUpdate: 'update:download-install',
   getUpdateStatus: 'update:status',
   dismissUpdateNotification: 'update:dismiss-notification',
-  updateProgress: 'update:progress'
+  updateProgress: 'update:progress',
+  getPlaylists: 'playlist:get-all',
+  getPlaylistById: 'playlist:get-by-id',
+  createPlaylist: 'playlist:create',
+  updatePlaylist: 'playlist:update',
+  deletePlaylist: 'playlist:delete',
+  addToPlaylist: 'playlist:add-item',
+  removeFromPlaylist: 'playlist:remove-item',
+  reorderPlaylistItem: 'playlist:reorder-item'
 } as const;

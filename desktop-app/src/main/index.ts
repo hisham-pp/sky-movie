@@ -11,6 +11,7 @@ import { LibraryScanner } from './services/libraryScanner';
 import { MaintenanceService } from './services/maintenanceService';
 import { MetadataProviderManager } from './services/metadataProvider';
 import { PlayerService } from './services/playerService';
+import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
@@ -79,6 +80,7 @@ app.whenReady().then(() => {
   const metadata = new MetadataProviderManager(sqlite, paths, settings);
   const sync = new LocalSyncEngine(sqlite, paths, app.getVersion());
   const update = new UpdateService(() => mainWindow, settings);
+  const playlist = new PlaylistService(sqlite);
 
   player.registerMediaProtocol();
 
@@ -92,6 +94,7 @@ app.whenReady().then(() => {
     settings,
     sync,
     update,
+    playlist,
     getMainWindow: () => mainWindow
   });
 

@@ -1,4 +1,4 @@
-import { Download, Film, FolderSearch, HardDrive, Settings, Tv, Video } from 'lucide-react';
+import { Download, Film, FolderSearch, HardDrive, ListMusic, Settings, Tv, Video } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
 import { Metric } from './Metric';
@@ -29,6 +29,10 @@ export function Sidebar({
         <button className={view === 'shows' ? 'active' : ''} onClick={() => onViewChange('shows')} title="TV Shows">
           <Tv size={18} />
           <span>TV Shows</span>
+        </button>
+        <button className={view === 'playlists' ? 'active' : ''} onClick={() => onViewChange('playlists')} title="Playlists">
+          <ListMusic size={18} />
+          <span>Playlists</span>
         </button>
         <button className={view === 'scan' ? 'active' : ''} onClick={() => onViewChange('scan')} title="Scan">
           <FolderSearch size={18} />
