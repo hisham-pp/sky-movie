@@ -309,7 +309,12 @@
 .playlist-content {
   display: grid;
   gap: 24px;
-  padding-top: 20px;
+  padding-top: 32px;
+}
+
+.playlist-content .section-title {
+  margin-top: 24px;
+  margin-bottom: 20px;
 }
 
 .playlist-toolbar {
@@ -317,7 +322,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .view-mode-toggle {
@@ -358,7 +363,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 8px;
+  padding-top: 0;
 }
 
 .playlist-item-row {
