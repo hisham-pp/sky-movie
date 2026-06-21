@@ -140,6 +140,7 @@ export function AppLayout() {
           onSearchMetadata={library.searchUnmatchedFileMetadata}
           onApplyMetadata={library.applyUnmatchedFileMetadata}
           onMarkAsIgnored={library.markFileAsIgnored}
+          onUnmarkAsIgnored={library.unmarkFileAsIgnored}
         />
       </section>
     </main>

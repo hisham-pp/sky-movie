@@ -31,6 +31,7 @@ const api: SkyMovieApi = {
   searchTvMetadata: (request: TvMetadataSearchRequest) => ipcRenderer.invoke(ipcChannels.searchTvMetadata, request),
   applyTvMetadata: (request: ApplyTvMetadataRequest) => ipcRenderer.invoke(ipcChannels.applyTvMetadata, request),
   markFileAsIgnored: (fileId: number) => ipcRenderer.invoke(ipcChannels.markFileAsIgnored, fileId),
+  unmarkFileAsIgnored: (fileId: number) => ipcRenderer.invoke(ipcChannels.unmarkFileAsIgnored, fileId),
   updateFileMatch: (fileId: number, matchedMovieId: number | null, matchedShowId: number | null) => 
     ipcRenderer.invoke(ipcChannels.updateFileMatch, fileId, matchedMovieId, matchedShowId),
   deleteMediaFile: (fileId: number) => ipcRenderer.invoke(ipcChannels.deleteMediaFile, fileId),

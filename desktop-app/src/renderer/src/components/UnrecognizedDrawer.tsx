@@ -12,6 +12,7 @@ interface UnrecognizedDrawerProps {
   onSearchMetadata: (file: MediaFile, query: string, year?: number) => Promise<MetadataResult[]>;
   onApplyMetadata: (file: MediaFile, result: MetadataResult) => Promise<void>;
   onMarkAsIgnored: (fileId: number) => Promise<void>;
+  onUnmarkAsIgnored: (fileId: number) => Promise<void>;
 }
 
 export function UnrecognizedDrawer({
@@ -21,7 +22,8 @@ export function UnrecognizedDrawer({
   busy,
   onSearchMetadata,
   onApplyMetadata,
-  onMarkAsIgnored
+  onMarkAsIgnored,
+  onUnmarkAsIgnored
 }: UnrecognizedDrawerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +33,15 @@ export function UnrecognizedDrawer({
 
   const currentFile = unmatchedFiles[currentIndex];
 
+  // Reset index if it's out of bounds when unmatchedFiles changes
+  useEffect(() => {
+    if (currentIndex >= unmatchedFiles.length && unmatchedFiles.length > 0) {
+      setCurrentIndex(unmatchedFiles.length - 1);
+    } else if (unmatchedFiles.length === 0) {
+      setCurrentIndex(0);
+    }
+  }, [unmatchedFiles.length]);
+
   useEffect(() => {
     if (currentFile && isOpen) {
       // Extract year from filename
@@ -38,7 +49,7 @@ export function UnrecognizedDrawer({
       const year = yearMatch ? parseInt(yearMatch[1], 10) : undefined;
       
       // Extract clean title from filename
-      const cleanTitle = currentFile.fileName
+      let cleanTitle = currentFile.fileName
         .replace(/\.[^/.]+$/, '') // Remove extension
         .replace(/[._]/g, ' ') // Replace dots and underscores with spaces
         .replace(/\(?\d{4}\)?/g, '') // Remove years with optional parentheses
@@ -46,6 +57,11 @@ export function UnrecognizedDrawer({
         .replace(/\b(720p|1080p|2160p|4K|BluRay|WEB|DL|HEVC|x264|x265)\b/gi, '') // Remove quality tags
         .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
         .trim();
+      
+      // Add year back to the search query for display
+      if (year) {
+        cleanTitle = `${cleanTitle} ${year}`;
+      }
       
       setSearchQuery(cleanTitle);
       setExtractedYear(year);
@@ -88,10 +104,10 @@ export function UnrecognizedDrawer({
     
     try {
       await onApplyMetadata(currentFile, result);
-      // Move to next file after successful match
-      if (currentIndex < unmatchedFiles.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
+      // Don't increment currentIndex - the list will refresh and we'll stay at the same position
+      // which will show the next unmatched file
+      // Only close if this was the last file
+      if (unmatchedFiles.length === 1) {
         onClose();
       }
     } catch (error) {
@@ -103,15 +119,19 @@ export function UnrecognizedDrawer({
     if (!currentFile) return;
     
     try {
-      await onMarkAsIgnored(currentFile.id);
-      // Move to next file
-      if (currentIndex < unmatchedFiles.length - 1) {
-        setCurrentIndex(currentIndex + 1);
+      if (currentFile.matchStatus === 'ignored') {
+        await onUnmarkAsIgnored(currentFile.id);
       } else {
+        await onMarkAsIgnored(currentFile.id);
+      }
+      // Don't increment currentIndex - the list will refresh and we'll stay at the same position
+      // which will show the next unmatched file
+      // Only close if this was the last file
+      if (unmatchedFiles.length === 1) {
         onClose();
       }
     } catch (error) {
-      console.error('Failed to mark as ignored:', error);
+      console.error('Failed to toggle ignore status:', error);
     }
   };
 
@@ -172,6 +192,9 @@ export function UnrecognizedDrawer({
             {currentFile.mediaKind === 'movie' ? <Film size={24} /> : <Tv size={24} />}
             <div className="file-info-type">
               {currentFile.mediaKind === 'movie' ? 'Movie' : 'TV Show'}
+              {currentFile.matchStatus === 'ignored' && (
+                <span className="ignored-badge">Ignored</span>
+              )}
             </div>
           </div>
           
@@ -261,7 +284,7 @@ export function UnrecognizedDrawer({
           disabled={busy}
         >
           <EyeOff size={18} />
-          Ignore
+          {currentFile.matchStatus === 'ignored' ? 'Un-ignore' : 'Ignore'}
         </button>
         
         <div className="navigation-buttons">
