@@ -396,7 +396,9 @@ function parseMediaName(absolutePath: string, rootPath: string, options: ScanOpt
     };
   }
 
-  const movieMatch = withoutExtension.match(/(.+?)[ ._\-]+((?:19|20)\d{2})/);
+  const movieMatch = withoutExtension.match(
+    /(.+?)(?:[ ._\-]+|(?=\(|\[))(?:\(|\[)?((?:19|20)\d{2})(?:\)|\])?/
+  );
   if (movieMatch && options.mediaKind !== 'show' && options.matcherStrategy !== 'show-season-episode') {
     return {
       mediaKind: 'movie',
@@ -466,6 +468,8 @@ function parseYear(value: string): number | null {
 
 function cleanTitle(value: string): string {
   return value
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[()]/g, ' ')
     .replace(/[._\-]+/g, ' ')
     .replace(/\b(1080p|2160p|720p|4k|bluray|webrip|web-dl|x264|x265|h264|h265)\b/gi, '')
     .replace(/\s+/g, ' ')
