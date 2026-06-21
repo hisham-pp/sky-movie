@@ -2,7 +2,34 @@ import { ExternalLink, HardDrive, Languages, Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
-import type Option from 'artplayer/types/option';
+
+// Extend HTMLVideoElement to include audioTracks
+interface ExtendedHTMLVideoElement extends HTMLVideoElement {
+  audioTracks?: AudioTrackList;
+}
+
+interface AudioTrack {
+  enabled: boolean;
+  label: string;
+}
+
+interface AudioTrackList extends Array<AudioTrack> {
+  length: number;
+}
+
+// Type for Artplayer setting options
+interface SettingOption {
+  html: string;
+  value: string;
+  default?: boolean;
+}
+
+interface Setting {
+  html: string;
+  icon: string;
+  selector: SettingOption[];
+  onSelect?: (item: SettingOption) => string;
+}
 
 const resumeStartThresholdSeconds = 5;
 const resumeEndBufferSeconds = 10;
@@ -43,6 +70,7 @@ export function PlayerPanel({
       miniProgressBar: true,
       screenshot: true,
       flip: true,
+      // @ts-ignore - rotate is valid but not in type definitions
       rotate: true,
       moreVideoAttr: {
         preload: 'metadata',
@@ -60,13 +88,13 @@ export function PlayerPanel({
               default: true
             }
           ],
-          onSelect: function (item: Option.SettingOption) {
-            const video = art.video;
-            const trackIndex = item.value === 'default' ? -1 : parseInt(item.value as string);
+          onSelect: function (item: SettingOption) {
+            const video = art.video as ExtendedHTMLVideoElement;
+            const trackIndex = item.value === 'default' ? -1 : parseInt(item.value);
             
             if (video.audioTracks) {
               for (let i = 0; i < video.audioTracks.length; i++) {
-                (video.audioTracks[i] as any).enabled = i === trackIndex;
+                video.audioTracks[i].enabled = i === trackIndex;
               }
             }
             return item.html;
@@ -82,9 +110,9 @@ export function PlayerPanel({
               default: true
             }
           ],
-          onSelect: function (item: Option.SettingOption) {
+          onSelect: function (item: SettingOption) {
             const video = art.video;
-            const trackIndex = item.value === 'off' ? -1 : parseInt(item.value as string);
+            const trackIndex = item.value === 'off' ? -1 : parseInt(item.value);
             
             if (video.textTracks) {
               for (let i = 0; i < video.textTracks.length; i++) {
@@ -96,7 +124,7 @@ export function PlayerPanel({
         }
       ],
       quality: []
-    });
+    } as any);
     artRef.current = art;
     let restoredPosition = false;
     let lastSavedPosition = -1;
@@ -172,9 +200,9 @@ export function PlayerPanel({
       restorePosition();
       
       // Populate audio tracks
-      const video = art.video;
+      const video = art.video as ExtendedHTMLVideoElement;
       if (video.audioTracks && video.audioTracks.length > 0) {
-        const audioSettings = art.setting.find((s: any) => s.html === 'Audio Track');
+        const audioSettings = (art.setting as any).find((s: Setting) => s.html === 'Audio Track');
         if (audioSettings) {
           audioSettings.selector = [
             { html: 'Default', value: 'default', default: true },
@@ -183,13 +211,13 @@ export function PlayerPanel({
               value: index.toString()
             }))
           ];
-          art.setting.update(audioSettings);
+          (art.setting as any).update(audioSettings);
         }
       }
       
       // Populate subtitle tracks
       if (video.textTracks && video.textTracks.length > 0) {
-        const subtitleSettings = art.setting.find((s: any) => s.html === 'Subtitle');
+        const subtitleSettings = (art.setting as any).find((s: Setting) => s.html === 'Subtitle');
         if (subtitleSettings) {
           subtitleSettings.selector = [
             { html: 'Off', value: 'off', default: true },
@@ -200,7 +228,7 @@ export function PlayerPanel({
                 value: index.toString()
               }))
           ];
-          art.setting.update(subtitleSettings);
+          (art.setting as any).update(subtitleSettings);
         }
       }
     });
