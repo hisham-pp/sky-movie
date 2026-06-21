@@ -62,8 +62,6 @@ export function LibraryRoute(props: LibraryRouteProps) {
       player={library.player}
       lastScan={library.lastScan}
       playlists={library.playlists}
-      showDetailView={showDetailView}
-      setShowDetailView={() => {}}
       onSelectMovie={library.selectMovie}
       onSelectShow={library.selectShow}
       onViewMovieDetails={handleViewMovieDetails}
