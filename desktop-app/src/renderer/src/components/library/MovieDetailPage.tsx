@@ -5,8 +5,30 @@ import { PlayerPanel } from '../PlayerPanel';
 import { FileList } from './FileList';
 import { MetadataTools } from './MetadataTools';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
+import { Button } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
+
+
+type MovieDetailPageProps =  {
+  movie: Movie;
+  files: MediaFile[];
+  metadataQuery: string;
+  metadataResults: MetadataResult[];
+  busy: boolean;
+  player: PlayMediaResult | null;
+  playingFile: MediaFile | null | undefined;
+  playlists: Playlist[];
+  onBack(): void;
+  onMetadataQueryChange(value: string): void;
+  onSearchMetadata(): void;
+  onApplyMetadata(result: MetadataResult): void;
+  onPlay(file: MediaFile): void;
+  onOpenExternal(mediaFileId: number): void;
+  onDeleteFile(file: MediaFile): void;
+  onShowInFolder(file: MediaFile): void;
+  onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
+}
 
 export function MovieDetailPage({
   movie,
@@ -26,25 +48,7 @@ export function MovieDetailPage({
   onDeleteFile,
   onShowInFolder,
   onAddToPlaylist
-}: {
-  movie: Movie;
-  files: MediaFile[];
-  metadataQuery: string;
-  metadataResults: MetadataResult[];
-  busy: boolean;
-  player: PlayMediaResult | null;
-  playingFile: MediaFile | null | undefined;
-  playlists: Playlist[];
-  onBack(): void;
-  onMetadataQueryChange(value: string): void;
-  onSearchMetadata(): void;
-  onApplyMetadata(result: MetadataResult): void;
-  onPlay(file: MediaFile): void;
-  onOpenExternal(mediaFileId: number): void;
-  onDeleteFile(file: MediaFile): void;
-  onShowInFolder(file: MediaFile): void;
-  onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
-}) {
+}:MovieDetailPageProps) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const meta = [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
@@ -81,15 +85,16 @@ export function MovieDetailPage({
                 <span>{playingFile.fileName}</span>
               </div>
             ) : null}
-            <button
-              className="add-to-playlist-button"
+            <Button
+              variant="secondary"
+              size="medium"
+              icon={<ListMusic />}
               onClick={() => setShowPlaylistDialog(true)}
               disabled={busy || playlists.length === 0}
               title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
             >
-              <ListMusic size={16} />
               Add to Playlist
-            </button>
+            </Button>
           </div>
         </div>
       </div>

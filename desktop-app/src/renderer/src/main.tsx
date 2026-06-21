@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { Router } from './router';
 import './styles/themes.css';
 import './styles/base.css';
+import './styles/button.css';
+import './styles/modal.css';
 import './styles/layout.css';
 import './styles/sidebar.css';
 import './styles/library.css';

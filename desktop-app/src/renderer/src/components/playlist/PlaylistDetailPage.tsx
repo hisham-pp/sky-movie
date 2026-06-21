@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, ListMusic, Edit2, Trash2, Film, Tv, GripVertical, X, Plus, Grid3x3, List, Play, ExternalLink } from 'lucide-react';
 import type { Playlist, PlaylistItem, Movie, TvShow, MediaFile } from '@shared/ipc';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
+import { Button } from '../common';
 
 interface PlaylistDetailPageProps {
   playlist: Playlist;
@@ -174,22 +175,42 @@ export function PlaylistDetailPage({
               <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
             </div>
             <div className="playlist-actions">
-              <button onClick={handlePlayAll} disabled={busy || items.length === 0} className="primary-button play-all-button">
-                <Play size={16} />
+              <Button
+                variant="primary"
+                size="medium"
+                icon={<Play />}
+                onClick={handlePlayAll}
+                disabled={busy || items.length === 0}
+              >
                 Play All
-              </button>
-              <button onClick={() => setShowAddDialog(true)} disabled={busy}>
-                <Plus size={16} />
+              </Button>
+              <Button
+                variant="secondary"
+                size="medium"
+                icon={<Plus />}
+                onClick={() => setShowAddDialog(true)}
+                disabled={busy}
+              >
                 Add Items
-              </button>
-              <button onClick={onEdit} disabled={busy}>
-                <Edit2 size={16} />
+              </Button>
+              <Button
+                variant="secondary"
+                size="medium"
+                icon={<Edit2 />}
+                onClick={onEdit}
+                disabled={busy}
+              >
                 Edit
-              </button>
-              <button onClick={onDelete} disabled={busy} className="delete-button">
-                <Trash2 size={16} />
+              </Button>
+              <Button
+                variant="danger"
+                size="medium"
+                icon={<Trash2 />}
+                onClick={onDelete}
+                disabled={busy}
+              >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -343,10 +364,15 @@ export function PlaylistDetailPage({
             <ListMusic size={32} />
             <span>This playlist is empty</span>
             <p>Add movies and TV shows to your playlist</p>
-            <button className="primary-button" onClick={() => setShowAddDialog(true)} disabled={busy}>
-              <Plus size={16} />
+            <Button
+              variant="primary"
+              size="medium"
+              icon={<Plus />}
+              onClick={() => setShowAddDialog(true)}
+              disabled={busy}
+            >
               Add Items
-            </button>
+            </Button>
           </div>
         )}
       </div>

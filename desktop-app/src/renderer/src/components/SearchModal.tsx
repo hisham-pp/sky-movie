@@ -1,6 +1,7 @@
 import { Search, Film, Tv, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Movie, TvShow } from '@shared/ipc';
+import { Modal } from './common';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -44,8 +45,6 @@ export function SearchModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const filteredMovies = query
     ? movies.filter((m) => m.title.toLowerCase().includes(query.toLowerCase()))
     : [];
@@ -65,7 +64,7 @@ export function SearchModal({
   };
 
   return (
-    <div className="search-modal-overlay" onClick={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
       <div className="search-modal" onClick={(e) => e.stopPropagation()}>
         <div className="search-modal-header">
           <Search size={20} />
@@ -168,6 +167,6 @@ export function SearchModal({
           <kbd>Ctrl</kbd> + <kbd>K</kbd> to close
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

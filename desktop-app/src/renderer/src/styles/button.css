@@ -1,0 +1,136 @@
+/* ===== Button Base Styles ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text {
+  line-height: 1;
+}
+
+/* ===== Button Sizes ===== */
+.btn-small {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.btn-small .btn-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-medium {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.btn-medium .btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-large {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 16px;
+}
+
+.btn-large .btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== Button Variants ===== */
+
+/* Primary Button */
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: var(--surface-low);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-high);
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Danger Button */
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--soft);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-low);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-ghost:active:not(:disabled) {
+  background: var(--surface-high);
+}

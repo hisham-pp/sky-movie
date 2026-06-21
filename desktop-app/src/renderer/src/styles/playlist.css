@@ -376,7 +376,6 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   transition: all 0.2s ease;
-  min-height: 106px;
 }
 
 .playlist-item-row:hover {
@@ -696,6 +695,50 @@
   margin-top: 8px;
 }
 
+/* ===== Modal Overlay ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 14, 18, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: var(--panel-solid);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ===== Add to Playlist Dialog ===== */
 .add-to-playlist-dialog {
   max-width: 700px;
@@ -869,7 +912,8 @@
 
 /* ===== Playlist Selector Dialog ===== */
 .playlist-selector {
-  max-width: 420px;
+  max-width: 500px;
+  width: 100%;
 }
 
 .playlist-selector-header {

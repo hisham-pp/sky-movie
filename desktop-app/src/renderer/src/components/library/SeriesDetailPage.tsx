@@ -7,6 +7,7 @@ import { MetadataTools } from './MetadataTools';
 import { DetailStat } from './DetailStat';
 import { groupEpisodesBySeason } from '../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
+import { Button } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
@@ -102,15 +103,16 @@ export function SeriesDetailPage({
             <span>{playingFile.fileName}</span>
           </div>
         ) : null}
-        <button
-          className="add-to-playlist-button"
+        <Button
+          variant="secondary"
+          size="medium"
+          icon={<ListMusic />}
           onClick={() => setShowPlaylistDialog(true)}
           disabled={busy || playlists.length === 0}
           title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
         >
-          <ListMusic size={16} />
           Add to Playlist
-        </button>
+        </Button>
       </div>
 
       <div className="series-detail-grid">
