@@ -13,3 +13,7 @@ envs/*
 # files
 *.asar
 8.log
+
+
+tmp/*
+temp/*

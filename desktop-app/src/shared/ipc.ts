@@ -220,6 +220,17 @@ export interface PlayMediaResult {
   mediaUrl: string;
   title: string;
   watchProgress: WatchProgressSnapshot | null;
+  audioTracks?: MediaTrack[];
+  subtitleTracks?: MediaTrack[];
+}
+
+export interface MediaTrack {
+  index: number;
+  type: 'audio' | 'subtitle';
+  codec: string;
+  language?: string;
+  title?: string;
+  default: boolean;
 }
 
 export interface WatchProgressSnapshot {
