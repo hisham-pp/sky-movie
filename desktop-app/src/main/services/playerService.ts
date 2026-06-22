@@ -4,9 +4,11 @@ import { stat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate } from '../../shared/ipc';
+import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
+import { extractMediaMetadata, isMKVFile, needsSpecialHandling } from './mediaMetadataService';
+import streamingServer from './streamingServer';
 
 interface ByteRange {
   start: number;
@@ -22,54 +24,61 @@ export class PlayerService {
 
   registerMediaProtocol(): void {
     protocol.handle('sky-media', async (request) => {
-      const id = Number(new URL(request.url).hostname);
-      const mediaFile = this.catalog.getMediaFile(id);
+      try {
+        const id = Number(new URL(request.url).hostname);
+        const mediaFile = this.catalog.getMediaFile(id);
 
-      if (!mediaFile) {
-        return new Response('Media file not found.', { status: 404 });
-      }
+        if (!mediaFile) {
+          console.error(`Media file not found for id: ${id}`);
+          return new Response('Media file not found.', { status: 404 });
+        }
 
-      const fileStat = await stat(mediaFile.absolutePath);
-      const range = parseByteRange(request.headers.get('range'), fileStat.size);
-      const contentType = getVideoContentType(mediaFile.absolutePath);
+        console.log(`Serving media file: ${mediaFile.absolutePath}`);
+        const fileStat = await stat(mediaFile.absolutePath);
+        const range = parseByteRange(request.headers.get('range'), fileStat.size);
+        const contentType = getVideoContentType(mediaFile.absolutePath);
 
-      if (request.headers.get('range') && !range) {
-        return new Response(null, {
-          status: 416,
-          headers: {
-            'Accept-Ranges': 'bytes',
-            'Content-Range': `bytes */${fileStat.size}`
-          }
-        });
-      }
+        if (request.headers.get('range') && !range) {
+          return new Response(null, {
+            status: 416,
+            headers: {
+              'Accept-Ranges': 'bytes',
+              'Content-Range': `bytes */${fileStat.size}`
+            }
+          });
+        }
 
-      if (range) {
-        const contentLength = range.end - range.start + 1;
-        const body = Readable.toWeb(createReadStream(mediaFile.absolutePath, range)) as ReadableStream;
+        if (range) {
+          const contentLength = range.end - range.start + 1;
+          const body = Readable.toWeb(createReadStream(mediaFile.absolutePath, range)) as ReadableStream;
+
+          return new Response(body, {
+            status: 206,
+            headers: {
+              'Accept-Ranges': 'bytes',
+              'Cache-Control': 'no-store',
+              'Content-Length': String(contentLength),
+              'Content-Range': `bytes ${range.start}-${range.end}/${fileStat.size}`,
+              'Content-Type': contentType
+            }
+          });
+        }
+
+        const body = Readable.toWeb(createReadStream(mediaFile.absolutePath)) as ReadableStream;
 
         return new Response(body, {
-          status: 206,
+          status: 200,
           headers: {
             'Accept-Ranges': 'bytes',
             'Cache-Control': 'no-store',
-            'Content-Length': String(contentLength),
-            'Content-Range': `bytes ${range.start}-${range.end}/${fileStat.size}`,
+            'Content-Length': String(fileStat.size),
             'Content-Type': contentType
           }
         });
+      } catch (error) {
+        console.error('Error in sky-media protocol handler:', error);
+        return new Response('Internal server error', { status: 500 });
       }
-
-      const body = Readable.toWeb(createReadStream(mediaFile.absolutePath)) as ReadableStream;
-
-      return new Response(body, {
-        status: 200,
-        headers: {
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-store',
-          'Content-Length': String(fileStat.size),
-          'Content-Type': contentType
-        }
-      });
     });
   }
 
@@ -79,12 +88,51 @@ export class PlayerService {
       throw new Error(`Media file ${mediaFileId} was not found.`);
     }
 
-    return {
+    // Check if this is an MKV file that needs FFmpeg streaming
+    const isMKV = isMKVFile(mediaFile.absolutePath);
+
+    let mediaUrl: string;
+    let audioTracks: MediaTrack[] | undefined;
+    let subtitleTracks: MediaTrack[] | undefined;
+
+    if (isMKV) {
+      // Use streaming server for MKV files
+      mediaUrl = streamingServer.getUrl(mediaFileId, mediaFile.absolutePath);
+
+      // Extract metadata for track information
+      try {
+        const metadata = extractMediaMetadata(mediaFile.absolutePath);
+        audioTracks = metadata.audioTracks as MediaTrack[];
+        subtitleTracks = metadata.subtitleTracks as MediaTrack[];
+      } catch (error) {
+        console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
+      }
+    } else {
+      // Use file:// URL for non-MKV files
+      mediaUrl = pathToFileURL(mediaFile.absolutePath).toString();
+
+      // Extract metadata for files that need special handling
+      if (needsSpecialHandling(mediaFile.absolutePath)) {
+        try {
+          const metadata = extractMediaMetadata(mediaFile.absolutePath);
+          audioTracks = metadata.audioTracks as MediaTrack[];
+          subtitleTracks = metadata.subtitleTracks as MediaTrack[];
+        } catch (error) {
+          console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
+        }
+      }
+    }
+
+    const result: PlayMediaResult = {
       mediaFileId,
-      mediaUrl: pathToFileURL(mediaFile.absolutePath).toString(),
+      mediaUrl,
       title: mediaFile.fileName,
-      watchProgress: this.getWatchProgress(mediaFileId)
+      watchProgress: this.getWatchProgress(mediaFileId),
+      audioTracks,
+      subtitleTracks
     };
+
+    return result;
   }
 
   async openExternally(mediaFileId: number): Promise<void> {

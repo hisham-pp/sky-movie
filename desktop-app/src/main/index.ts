@@ -15,6 +15,7 @@ import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
+import streamingServer from './services/streamingServer';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 let mainWindow: BrowserWindow | null = null;
@@ -45,7 +46,7 @@ function createWindow(): BrowserWindow {
       nodeIntegration: false,
       sandbox: true,
       webgl: true,
-      enableBlinkFeatures: 'PlatformHEVCDecoderSupport'
+      enableBlinkFeatures: 'PlatformHEVCDecoderSupport,AudioContext,WebAudio'
     }
   });
 
@@ -71,13 +72,17 @@ function resolvePreloadPath(): string {
 
 // Enable hardware acceleration for better video rendering
 // Must be set before app is ready
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,AudioContext,WebAudio');
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,AudioContext,WebAudio,PlatformEncryptedDolbyVision,PlatformHEVCDecoderSupport');
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 app.commandLine.appendSwitch('audio-buffer-size', '2048');
+// Enable proprietary audio codec support (AC3, EAC3, DTS, etc.)
+app.commandLine.appendSwitch('enable-ac3-eac3-audio-demuxing');
+app.commandLine.appendSwitch('enable-features', 'AudioContextLatencyHint');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   const paths = ensureAppDataLayout();
   const { sqlite } = createDatabaseContext(paths);
 
@@ -93,6 +98,14 @@ app.whenReady().then(() => {
   const playlist = new PlaylistService(sqlite);
 
   player.registerMediaProtocol();
+
+  // Start streaming server for MKV and other video formats
+  try {
+    await streamingServer.start();
+    console.log('Streaming server started successfully');
+  } catch (error) {
+    console.error('Failed to start streaming server:', error);
+  }
 
   registerIpcHandlers({
     catalog,
@@ -121,6 +134,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  // Stop streaming server
+  streamingServer.stop();
+
   if (process.platform !== 'darwin') {
     app.quit();
   }
