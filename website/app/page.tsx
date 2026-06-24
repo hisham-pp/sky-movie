@@ -130,7 +130,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="absolute inset-0 z-20 pointer-events-none">
-                  <img className="w-full h-full object-cover" alt="Sky Movie Desktop App Screenshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZxW8vNvVuwvdk4tvxNUR7PTXIeSmHwzXlAbdT93zxb6Xzxywv_4MeO_NCt6mg5GxEcMXYVIxY90wqhlPSeNzTK47UUEgmjFyGF3fxcGXnrR1836FseD471ObmKnUZsEewRuAufG-BuzOGw5z15wYgRhN4GfWtZiwkaPUUQ5_MifT-P_r8jYGDka4Fm0aqZAvp__aelIf2CJtNEuMNgIg391nklO7JxB1k3oqHzeogAS6tcUj7aHq40vLha2-ZgrRZauta-k6PilX5" />
+                  <img className="w-full h-full object-cover" alt="Sky Movie Desktop App Screenshot" src="/screen-shots/movies-list.png" />
                 </div>
               </div>
             </div>
