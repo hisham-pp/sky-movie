@@ -20,14 +20,14 @@
 .hero-strip {
   position: relative;
   display: block;
-  height: 64vh;
-  max-height: 580px;
+  height: 60vh;
+  max-height: 540px;
   overflow: hidden;
   width: calc(100% + 80px);
   margin: 0 -40px -80px;
   padding-bottom: 80px;
   background:
-    linear-gradient(90deg, rgba(15, 17, 21, 0.95) 0%, rgba(15, 17, 21, 0.60) 50%, rgba(15, 17, 21, 0.90) 100%),
+    linear-gradient(90deg, rgba(12, 14, 18, 0.97) 0%, rgba(12, 14, 18, 0.55) 55%, rgba(12, 14, 18, 0.85) 100%),
     var(--surface-lowest);
 }
 
@@ -35,7 +35,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(15, 17, 21, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(12, 14, 18, 0.2) 0%, rgba(12, 14, 18, 0.9) 100%);
   content: "";
   z-index: 1;
 }
@@ -73,22 +73,19 @@
 }
 
 .hero-poster {
-  display: none;
-}
-
-.hero-poster {
   display: grid;
-  width: 138px;
+  width: 120px;
   aspect-ratio: 2 / 3;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
   background:
     linear-gradient(145deg, var(--poster-a), var(--poster-b) 52%, var(--poster-c)),
     var(--surface-high);
   color: white;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.08);
+  flex: 0 0 auto;
 }
 
 .hero-poster img {
@@ -100,16 +97,16 @@
 .hero-strip h2 {
   display: -webkit-box;
   max-width: 100%;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   overflow: hidden;
-  color: var(--ink);
+  color: #ffffff;
   font-family: "Plus Jakarta Sans", Inter, sans-serif;
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  letter-spacing: -0.025em;
+  line-height: 1.06;
   overflow-wrap: anywhere;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8), 0 4px 48px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.9), 0 4px 64px rgba(0, 0, 0, 0.7);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -149,19 +146,21 @@
   margin-bottom: 4px;
 }
 
-.hero-chips span,
-.tile-badge {
+.hero-chips span {
   border-radius: 8px;
-  background: var(--surface-high);
-  color: var(--ink);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 5px 8px;
+  padding: 5px 10px;
 }
 
 .hero-chips span:first-child {
   background: var(--primary);
+  border-color: transparent;
   color: var(--on-primary);
 }
 
@@ -252,11 +251,14 @@
 }
 
 .filter-row button {
-  min-height: 40px;
-  min-width: 128px;
-  background: var(--surface-low);
+  min-height: 38px;
+  min-width: 110px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--soft);
   padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .section-title {
@@ -264,8 +266,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 18px;
-  margin-top: 8px;
+  margin-bottom: 20px;
+  margin-top: 12px;
   position: relative;
   z-index: 5;
 }
@@ -274,9 +276,10 @@
   margin: 0;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Inter, sans-serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .detail-panel .section-title {
@@ -292,8 +295,8 @@
 
 .poster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
   min-width: 0;
   position: relative;
   z-index: 5;
@@ -302,9 +305,9 @@
 .tile {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(38px, auto) 18px;
+  grid-template-rows: auto minmax(36px, auto) 18px;
   align-content: start;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
   border: 1px solid transparent;
   background: transparent;
@@ -312,18 +315,19 @@
   text-align: left;
   box-shadow: none;
   cursor: pointer;
+  transition: transform 0.22s ease;
 }
 
 .tile:hover {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
-  transform: translateY(-3px);
+  transform: translateY(-5px);
 }
 
 .tile.tile-selected .poster {
   border-color: var(--primary);
-  box-shadow: 0 2px 16px rgba(137, 206, 255, 0.3);
+  box-shadow: 0 0 0 2px var(--primary), 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
 .poster {
@@ -332,44 +336,44 @@
   aspect-ratio: 2 / 3;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
   background:
     linear-gradient(145deg, var(--poster-a), var(--poster-b) 52%, var(--poster-c)),
     var(--surface-high);
   color: white;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   transition:
     border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.22s ease;
+    box-shadow 0.22s ease;
 }
 
 .tile:hover .poster {
-  border-color: var(--line-strong);
+  border-color: rgba(255, 255, 255, 0.18);
   box-shadow:
-    0 20px 44px rgba(0, 0, 0, 0.38),
-    0 0 24px rgba(137, 206, 255, 0.16);
+    0 24px 48px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.28s ease;
+  transition: transform 0.36s ease;
 }
 
 .tile:hover .poster img {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
 .poster::after {
   position: absolute;
   inset: auto 0 0;
-  height: 48%;
+  height: 60%;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.82));
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.72) 100%);
   content: "";
+  border-radius: 0 0 12px 12px;
 }
 
 .show-poster {
@@ -380,13 +384,18 @@
 
 .tile-badge {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  left: 8px;
+  top: 8px;
   z-index: 2;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 10px;
-  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .tile-overlay {
@@ -394,12 +403,12 @@
   inset: auto 10px 10px;
   z-index: 2;
   display: grid;
-  gap: 4px;
+  gap: 5px;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
   transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .tile:hover .tile-overlay {
@@ -416,41 +425,45 @@
 }
 
 .tile-overlay strong {
-  font-size: 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
 }
 
 .tile-overlay small {
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11.5px;
 }
 
 .details-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(137, 206, 255, 0.95);
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--primary);
   color: var(--on-primary);
   border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease;
-  margin-top: 4px;
+  transition: opacity 0.15s ease;
+  margin-top: 2px;
+  width: fit-content;
 }
 
 .details-button:hover {
+  opacity: 0.88;
   background: var(--primary);
 }
 
 .tile > strong {
   display: -webkit-box;
   overflow: hidden;
-  min-height: 38px;
+  min-height: 36px;
   color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 600;
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -458,6 +471,7 @@
 
 .tile > span {
   font-size: 12px;
+  color: var(--muted);
 }
 
 .favorite {

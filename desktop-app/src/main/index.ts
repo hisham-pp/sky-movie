@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol } from 'electron';
+import { app, BrowserWindow, Menu, protocol } from 'electron';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,17 +30,34 @@ protocol.registerSchemesAsPrivileged([
       stream: true,
       supportFetchAPI: true
     }
+  },
+  {
+    scheme: 'sky-image',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true
+    }
   }
 ]);
 
 function createWindow(): BrowserWindow {
+  // Remove the default application menu (File, Edit, View, Window, Help)
+  Menu.setApplicationMenu(null);
+
   const window = new BrowserWindow({
     width: 1360,
     height: 860,
     minWidth: 1080,
     minHeight: 720,
     title: 'Sky Movie',
-    backgroundColor: '#f7f4ef',
+    backgroundColor: '#111317',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#111317',
+      symbolColor: '#c4c6ce',
+      height: 30
+    },
     webPreferences: {
       preload: resolvePreloadPath(),
       contextIsolation: true,
@@ -106,6 +123,27 @@ app.whenReady().then(async () => {
   const playlist = new PlaylistService(sqlite);
 
   player.registerMediaProtocol();
+
+  // Serve locally cached poster/backdrop images via sky-image:// so the
+  // sandboxed renderer doesn't need file:// access.
+  // URL format: sky-image://local/<percent-encoded-absolute-path>
+  protocol.handle('sky-image', async (request) => {
+    try {
+      const url = new URL(request.url);
+      // pathname starts with '/', strip it to get the encoded path
+      const absolutePath = decodeURIComponent(url.pathname.slice(1));
+      const { readFile } = await import('node:fs/promises');
+      const data = await readFile(absolutePath);
+      const ext = absolutePath.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+      return new Response(data, {
+        status: 200,
+        headers: { 'Content-Type': mime, 'Cache-Control': 'max-age=604800' }
+      });
+    } catch {
+      return new Response('Not found', { status: 404 });
+    }
+  });
 
   // Start streaming server for MKV and other video formats
   try {
