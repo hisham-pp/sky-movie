@@ -82,6 +82,7 @@ export function BrowseTvShowsPage({
               onSelect={setCurrentBannerIndex}
             />
           }
+          onPlay={bannerShow ? () => onSelectShow(bannerShow) : undefined}
           player={player}
           onOpenExternal={onOpenExternal}
         />
