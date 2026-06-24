@@ -27,7 +27,11 @@ export function BannerHero({
 }) {
   return (
     <div className="hero-strip browse-hero">
-      {backdropPath && <img className="hero-backdrop-image" src={backdropPath} alt="" />}
+      {backdropPath && (
+        <div className="hero-backdrop-fixed">
+          <img src={backdropPath} alt="" />
+        </div>
+      )}
       <div className="hero-copy">
         <div>
           <span>{label}</span>
