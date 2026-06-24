@@ -1,10 +1,10 @@
 import { protocol, shell } from 'electron';
-import { createReadStream } from 'node:fs';
+import { createReadStream, readdirSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import { extname } from 'node:path';
+import { dirname, extname, basename, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack } from '../../shared/ipc';
+import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
 import { extractMediaMetadata, isMKVFile, needsSpecialHandling } from './mediaMetadataService';
@@ -13,6 +13,33 @@ import streamingServer from './streamingServer';
 interface ByteRange {
   start: number;
   end: number;
+}
+
+const SUBTITLE_EXTS = new Set(['.srt', '.vtt', '.ass', '.ssa']);
+
+function scanSidecarSubtitles(mediaPath: string): SidecarSubtitle[] {
+  try {
+    const dir = dirname(mediaPath);
+    const stem = basename(mediaPath, extname(mediaPath)).toLowerCase();
+    const files = readdirSync(dir);
+    const results: SidecarSubtitle[] = [];
+
+    for (const file of files) {
+      const ext = extname(file).toLowerCase() as '.srt' | '.vtt' | '.ass' | '.ssa';
+      if (!SUBTITLE_EXTS.has(ext)) continue;
+      const fileStem = basename(file, ext).toLowerCase();
+      // Match files that start with the same stem (e.g. movie.en.srt, movie.srt)
+      if (!fileStem.startsWith(stem)) continue;
+      const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
+      const label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+      const url = pathToFileURL(join(dir, file)).toString();
+      results.push({ label, url, type: ext === '.ssa' ? 'ass' : ext.slice(1) as 'srt' | 'vtt' | 'ass' });
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
 }
 
 export class PlayerService {
@@ -128,13 +155,16 @@ export class PlayerService {
       }
     }
 
+    const sidecarSubtitles = scanSidecarSubtitles(mediaFile.absolutePath);
+
     const result: PlayMediaResult = {
       mediaFileId,
       mediaUrl,
       title: mediaFile.fileName,
       watchProgress: this.getWatchProgress(mediaFileId),
       audioTracks,
-      subtitleTracks
+      subtitleTracks,
+      sidecarSubtitles
     };
 
     console.log('[PlayerService] Returning PlayMediaResult', { mediaUrl, audioTracks: audioTracks?.length, subtitleTracks: subtitleTracks?.length });
