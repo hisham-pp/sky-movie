@@ -10,8 +10,9 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, UpdateCheckResult } from '@shared/ipc';
+import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, UpdateCheckResult, UpdateDownloadProgress } from '@shared/ipc';
 import { Select } from './ui/Select';
+import { formatBytes } from '../utils/format';
 
 type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
 
@@ -128,12 +129,25 @@ export function SettingsPanel({
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const activeTheme = settings?.theme ?? 'cinema';
 
   useEffect(() => {
     setTmdbApiKey(settings?.tmdbApiKey ?? '');
     setTmdbLanguage(settings?.tmdbLanguage ?? 'en-US');
   }, [settings?.tmdbApiKey, settings?.tmdbLanguage]);
+
+  useEffect(() => {
+    const skyMovie = (window as any).skyMovie;
+    if (!skyMovie?.onUpdateProgress) return;
+    return skyMovie.onUpdateProgress((event: any) => {
+      if (event.type === 'download-progress') {
+        setDownloadProgress({ bytesDownloaded: event.bytesDownloaded, totalBytes: event.totalBytes, percentage: event.percentage });
+      } else if (event.type === 'status' && (event.status === 'idle' || event.status === 'installing' || event.status === 'error')) {
+        setDownloadProgress(null);
+      }
+    });
+  }, []);
 
   const handleCheckForUpdates = async () => {
     setIsCheckingUpdates(true);
@@ -149,10 +163,12 @@ export function SettingsPanel({
 
   const handleDownloadAndInstallUpdate = async () => {
     setIsDownloadingUpdate(true);
+    setDownloadProgress(null);
     try {
       await (window as any).skyMovie.downloadAndInstallUpdate();
     } catch (error) {
       console.error('Failed to download and install update:', error);
+      setDownloadProgress(null);
     } finally {
       setIsDownloadingUpdate(false);
     }
@@ -408,6 +424,22 @@ export function SettingsPanel({
                 </button>
               )}
             </div>
+            {downloadProgress && (
+              <div className="update-download-progress">
+                <div className="update-progress-label">
+                  <span>Downloading update…</span>
+                  <span>{Math.round(downloadProgress.percentage)}%</span>
+                </div>
+                <div className="update-progress-bar">
+                  <div className="update-progress-fill" style={{ width: `${downloadProgress.percentage}%` }} />
+                </div>
+                {downloadProgress.totalBytes > 0 && (
+                  <span className="update-progress-size">
+                    {formatBytes(downloadProgress.bytesDownloaded)} / {formatBytes(downloadProgress.totalBytes)}
+                  </span>
+                )}
+              </div>
+            )}
             {updateCheckResult && (
               <div className="update-status">
                 {updateCheckResult.hasUpdate ? (
