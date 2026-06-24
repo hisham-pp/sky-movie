@@ -1,19 +1,34 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
 export default function DocsPage() {
   const [activeTab, setActiveTab] = useState<"movies" | "shows">("movies");
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>("introduction");
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(id);
     setTimeout(() => setCopiedText(null), 2000);
   };
+
+  useEffect(() => {
+    const sections = document.querySelectorAll("section[id]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        }
+      },
+      { rootMargin: "-30% 0px -60% 0px" }
+    );
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
@@ -44,47 +59,36 @@ export default function DocsPage() {
             Table of Contents
           </div>
           <nav className="space-y-1">
-            <a 
-              href="#introduction" 
-              className="flex items-center gap-3 px-3 py-2 text-secondary hover:text-primary hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-lg">info</span>
-              Introduction
-            </a>
-            <a 
-              href="#naming-conventions" 
-              className="flex items-center gap-3 px-3 py-2 text-secondary hover:text-primary hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-lg">edit_note</span>
-              Naming Conventions
-            </a>
-            <a 
-              href="#folder-structures" 
-              className="flex items-center gap-3 px-3 py-2 text-secondary hover:text-primary hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-lg">folder_open</span>
-              Folder Structures
-            </a>
-            <a 
-              href="#matching-strategies" 
-              className="flex items-center gap-3 px-3 py-2 text-secondary hover:text-primary hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-lg">settings_suggest</span>
-              Matching Strategies
-            </a>
-            <a 
-              href="#troubleshooting" 
-              className="flex items-center gap-3 px-3 py-2 text-secondary hover:text-primary hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-lg">help_outline</span>
-              Troubleshooting
-            </a>
+            {[
+              { id: "introduction", icon: "info", label: "Introduction" },
+              { id: "getting-started", icon: "play_circle", label: "Getting Started" },
+              { id: "naming-conventions", icon: "edit_note", label: "Naming Conventions" },
+              { id: "folder-structures", icon: "folder_open", label: "Folder Structures" },
+              { id: "matching-strategies", icon: "settings_suggest", label: "Matching Strategies" },
+              { id: "metadata-tmdb", icon: "auto_awesome", label: "Metadata & TMDB" },
+              { id: "playlists", icon: "playlist_play", label: "Playlists" },
+              { id: "settings-reference", icon: "tune", label: "Settings Reference" },
+              { id: "troubleshooting", icon: "help_outline", label: "Troubleshooting" },
+            ].map(({ id, icon, label }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all font-medium text-sm ${
+                  activeSection === id
+                    ? "text-primary bg-primary/10 border border-primary/20"
+                    : "text-secondary hover:text-primary hover:bg-white/5"
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">{icon}</span>
+                {label}
+              </a>
+            ))}
           </nav>
 
           <hr className="border-white/5 my-6" />
 
           <div className="px-3">
-            <a 
+            <a
               href={repoUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -114,6 +118,57 @@ export default function DocsPage() {
             <p className="text-secondary text-base leading-relaxed">
               This guide details the recommended formats to ensure 100% automatic match rates on the first scan, preventing the need for manual linking or duplicates.
             </p>
+
+            {/* App Preview Screenshot */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+              <img
+                src="/screen-shots/movies-list.png"
+                alt="Sky Movie library view showing movies with poster art and metadata"
+                className="w-full object-cover"
+              />
+            </div>
+          </section>
+
+          {/* Getting Started Section */}
+          <section id="getting-started" className="scroll-mt-28 space-y-8">
+            <div className="border-b border-white/5 pb-4">
+              <h2 className="text-2xl lg:text-3xl text-white font-bold tracking-tight mb-2">Getting Started</h2>
+              <p className="text-secondary text-sm">Set up your library in three steps: add folders, scan, and let Sky Movie do the rest.</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex gap-5">
+                <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm flex-shrink-0 mt-1">1</div>
+                <div>
+                  <h4 className="text-white font-bold mb-1">Add Your Library Folders</h4>
+                  <p className="text-secondary text-sm leading-relaxed">Go to <strong className="text-white">Settings → Library</strong> and click <em>Add Folder</em>. Point Sky Movie at the root directories where your movies or TV shows are stored. You can add as many folders as you need — each folder is scanned independently.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm flex-shrink-0 mt-1">2</div>
+                <div>
+                  <h4 className="text-white font-bold mb-1">Configure Metadata (Optional but Recommended)</h4>
+                  <p className="text-secondary text-sm leading-relaxed">Go to <strong className="text-white">Settings → Metadata</strong> and add your TMDB API key. Without it, scanning still works but no artwork or cast information will be fetched. See the <a href="#metadata-tmdb" className="text-primary hover:underline">Metadata & TMDB</a> section for how to get a free key.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm flex-shrink-0 mt-1">3</div>
+                <div>
+                  <h4 className="text-white font-bold mb-1">Run a Library Scan</h4>
+                  <p className="text-secondary text-sm leading-relaxed">Open the <strong className="text-white">Library Scan</strong> screen from the sidebar. Click <em>Scan All</em> to process all configured folders at once, or scan individual folders separately. Progress is shown in real time in the <em>Last Scan</em> panel.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+              <img
+                src="/screen-shots/scan.png"
+                alt="Sky Movie library scan screen showing configured folders and scan controls"
+                className="w-full object-cover"
+              />
+            </div>
           </section>
 
           {/* Naming Conventions Tabbed Widget */}
@@ -227,6 +282,9 @@ export default function DocsPage() {
             {/* TV Shows Content */}
             {activeTab === "shows" && (
               <div className="space-y-6 animate-fadeIn">
+                <div className="rounded-2xl overflow-hidden border border-white/10">
+                  <img src="/screen-shots/tv-show-list-selected.png" alt="Sky Movie TV show library view" className="w-full object-cover" />
+                </div>
                 <p className="text-secondary leading-relaxed">
                   For series, the scanner looks for a <strong>Season and Episode Pattern</strong> (like `S01E01` or `s02e05`) in the filename. The show title is extracted from the prefix preceding this pattern.
                 </p>
@@ -374,6 +432,317 @@ export default function DocsPage() {
             </div>
           </section>
 
+          {/* Metadata & TMDB Section */}
+          <section id="metadata-tmdb" className="scroll-mt-28 space-y-8">
+            <div className="border-b border-white/5 pb-4">
+              <h2 className="text-2xl lg:text-3xl text-white font-bold tracking-tight mb-2">Metadata & TMDB</h2>
+              <p className="text-secondary text-sm">Sky Movie fetches rich metadata from The Movie Database (TMDB) — posters, backdrops, overviews, genres, cast, and crew.</p>
+            </div>
+
+            {/* Screenshot */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+              <img
+                src="/screen-shots/settings-metadata.png"
+                alt="Sky Movie Settings — Metadata tab showing TMDB API key and language fields"
+                className="w-full object-cover"
+              />
+            </div>
+
+            {/* Getting the API key */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">Getting a Free TMDB API Key</h3>
+              <div className="space-y-3 text-sm text-secondary leading-relaxed">
+                <p>TMDB offers free API access for personal projects. Follow these steps:</p>
+                <ol className="list-decimal list-inside space-y-2 ml-2">
+                  <li>Create a free account at <span className="text-primary font-mono text-xs bg-white/5 px-1.5 py-0.5 rounded">themoviedb.org</span></li>
+                  <li>Go to <strong className="text-white">Account Settings → API</strong> and request a new key (choose "Developer" for personal use)</li>
+                  <li>Copy the <strong className="text-white">API Key (v3 auth)</strong> — not the Bearer token</li>
+                  <li>Paste it into <strong className="text-white">Sky Movie → Settings → Metadata → TMDB API Key</strong></li>
+                </ol>
+              </div>
+            </div>
+
+            {/* What gets fetched */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">What Gets Fetched</h3>
+              <p className="text-secondary text-sm leading-relaxed">When Sky Movie applies metadata for a title, it makes two requests to TMDB — a search to find the best match, then a detail fetch to retrieve full information. The following fields are stored locally and shown in the app:</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { icon: "title", label: "Title & Original Title", desc: "Localized title plus the original language title." },
+                  { icon: "calendar_month", label: "Release / First Air Year", desc: "Used for disambiguation when multiple titles share a name." },
+                  { icon: "description", label: "Overview", desc: "Full plot synopsis from TMDB." },
+                  { icon: "image", label: "Poster & Backdrop", desc: "Downloaded and cached locally — no internet needed to display them later." },
+                  { icon: "schedule", label: "Runtime", desc: "Movie length in minutes (movies only)." },
+                  { icon: "star", label: "Rating", desc: "TMDB community vote average, rounded to one decimal." },
+                  { icon: "label", label: "Genres", desc: "All genre tags (Action, Drama, etc.) linked in the local database." },
+                  { icon: "people", label: "Cast (top 12)", desc: "Actor names, character names, and profile photos." },
+                  { icon: "movie_creation", label: "Crew (top 8)", desc: "Director, Writer, Screenplay, and Creator credits." },
+                ].map(({ icon, label, desc }) => (
+                  <div key={label} className="glass-panel p-4 rounded-2xl flex gap-4">
+                    <span className="material-symbols-outlined text-primary flex-shrink-0 mt-0.5">{icon}</span>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{label}</p>
+                      <p className="text-secondary text-xs mt-0.5 leading-relaxed">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Language */}
+            <div className="glass-panel p-6 rounded-2xl flex gap-4">
+              <span className="material-symbols-outlined text-primary flex-shrink-0">translate</span>
+              <div className="space-y-1">
+                <h4 className="font-bold text-white">Language Setting</h4>
+                <p className="text-secondary text-sm leading-relaxed">
+                  The <strong className="text-white">TMDB Language</strong> field (default <code className="bg-white/5 px-1 rounded font-mono text-xs">en-US</code>) controls the locale for titles, overviews, and image selections. Use BCP 47 codes such as <code className="bg-white/5 px-1 rounded font-mono text-xs">fr-FR</code>, <code className="bg-white/5 px-1 rounded font-mono text-xs">ja-JP</code>, or <code className="bg-white/5 px-1 rounded font-mono text-xs">ar-SA</code> to get results in your preferred language.
+                </p>
+              </div>
+            </div>
+
+            {/* Image caching */}
+            <div className="glass-panel p-6 rounded-2xl flex gap-4">
+              <span className="material-symbols-outlined text-primary flex-shrink-0">save</span>
+              <div className="space-y-1">
+                <h4 className="font-bold text-white">Local Image Cache</h4>
+                <p className="text-secondary text-sm leading-relaxed">
+                  Posters and backdrops are downloaded once and stored in Sky Movie's app data folder. After the initial fetch, the app displays images entirely offline. Cached files are managed automatically and can be cleared via <strong className="text-white">Settings → Local Data</strong>.
+                </p>
+              </div>
+            </div>
+
+            {/* Movie detail screenshot */}
+            <div className="space-y-3">
+              <p className="text-secondary text-sm">The movie detail view shows all fetched metadata — overview, genres, cast row, and a sidebar for re-linking to a different TMDB entry.</p>
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <img
+                  src="/screen-shots/movie-view.png"
+                  alt="Sky Movie movie detail page showing poster, metadata, and cast"
+                  className="w-full object-cover"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Playlists Section */}
+          <section id="playlists" className="scroll-mt-28 space-y-8">
+            <div className="border-b border-white/5 pb-4">
+              <h2 className="text-2xl lg:text-3xl text-white font-bold tracking-tight mb-2">Playlists</h2>
+              <p className="text-secondary text-sm">Group movies and TV shows into custom playlists for themed sessions or watch queues.</p>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+              <img
+                src="/screen-shots/playlist-view.png"
+                alt="Sky Movie playlist view showing a Marvel playlist with movies listed"
+                className="w-full object-cover"
+              />
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { icon: "add_circle", title: "Creating a Playlist", desc: "Click the Playlist icon in the left sidebar, then choose \"New Playlist\". Give it a name and it will appear in your sidebar immediately." },
+                { icon: "playlist_add", title: "Adding Items", desc: "From any movie or TV show detail page, tap \"Add to Playlist\" to open the picker dialog. You can add to multiple playlists at once. Movies and TV shows can be mixed in the same playlist." },
+                { icon: "play_arrow", title: "Playing a Playlist", desc: "Open a playlist and click \"Play All\" to start playing from the first item. The built-in player queues up items in order. You can reorder entries by dragging them." },
+                { icon: "edit", title: "Editing & Deleting", desc: "Use the Edit button on the playlist page to rename it or remove individual items. Deleting a playlist does not remove the underlying media files from your library." },
+              ].map(({ icon, title, desc }) => (
+                <div key={title} className="glass-panel p-6 rounded-2xl flex gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-xl">{icon}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white mb-1">{title}</h4>
+                    <p className="text-secondary text-sm leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+              <img
+                src="/screen-shots/add-to-play-list.png"
+                alt="Add to Playlist dialog showing all movies in the library with a search bar"
+                className="w-full object-cover"
+              />
+            </div>
+          </section>
+
+          {/* Settings Reference Section */}
+          <section id="settings-reference" className="scroll-mt-28 space-y-8">
+            <div className="border-b border-white/5 pb-4">
+              <h2 className="text-2xl lg:text-3xl text-white font-bold tracking-tight mb-2">Settings Reference</h2>
+              <p className="text-secondary text-sm">A full reference of every option available in the Settings panel.</p>
+            </div>
+
+            {/* Appearance */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">palette</span>
+                Appearance
+              </h3>
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <img src="/screen-shots/settings-theme.png" alt="Settings Appearance tab showing theme options" className="w-full object-cover" />
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-white/5">
+                <table className="w-full text-left border-collapse bg-surface/20">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/5">
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Setting</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Options</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Theme</td>
+                      <td className="p-4 text-secondary font-mono text-xs">Cinema, Midnight, Starlight, Ember, Ocean, Forest, Sunset, Noir, Lavender, Crimson</td>
+                      <td className="p-4 text-secondary">Color scheme applied globally to the app. Default is <em>Cinema</em>.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Library */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">folder_managed</span>
+                Library
+              </h3>
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <img src="/screen-shots/settings-library.png" alt="Settings Library tab showing folder list and scan options" className="w-full object-cover" />
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-white/5">
+                <table className="w-full text-left border-collapse bg-surface/20">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/5">
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Setting</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Default</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Library Folders</td>
+                      <td className="p-4 text-secondary font-mono text-xs">—</td>
+                      <td className="p-4 text-secondary">Root directories scanned for media. Add multiple folders for separate movie and TV show roots.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Scan Mode</td>
+                      <td className="p-4 text-secondary font-mono text-xs">mixed</td>
+                      <td className="p-4 text-secondary">Controls whether to scan for movies only, TV only, or both in the same folder.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Folder Strategy</td>
+                      <td className="p-4 text-secondary font-mono text-xs">auto</td>
+                      <td className="p-4 text-secondary"><em>Auto</em> uses both file name and parent folder to determine the best match. <em>Folder Name</em> ignores the file name and matches purely on the parent directory name.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Auto Scan on Launch</td>
+                      <td className="p-4 text-secondary font-mono text-xs">Off</td>
+                      <td className="p-4 text-secondary">When enabled, Sky Movie runs a full scan every time the app starts.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Watch Folders</td>
+                      <td className="p-4 text-secondary font-mono text-xs">Off</td>
+                      <td className="p-4 text-secondary">Monitors your library folders for file system changes and auto-adds new titles in the background.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Extract File Metadata</td>
+                      <td className="p-4 text-secondary font-mono text-xs">On</td>
+                      <td className="p-4 text-secondary">Reads codec, resolution, HDR format, and audio track information from media files during the scan.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Metadata */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                Metadata
+              </h3>
+              <div className="overflow-x-auto rounded-2xl border border-white/5">
+                <table className="w-full text-left border-collapse bg-surface/20">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/5">
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Setting</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Default</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Metadata Provider</td>
+                      <td className="p-4 text-secondary font-mono text-xs">local</td>
+                      <td className="p-4 text-secondary">Set to <em>tmdb</em> to enable online metadata fetching. <em>local</em> keeps everything offline.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">TMDB API Key</td>
+                      <td className="p-4 text-secondary font-mono text-xs">—</td>
+                      <td className="p-4 text-secondary">Your personal v3 API key from themoviedb.org. Required for any TMDB lookup.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">TMDB Language</td>
+                      <td className="p-4 text-secondary font-mono text-xs">en-US</td>
+                      <td className="p-4 text-secondary">BCP 47 locale code that controls the language of returned titles, overviews, and images.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Backups */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">backup</span>
+                Backups
+              </h3>
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <img src="/screen-shots/settings-backup.png" alt="Settings Backups tab" className="w-full object-cover" />
+              </div>
+              <p className="text-secondary text-sm leading-relaxed">
+                Use <strong className="text-white">Download Backup File</strong> to export your entire library database — all matched movies, TV shows, playlists, and play history — into a portable file. Use <strong className="text-white">Import Backup File</strong> to restore it on any machine. Backups do not include the local image cache; those are re-downloaded automatically from TMDB on the next scan.
+              </p>
+            </div>
+
+            {/* Updates */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">system_update</span>
+                Updates
+              </h3>
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <img src="/screen-shots/settings-update.png" alt="Settings Updates tab showing current version and auto-download toggle" className="w-full object-cover" />
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-white/5">
+                <table className="w-full text-left border-collapse bg-surface/20">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/5">
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Setting</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Default</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Check for Updates</td>
+                      <td className="p-4 text-secondary font-mono text-xs">Manual</td>
+                      <td className="p-4 text-secondary">Click to query GitHub Releases for a newer version of Sky Movie.</td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 font-semibold text-white">Auto-Download Updates</td>
+                      <td className="p-4 text-secondary font-mono text-xs">Off</td>
+                      <td className="p-4 text-secondary">When enabled, new releases are downloaded silently in the background and ready to install on next launch.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
           {/* Troubleshooting Section */}
           <section id="troubleshooting" className="scroll-mt-28 space-y-6">
             <div className="border-b border-white/5 pb-4">
@@ -382,7 +751,7 @@ export default function DocsPage() {
             </div>
 
             <div className="space-y-4">
-              
+
               {/* Question 1 */}
               <div className="glass-panel p-6 rounded-2xl space-y-2">
                 <h4 className="font-bold text-white flex items-center gap-2">
@@ -402,6 +771,39 @@ export default function DocsPage() {
                 </h4>
                 <p className="text-secondary text-sm leading-relaxed">
                   This happens if the filename has no release year or season indicator (confidence below 0.5). You can link it manually using the Search bar in the Unrecognized Drawer.
+                </p>
+              </div>
+
+              {/* Question 3 */}
+              <div className="glass-panel p-6 rounded-2xl space-y-2">
+                <h4 className="font-bold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                  No posters or backdrops appear after scanning
+                </h4>
+                <p className="text-secondary text-sm leading-relaxed">
+                  This means no TMDB API key is configured, or the key is invalid. Go to <strong className="text-white">Settings → Metadata</strong>, verify your key, then re-run the scan or manually apply metadata from the movie detail page.
+                </p>
+              </div>
+
+              {/* Question 4 */}
+              <div className="glass-panel p-6 rounded-2xl space-y-2">
+                <h4 className="font-bold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                  TV show episodes are all grouped under Season 1
+                </h4>
+                <p className="text-secondary text-sm leading-relaxed">
+                  Your filenames are missing the <code className="text-xs bg-white/5 px-1 rounded font-mono">S01E01</code> pattern. Sky Movie falls back to Season 1 / Episode 1 when no season tag is detected. Rename your files to include the season/episode code and re-scan.
+                </p>
+              </div>
+
+              {/* Question 5 */}
+              <div className="glass-panel p-6 rounded-2xl space-y-2">
+                <h4 className="font-bold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                  I want to move my library to a new machine
+                </h4>
+                <p className="text-secondary text-sm leading-relaxed">
+                  Use <strong className="text-white">Settings → Backups → Download Backup File</strong> to export your library database. Install Sky Movie on the new machine, import the backup, then update the library folder paths to match the new location and run a scan to re-verify files.
                 </p>
               </div>
             </div>
