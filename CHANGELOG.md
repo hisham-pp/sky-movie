@@ -5,6 +5,22 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-06-24
+
+### Added
+
+- implement library UI components and styles for browsing movies and TV shows (Hisham)
+- implement application layout, search modal, and navigation toolbar components (Hisham)
+- implement browse playlists page and associated styling (Hisham)
+- add stylesheet for library view with hero backdrop and poster grid components (Hisham)
+- implement library page layout and BannerHero component with associated styles (Hisham)
+- implement library layout with hero banner, custom styling, and navigation components (Hisham)
+- implement TMDB metadata provider with movie search, application, and local image caching functionality (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.4.2 downloads from GitHub (Hisham)
+
 ## [0.4.2] - 2026-06-24
 
 ### Added
@@ -223,3 +239,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.4.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0
 [0.4.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.1
 [0.4.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.2
+[0.4.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.3
