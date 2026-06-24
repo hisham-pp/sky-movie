@@ -117,8 +117,18 @@
   width: 100%;
 }
 
-.search-modal-item:hover {
+.search-modal-item:hover,
+.search-modal-item--active {
   background: var(--hover);
+}
+
+.search-modal-item--active {
+  outline: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.search-modal-item-playlist-icon {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--hover));
 }
 
 .search-modal-item-poster {

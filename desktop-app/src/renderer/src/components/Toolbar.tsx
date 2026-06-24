@@ -12,7 +12,7 @@ export function Toolbar({
   return (
     <header className="toolbar">
       <div className="toolbar-spacer"></div>
-      
+
       <div className="search" onClick={onOpenSearch}>
         <Search size={18} />
         <input
@@ -25,14 +25,16 @@ export function Toolbar({
         />
         <kbd className="search-shortcut">Ctrl+K</kbd>
       </div>
-      
-      {unmatchedCount && unmatchedCount > 0 && onOpenUnrecognized ? (
-        <button className="toolbar-badge" onClick={onOpenUnrecognized}>
-          <AlertTriangle size={18} />
-          <span>Unrecognized</span>
-          <span className="badge-count">{unmatchedCount}</span>
-        </button>
-      ) : null}
+
+      <div className="toolbar-spacer">
+        {unmatchedCount && unmatchedCount > 0 && onOpenUnrecognized ? (
+          <button className="toolbar-badge" onClick={onOpenUnrecognized}>
+            <AlertTriangle size={18} />
+            <span>Unrecognized</span>
+            <span className="badge-count">{unmatchedCount}</span>
+          </button>
+        ) : null}
+      </div>
     </header>
   );
 }
