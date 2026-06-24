@@ -18,9 +18,13 @@ export function PlayerPanel({
   const artRef = useRef<Artplayer | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
+  // Only recreate Artplayer when the actual media file changes, not on every render
+  const mediaFileId = player?.mediaFileId ?? null;
+  const mediaUrl = player?.mediaUrl ?? null;
+
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !player) return;
+    if (!container || !player || !mediaUrl) return;
 
     setPlaybackError(null);
 
@@ -185,6 +189,20 @@ export function PlayerPanel({
       if (video) video.currentTime = Math.min(savedPosition, Math.max(duration - RESUME_END_BUFFER, 0));
     };
 
+    // Fullscreen via keyboard — Artplayer's built-in hotkey uses
+    // requestFullscreen() which can be blocked in Electron's sandbox.
+    // Override by listening at the capture phase and calling art.fullscreen.
+    const handleFullscreenKey = (e: KeyboardEvent) => {
+      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tag = (document.activeElement as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        art.fullscreen = !art.fullscreen;
+      }
+    };
+    document.addEventListener('keydown', handleFullscreenKey, true);
+
     art.on('video:pause', () => void updateProgress(true));
     art.on('video:seeked', () => void updateProgress(true));
     art.on('video:timeupdate', () => void updateProgress());
@@ -202,13 +220,14 @@ export function PlayerPanel({
     });
 
     return () => {
+      document.removeEventListener('keydown', handleFullscreenKey, true);
       window.clearTimeout(loadTimer);
       void updateProgress(true);
       art.destroy(false);
       artRef.current = null;
       container.textContent = '';
     };
-  }, [player]);
+  }, [mediaFileId, mediaUrl]);
 
   useEffect(() => {
     if (!player) {
@@ -216,7 +235,7 @@ export function PlayerPanel({
       artRef.current = null;
       setPlaybackError(null);
     }
-  }, [player]);
+  }, [mediaFileId]);
 
   if (!player) {
     return (
@@ -230,7 +249,7 @@ export function PlayerPanel({
 
   return (
     <div className="player">
-      <div key={player.mediaUrl} ref={containerRef} className="artplayer-host" />
+      <div key={player.mediaFileId} ref={containerRef} className="artplayer-host" />
       <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
         <ExternalLink size={15} />
         Open in system player

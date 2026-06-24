@@ -139,19 +139,18 @@ export class PlayerService {
         console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
       }
     } else {
-      // Use file:// URL for non-MKV files
-      mediaUrl = pathToFileURL(mediaFile.absolutePath).toString();
-      console.log('[PlayerService] Using file:// URL:', mediaUrl);
+      // Route all non-MKV files through the streaming server which already
+      // has streamDirectFile() with proper 206/Accept-Ranges support.
+      mediaUrl = streamingServer.getUrl(mediaFileId, mediaFile.absolutePath);
+      console.log('[PlayerService] Using streaming server URL (direct):', mediaUrl);
 
-      // Extract metadata for files that need special handling
-      if (needsSpecialHandling(mediaFile.absolutePath)) {
-        try {
-          const metadata = extractMediaMetadata(mediaFile.absolutePath);
-          audioTracks = metadata.audioTracks as MediaTrack[];
-          subtitleTracks = metadata.subtitleTracks as MediaTrack[];
-        } catch (error) {
-          console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
-        }
+      // Extract metadata for track information
+      try {
+        const metadata = extractMediaMetadata(mediaFile.absolutePath);
+        audioTracks = metadata.audioTracks as MediaTrack[];
+        subtitleTracks = metadata.subtitleTracks as MediaTrack[];
+      } catch (error) {
+        console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
       }
     }
 
