@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { net } from 'electron';
 import type {
   ApplyMovieMetadataRequest,
@@ -487,7 +486,9 @@ export class MetadataProviderManager {
     const destination = join(folder, `${sanitizeFileName(name)}.${extension}`);
     const bytes = Buffer.from(await response.arrayBuffer());
     await writeFile(destination, bytes);
-    return pathToFileURL(destination).toString();
+    // Return a sky-image:// URL so the sandboxed renderer can load it
+    // without file:// access. Format: sky-image://local/<encoded-absolute-path>
+    return `sky-image://local/${encodeURIComponent(destination)}`;
   }
 
   private replaceMovieGenres(movieId: number, genres: Array<{ id: number; name: string }>): void {

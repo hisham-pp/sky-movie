@@ -7,11 +7,26 @@ import type {
   TvShow
 } from '../../shared/ipc';
 
+import { fileURLToPath } from 'node:url';
+
 type Row = Record<string, unknown>;
 
 const bool = (value: unknown): boolean => Number(value) === 1;
 const nullableNumber = (value: unknown): number | null => (value == null ? null : Number(value));
 const nullableString = (value: unknown): string | null => (value == null ? null : String(value));
+
+// Legacy rows stored file:// URLs; convert them to sky-image:// so the
+// sandboxed renderer can load them via the registered protocol handler.
+function toImageUrl(value: unknown): string | null {
+  if (value == null) return null;
+  const s = String(value);
+  if (s.startsWith('sky-image://')) return s;
+  if (s.startsWith('file://')) {
+    const absolutePath = fileURLToPath(s);
+    return `sky-image://local/${encodeURIComponent(absolutePath)}`;
+  }
+  return s;
+}
 
 export function mapLibraryFolder(row: Row): LibraryFolder {
   return {
@@ -31,8 +46,8 @@ export function mapMovie(row: Row): Movie {
     originalTitle: nullableString(row.original_title),
     releaseYear: nullableNumber(row.release_year),
     overview: nullableString(row.overview),
-    posterPath: nullableString(row.poster_path),
-    backdropPath: nullableString(row.backdrop_path),
+    posterPath: toImageUrl(row.poster_path),
+    backdropPath: toImageUrl(row.backdrop_path),
     runtimeMinutes: nullableNumber(row.runtime_minutes),
     rating: nullableNumber(row.rating),
     favorite: bool(row.favorite),
@@ -48,8 +63,8 @@ export function mapShow(row: Row): TvShow {
     originalTitle: nullableString(row.original_title),
     firstAirYear: nullableNumber(row.first_air_year),
     overview: nullableString(row.overview),
-    posterPath: nullableString(row.poster_path),
-    backdropPath: nullableString(row.backdrop_path),
+    posterPath: toImageUrl(row.poster_path),
+    backdropPath: toImageUrl(row.backdrop_path),
     rating: nullableNumber(row.rating),
     favorite: bool(row.favorite),
     addedAt: String(row.added_at),
@@ -67,7 +82,7 @@ export function mapEpisode(row: Row): Episode {
     overview: nullableString(row.overview),
     runtimeMinutes: nullableNumber(row.runtime_minutes),
     airDate: nullableString(row.air_date),
-    stillPath: nullableString(row.still_path)
+    stillPath: toImageUrl(row.still_path)
   };
 }
 

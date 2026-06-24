@@ -1,4 +1,4 @@
-import { Download, Film, FolderSearch, HardDrive, ListMusic, Settings, Tv, Video } from 'lucide-react';
+import { Film, FolderSearch, HardDrive, ListMusic, Settings, Tv, Clapperboard } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
 import { Metric } from './Metric';
@@ -15,7 +15,10 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div>
+        <div className="brand-icon">
+          <Clapperboard size={20} />
+        </div>
+        <div className="brand-text">
           <h1>Sky Movie</h1>
           <p>Premium Cinema</p>
         </div>
