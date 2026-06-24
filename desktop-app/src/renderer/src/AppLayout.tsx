@@ -108,7 +108,7 @@ export function AppLayout() {
       />
 
       <section className="workspace">
-        <Toolbar 
+        <Toolbar
           onOpenSearch={() => setIsSearchOpen(true)}
           unmatchedCount={library.unmatchedFiles.length}
           onOpenUnrecognized={() => setIsUnrecognizedOpen(true)}
@@ -124,21 +124,6 @@ export function AppLayout() {
           onSkip={library.skipPromptMetadata}
         />
 
-        <SearchModal
-          isOpen={isSearchOpen}
-          onClose={() => setIsSearchOpen(false)}
-          movies={library.movies}
-          shows={library.shows}
-          onSelectMovie={async (movie) => {
-            await library.selectMovie(movie);
-            navigate(`/movies/${movie.id}`);
-          }}
-          onSelectShow={async (show) => {
-            await library.selectShow(show);
-            navigate(`/shows/${show.id}`);
-          }}
-        />
-
         <UnrecognizedDrawer
           isOpen={isUnrecognizedOpen}
           onClose={() => setIsUnrecognizedOpen(false)}
@@ -149,6 +134,27 @@ export function AppLayout() {
           onMarkAsIgnored={library.markFileAsIgnored}
           onUnmarkAsIgnored={library.unmarkFileAsIgnored}
         />
+
+        <SearchModal
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          movies={library.movies}
+          shows={library.shows}
+          playlists={library.playlists}
+          onSelectMovie={async (movie) => {
+            await library.selectMovie(movie);
+            navigate(`/movies/${movie.id}`);
+          }}
+          onSelectShow={async (show) => {
+            await library.selectShow(show);
+            navigate(`/shows/${show.id}`);
+          }}
+          onSelectPlaylist={async (playlist) => {
+            await library.selectPlaylist(playlist);
+            navigate(`/playlists/${playlist.id}`);
+          }}
+        />
+
       </section>
     </main>
   );

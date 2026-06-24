@@ -1,6 +1,6 @@
-import { Search, Film, Tv, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { Movie, TvShow } from '@shared/ipc';
+import { Search, Film, Tv, ListMusic, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { Movie, TvShow, Playlist } from '@shared/ipc';
 import { Modal } from './common';
 
 interface SearchModalProps {
@@ -8,60 +8,172 @@ interface SearchModalProps {
   onClose: () => void;
   movies: Movie[];
   shows: TvShow[];
+  playlists: Playlist[];
   onSelectMovie: (movie: Movie) => void;
   onSelectShow: (show: TvShow) => void;
+  onSelectPlaylist: (playlist: Playlist) => void;
 }
+
+type ResultItem =
+  | { kind: 'movie'; data: Movie }
+  | { kind: 'show'; data: TvShow }
+  | { kind: 'playlist'; data: Playlist };
 
 export function SearchModal({
   isOpen,
   onClose,
   movies,
   shows,
+  playlists,
   onSelectMovie,
-  onSelectShow
+  onSelectShow,
+  onSelectPlaylist
 }: SearchModalProps) {
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const activeItemRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setQuery('');
+      setActiveIndex(-1);
     }
   }, [isOpen]);
+
+  const filteredMovies = query
+    ? movies.filter((m) => m.title.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    : [];
+
+  const filteredShows = query
+    ? shows.filter((s) => s.title.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    : [];
+
+  const filteredPlaylists = query
+    ? playlists.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 4)
+    : [];
+
+  const allResults: ResultItem[] = [
+    ...filteredMovies.map((data): ResultItem => ({ kind: 'movie', data })),
+    ...filteredShows.map((data): ResultItem => ({ kind: 'show', data })),
+    ...filteredPlaylists.map((data): ResultItem => ({ kind: 'playlist', data })),
+  ];
+
+  const selectResult = (item: ResultItem) => {
+    if (item.kind === 'movie') onSelectMovie(item.data);
+    else if (item.kind === 'show') onSelectShow(item.data);
+    else onSelectPlaylist(item.data);
+    onClose();
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        if (isOpen) {
-          onClose();
-        }
+        if (isOpen) onClose();
+        return;
       }
-      if (e.key === 'Escape' && isOpen) {
+      if (!isOpen) return;
+
+      if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex((i) => Math.min(i + 1, allResults.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === 'Enter' && activeIndex >= 0 && allResults[activeIndex]) {
+        e.preventDefault();
+        selectResult(allResults[activeIndex]);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, allResults, activeIndex]);
 
-  const filteredMovies = query
-    ? movies.filter((m) => m.title.toLowerCase().includes(query.toLowerCase()))
-    : [];
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query]);
 
-  const filteredShows = query
-    ? shows.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
-    : [];
+  useEffect(() => {
+    activeItemRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex]);
 
-  const handleMovieClick = (movie: Movie) => {
-    onSelectMovie(movie);
-    onClose();
+  let globalIndex = -1;
+
+  const renderItem = (item: ResultItem) => {
+    globalIndex++;
+    const idx = globalIndex;
+    const isActive = idx === activeIndex;
+
+    if (item.kind === 'movie') {
+      const movie = item.data;
+      return (
+        <button
+          key={`movie-${movie.id}`}
+          ref={isActive ? activeItemRef : null}
+          className={`search-modal-item${isActive ? ' search-modal-item--active' : ''}`}
+          onClick={() => { onSelectMovie(movie); onClose(); }}
+        >
+          {movie.posterPath ? (
+            <img src={movie.posterPath} alt={movie.title} className="search-modal-item-poster" />
+          ) : (
+            <div className="search-modal-item-poster-placeholder"><Film size={24} /></div>
+          )}
+          <div className="search-modal-item-info">
+            <div className="search-modal-item-title">{movie.title}</div>
+            {movie.releaseYear && <div className="search-modal-item-meta">{movie.releaseYear}</div>}
+          </div>
+        </button>
+      );
+    }
+
+    if (item.kind === 'show') {
+      const show = item.data;
+      return (
+        <button
+          key={`show-${show.id}`}
+          ref={isActive ? activeItemRef : null}
+          className={`search-modal-item${isActive ? ' search-modal-item--active' : ''}`}
+          onClick={() => { onSelectShow(show); onClose(); }}
+        >
+          {show.posterPath ? (
+            <img src={show.posterPath} alt={show.title} className="search-modal-item-poster" />
+          ) : (
+            <div className="search-modal-item-poster-placeholder"><Tv size={24} /></div>
+          )}
+          <div className="search-modal-item-info">
+            <div className="search-modal-item-title">{show.title}</div>
+            {show.firstAirYear && <div className="search-modal-item-meta">{show.firstAirYear}</div>}
+          </div>
+        </button>
+      );
+    }
+
+    const playlist = item.data;
+    return (
+      <button
+        key={`playlist-${playlist.id}`}
+        ref={isActive ? activeItemRef : null}
+        className={`search-modal-item${isActive ? ' search-modal-item--active' : ''}`}
+        onClick={() => { onSelectPlaylist(playlist); onClose(); }}
+      >
+        <div className="search-modal-item-poster-placeholder search-modal-item-playlist-icon">
+          <ListMusic size={24} />
+        </div>
+        <div className="search-modal-item-info">
+          <div className="search-modal-item-title">{playlist.name}</div>
+          <div className="search-modal-item-meta">
+            {playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}
+            {playlist.description ? ` · ${playlist.description}` : ''}
+          </div>
+        </div>
+      </button>
+    );
   };
 
-  const handleShowClick = (show: TvShow) => {
-    onSelectShow(show);
-    onClose();
-  };
+  const hasResults = allResults.length > 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
@@ -70,7 +182,7 @@ export function SearchModal({
           <Search size={20} />
           <input
             type="text"
-            placeholder="Search movies and shows..."
+            placeholder="Search movies, shows, playlists..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -82,74 +194,29 @@ export function SearchModal({
         </div>
 
         <div className="search-modal-results">
-          {query && (filteredMovies.length > 0 || filteredShows.length > 0) ? (
+          {query && hasResults ? (
             <>
               {filteredMovies.length > 0 && (
                 <div className="search-modal-section">
-                  <h3 className="search-modal-section-title">
-                    <Film size={16} /> Movies
-                  </h3>
+                  <h3 className="search-modal-section-title"><Film size={16} /> Movies</h3>
                   <div className="search-modal-items">
-                    {filteredMovies.slice(0, 8).map((movie) => (
-                      <button
-                        key={movie.id}
-                        className="search-modal-item"
-                        onClick={() => handleMovieClick(movie)}
-                      >
-                        {movie.posterPath ? (
-                          <img
-                            src={movie.posterPath}
-                            alt={movie.title}
-                            className="search-modal-item-poster"
-                          />
-                        ) : (
-                          <div className="search-modal-item-poster-placeholder">
-                            <Film size={24} />
-                          </div>
-                        )}
-                        <div className="search-modal-item-info">
-                          <div className="search-modal-item-title">{movie.title}</div>
-                          {movie.releaseYear && (
-                            <div className="search-modal-item-meta">{movie.releaseYear}</div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                    {filteredMovies.map((movie) => renderItem({ kind: 'movie', data: movie }))}
                   </div>
                 </div>
               )}
-
               {filteredShows.length > 0 && (
                 <div className="search-modal-section">
-                  <h3 className="search-modal-section-title">
-                    <Tv size={16} /> TV Shows
-                  </h3>
+                  <h3 className="search-modal-section-title"><Tv size={16} /> TV Shows</h3>
                   <div className="search-modal-items">
-                    {filteredShows.slice(0, 8).map((show) => (
-                      <button
-                        key={show.id}
-                        className="search-modal-item"
-                        onClick={() => handleShowClick(show)}
-                      >
-                        {show.posterPath ? (
-                          <img
-                            src={show.posterPath}
-                            alt={show.title}
-                            className="search-modal-item-poster"
-                          />
-                        ) : (
-                          <div className="search-modal-item-poster-placeholder">
-                            <Tv size={24} />
-                          </div>
-                        )}
-                        <div className="search-modal-item-info">
-                          <div className="search-modal-item-title">{show.title}</div>
-                          {show.firstAirYear && (
-                            <div className="search-modal-item-meta">{show.firstAirYear}</div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                    {filteredShows.map((show) => renderItem({ kind: 'show', data: show }))}
+                  </div>
+                </div>
+              )}
+              {filteredPlaylists.length > 0 && (
+                <div className="search-modal-section">
+                  <h3 className="search-modal-section-title"><ListMusic size={16} /> Playlists</h3>
+                  <div className="search-modal-items">
+                    {filteredPlaylists.map((playlist) => renderItem({ kind: 'playlist', data: playlist }))}
                   </div>
                 </div>
               )}
@@ -157,14 +224,12 @@ export function SearchModal({
           ) : query ? (
             <div className="search-modal-empty">No results found for "{query}"</div>
           ) : (
-            <div className="search-modal-empty">
-              Start typing to search your library...
-            </div>
+            <div className="search-modal-empty">Start typing to search your library...</div>
           )}
         </div>
 
         <div className="search-modal-footer">
-          <kbd>Ctrl</kbd> + <kbd>K</kbd> to close
+          <kbd>↑</kbd><kbd>↓</kbd> navigate &nbsp;·&nbsp; <kbd>Enter</kbd> select &nbsp;·&nbsp; <kbd>Esc</kbd> close
         </div>
       </div>
     </Modal>
