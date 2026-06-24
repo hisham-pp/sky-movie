@@ -5,6 +5,17 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-06-24
+
+### Added
+
+- implement MKV streaming support via bundled FFmpeg, streaming server, and comprehensive documentation (Hisham)
+- implement adaptive buffering and streaming strategies (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.4.1 downloads from GitHub (Hisham)
+
 ## [0.4.1] - 2026-06-21
 
 ### Added
@@ -211,3 +222,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.3.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.3.1
 [0.4.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.0
 [0.4.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.1
+[0.4.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.2
