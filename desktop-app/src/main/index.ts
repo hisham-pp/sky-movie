@@ -16,6 +16,7 @@ import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
 import streamingServer from './services/streamingServer';
+import { initFileLogging } from './utils/logger';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 let mainWindow: BrowserWindow | null = null;
@@ -70,19 +71,26 @@ function resolvePreloadPath(): string {
   return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
 }
 
-// Enable hardware acceleration for better video rendering
-// Must be set before app is ready
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,AudioContext,WebAudio,PlatformEncryptedDolbyVision,PlatformHEVCDecoderSupport');
+// Enable hardware acceleration and audio — must be set before app.ready
+// NOTE: only ONE --enable-features call is respected; combine all features here.
+app.commandLine.appendSwitch(
+  'enable-features',
+  'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,PlatformHEVCDecoderSupport,AudioContextLatencyHint'
+);
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
-app.commandLine.appendSwitch('audio-buffer-size', '2048');
-// Enable proprietary audio codec support (AC3, EAC3, DTS, etc.)
-app.commandLine.appendSwitch('enable-ac3-eac3-audio-demuxing');
-app.commandLine.appendSwitch('enable-features', 'AudioContextLatencyHint');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 app.whenReady().then(async () => {
+  // Init file logging — writes to a logs/ folder next to the exe.
+  // e.g. dist\win-unpacked\logs\sky-movie-YYYY-MM-DD.log
+  try {
+    initFileLogging(join(dirname(app.getPath('exe')), 'logs'));
+  } catch (e) {
+    process.stderr.write(`[Logger] File logging init failed: ${e}\n`);
+  }
+
   const paths = ensureAppDataLayout();
   const { sqlite } = createDatabaseContext(paths);
 
@@ -122,6 +130,18 @@ app.whenReady().then(async () => {
   });
 
   mainWindow = createWindow();
+
+  // Forward renderer console messages to the main-process log file so they
+  // appear alongside the streaming/player logs for debugging.
+  mainWindow.webContents.on('console-message', (_event, level, message) => {
+    if (level >= 3) {
+      console.error('[Renderer]', message);
+    } else if (level >= 2) {
+      console.warn('[Renderer]', message);
+    } else {
+      console.log('[Renderer]', message);
+    }
+  });
 
   // Start periodic update checks
   update.startPeriodicChecks();

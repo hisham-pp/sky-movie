@@ -13,10 +13,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - windows-latest
-          - macos-latest
-          - ubuntu-latest
+        include:
+          - os: windows-latest
+            platform: windows
+            arch: x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder -- --x64
+          - os: windows-latest
+            platform: windows
+            arch: arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder -- --arm64
+          - os: macos-latest
+            platform: macos
+            arch: x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac -- --x64
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac -- --arm64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux -- --x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux -- --arm64
 
     steps:
       - name: Checkout
@@ -40,25 +61,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Prepare FFmpeg bundle
+        run: pnpm --filter @sky-movie/desktop-app run prepare:ffmpeg
+
       - name: Rebuild native modules for Electron
         run: pnpm --filter @sky-movie/desktop-app run rebuild:electron
 
       - name: Build app bundles
         run: pnpm --filter @sky-movie/desktop-app run build
 
-      - name: Package Windows
-        if: runner.os == 'Windows'
-        run: pnpm --filter @sky-movie/desktop-app run package:win
-
-      - name: Package macOS
-        if: runner.os == 'macOS'
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-        run: pnpm --filter @sky-movie/desktop-app run package:mac
-
-      - name: Package Linux
-        if: runner.os == 'Linux'
-        run: pnpm --filter @sky-movie/desktop-app run package:linux
+      - name: Package app
+        run: ${{ matrix.packageCommand }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

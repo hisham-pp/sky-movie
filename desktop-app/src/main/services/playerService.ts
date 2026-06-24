@@ -88,8 +88,11 @@ export class PlayerService {
       throw new Error(`Media file ${mediaFileId} was not found.`);
     }
 
+    console.log('[PlayerService] playMedia called', { mediaFileId, path: mediaFile.absolutePath });
+
     // Check if this is an MKV file that needs FFmpeg streaming
     const isMKV = isMKVFile(mediaFile.absolutePath);
+    console.log('[PlayerService] File type check', { isMKV, path: mediaFile.absolutePath });
 
     let mediaUrl: string;
     let audioTracks: MediaTrack[] | undefined;
@@ -98,6 +101,7 @@ export class PlayerService {
     if (isMKV) {
       // Use streaming server for MKV files
       mediaUrl = streamingServer.getUrl(mediaFileId, mediaFile.absolutePath);
+      console.log('[PlayerService] Using streaming server URL:', mediaUrl);
 
       // Extract metadata for track information
       try {
@@ -110,6 +114,7 @@ export class PlayerService {
     } else {
       // Use file:// URL for non-MKV files
       mediaUrl = pathToFileURL(mediaFile.absolutePath).toString();
+      console.log('[PlayerService] Using file:// URL:', mediaUrl);
 
       // Extract metadata for files that need special handling
       if (needsSpecialHandling(mediaFile.absolutePath)) {
@@ -132,6 +137,7 @@ export class PlayerService {
       subtitleTracks
     };
 
+    console.log('[PlayerService] Returning PlayMediaResult', { mediaUrl, audioTracks: audioTracks?.length, subtitleTracks: subtitleTracks?.length });
     return result;
   }
 
