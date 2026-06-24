@@ -348,7 +348,13 @@ export interface UpdateDownloadProgress {
 
 export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'installing' | 'error';
 
+export type UpdateProgressEvent =
+  | { type: 'status'; status: UpdateStatus }
+  | { type: 'download-progress'; bytesDownloaded: number; totalBytes: number; percentage: number }
+  | { type: 'update-available'; version: string; notes: string };
+
 export interface SkyMovieApi {
+  onUpdateProgress(callback: (event: UpdateProgressEvent) => void): () => void;
   chooseFolder(title?: string): Promise<string | null>;
   chooseFolders(title?: string): Promise<string[]>;
   scanLibrary(request?: ScanLibraryRequest | string): Promise<ScanResult | null>;

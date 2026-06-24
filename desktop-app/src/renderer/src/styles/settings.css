@@ -262,3 +262,35 @@
   box-shadow: 0 0 18px rgba(255, 180, 171, 0.14);
 }
 
+.update-download-progress {
+  display: grid;
+  gap: 6px;
+  padding: 14px 0 2px;
+}
+
+.update-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+
+.update-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.update-progress-size {
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+

@@ -11,6 +11,7 @@ import type {
   SyncRequest,
   TvMetadataSearchRequest,
   UpdatePlaylistRequest,
+  UpdateProgressEvent,
   WatchProgressUpdate
 } from '../shared/ipc';
 import { ipcChannels } from '../shared/ipc';
@@ -59,8 +60,13 @@ const api: SkyMovieApi = {
   deletePlaylist: (id: number) => ipcRenderer.invoke(ipcChannels.deletePlaylist, id),
   addToPlaylist: (request: AddToPlaylistRequest) => ipcRenderer.invoke(ipcChannels.addToPlaylist, request),
   removeFromPlaylist: (request: RemoveFromPlaylistRequest) => ipcRenderer.invoke(ipcChannels.removeFromPlaylist, request),
-  reorderPlaylistItem: (playlistId: number, itemId: number, newSortOrder: number) => 
-    ipcRenderer.invoke(ipcChannels.reorderPlaylistItem, playlistId, itemId, newSortOrder)
+  reorderPlaylistItem: (playlistId: number, itemId: number, newSortOrder: number) =>
+    ipcRenderer.invoke(ipcChannels.reorderPlaylistItem, playlistId, itemId, newSortOrder),
+  onUpdateProgress: (callback: (event: UpdateProgressEvent) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, event: UpdateProgressEvent) => callback(event);
+    ipcRenderer.on(ipcChannels.updateProgress, listener);
+    return () => ipcRenderer.off(ipcChannels.updateProgress, listener);
+  }
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);
