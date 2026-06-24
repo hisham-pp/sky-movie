@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
 import { PlayerPanel } from '../PlayerPanel';
 
@@ -11,6 +12,7 @@ export function BannerHero({
   badges,
   indicators,
   actions,
+  onPlay,
   player,
   onOpenExternal
 }: {
@@ -22,6 +24,7 @@ export function BannerHero({
   badges: ReactNode;
   indicators?: ReactNode;
   actions?: ReactNode;
+  onPlay?: () => void;
   player: PlayMediaResult | null;
   onOpenExternal: (mediaFileId: number) => void;
 }) {
@@ -38,6 +41,11 @@ export function BannerHero({
           <h2 title={title}>{title}</h2>
           <p>{overview}</p>
           <div className="hero-chips">{badges}</div>
+          {onPlay && (
+            <button className="hero-play-btn" onClick={onPlay} title="Play">
+              <Play size={16} fill="currentColor" />
+            </button>
+          )}
         </div>
       </div>
       {indicators}

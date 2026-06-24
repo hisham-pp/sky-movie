@@ -82,6 +82,7 @@ export function BrowseMoviesPage({
               onSelect={setCurrentBannerIndex}
             />
           }
+          onPlay={bannerMovie ? () => onSelectMovie(bannerMovie) : undefined}
           player={player}
           onOpenExternal={onOpenExternal}
         />
