@@ -10,10 +10,18 @@ directories:
 files:
   - out/**
   - package.json
+  - resources/**
 
 asar: true
 asarUnpack:
   - '**/*.node'
+  - 'resources/ffmpeg/**'
+
+extraResources:
+  - from: resources/ffmpeg
+    to: ffmpeg
+    filter:
+      - '**/*'
 
 npmRebuild: true
 buildDependenciesFromSource: false

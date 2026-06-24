@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LibraryView } from '../components/LibraryView';
 import { useLibraryController } from '../hooks/useLibraryController';
@@ -14,19 +14,27 @@ export function LibraryRoute(props: LibraryRouteProps) {
   const view = props.view || 'movies';
   const selectedId = params.id ? parseInt(params.id, 10) : undefined;
   const showDetailView = !!selectedId;
+  // Track IDs that were already selected via click handler so the URL-sync
+  // effect doesn't fire a second playMedia call for the same item.
+  const clickSelectedRef = useRef<{ view: string; id: number } | null>(null);
 
-  // Handle URL parameter changes to select movie/show/playlist
+  // Handle direct URL navigation (deep-link / page refresh).
+  // Skip when the click handler already triggered selection for this item.
   useEffect(() => {
     if (selectedId && view === 'movies') {
       const movie = library.movies.find(m => m.id === selectedId);
-      if (movie && library.selectedMovie?.id !== selectedId) {
+      const handledByClick = clickSelectedRef.current?.view === 'movies' && clickSelectedRef.current?.id === selectedId;
+      if (movie && !handledByClick) {
         library.selectMovie(movie);
       }
+      clickSelectedRef.current = null;
     } else if (selectedId && view === 'shows') {
       const show = library.shows.find(s => s.id === selectedId);
-      if (show && library.selectedShow?.id !== selectedId) {
+      const handledByClick = clickSelectedRef.current?.view === 'shows' && clickSelectedRef.current?.id === selectedId;
+      if (show && !handledByClick) {
         library.selectShow(show);
       }
+      clickSelectedRef.current = null;
     } else if (selectedId && view === 'playlists') {
       const playlist = library.playlists.find(p => p.id === selectedId);
       if (playlist && library.selectedPlaylist?.id !== selectedId) {
@@ -36,11 +44,13 @@ export function LibraryRoute(props: LibraryRouteProps) {
   }, [selectedId, view, library]);
 
   const handleViewMovieDetails = async (movie: any) => {
+    clickSelectedRef.current = { view: 'movies', id: movie.id };
     await library.selectMovie(movie);
     navigate(`/movies/${movie.id}`);
   };
 
   const handleViewShowDetails = async (show: any) => {
+    clickSelectedRef.current = { view: 'shows', id: show.id };
     await library.selectShow(show);
     navigate(`/shows/${show.id}`);
   };
