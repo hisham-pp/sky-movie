@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LibraryView } from '../components/LibraryView';
 import { useLibraryController } from '../hooks/useLibraryController';
+import { useLatest } from '../hooks/useLatest';
 
 interface LibraryRouteProps {
   view?: 'movies' | 'shows' | 'playlists';
@@ -17,31 +18,38 @@ export function LibraryRoute(props: LibraryRouteProps) {
   // Track IDs that were already selected via click handler so the URL-sync
   // effect doesn't fire a second playMedia call for the same item.
   const clickSelectedRef = useRef<{ view: string; id: number } | null>(null);
+  // Always-fresh ref so the effect below never depends on library directly
+  const libraryRef = useLatest(library);
 
   // Handle direct URL navigation (deep-link / page refresh).
   // Skip when the click handler already triggered selection for this item.
+  // NOTE: library is intentionally excluded from deps — we read it via
+  // libraryRef so the effect only fires when selectedId or view changes,
+  // not on every render (which would cause an infinite re-render loop).
   useEffect(() => {
+    const lib = libraryRef.current;
     if (selectedId && view === 'movies') {
-      const movie = library.movies.find(m => m.id === selectedId);
+      const movie = lib.movies.find(m => m.id === selectedId);
       const handledByClick = clickSelectedRef.current?.view === 'movies' && clickSelectedRef.current?.id === selectedId;
       if (movie && !handledByClick) {
-        library.selectMovie(movie);
+        lib.selectMovie(movie);
       }
       clickSelectedRef.current = null;
     } else if (selectedId && view === 'shows') {
-      const show = library.shows.find(s => s.id === selectedId);
+      const show = lib.shows.find(s => s.id === selectedId);
       const handledByClick = clickSelectedRef.current?.view === 'shows' && clickSelectedRef.current?.id === selectedId;
       if (show && !handledByClick) {
-        library.selectShow(show);
+        lib.selectShow(show);
       }
       clickSelectedRef.current = null;
     } else if (selectedId && view === 'playlists') {
-      const playlist = library.playlists.find(p => p.id === selectedId);
-      if (playlist && library.selectedPlaylist?.id !== selectedId) {
-        library.selectPlaylist(playlist);
+      const playlist = lib.playlists.find(p => p.id === selectedId);
+      if (playlist && lib.selectedPlaylist?.id !== selectedId) {
+        lib.selectPlaylist(playlist);
       }
     }
-  }, [selectedId, view, library]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, view]);
 
   const handleViewMovieDetails = async (movie: any) => {
     clickSelectedRef.current = { view: 'movies', id: movie.id };
