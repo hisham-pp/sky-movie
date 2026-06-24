@@ -17,6 +17,7 @@ export function AppLayout() {
   const theme = library.settings?.theme ?? 'cinema';
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   // Get current view from pathname for sidebar highlighting
   const getCurrentView = (): ViewMode => {
@@ -97,8 +98,14 @@ export function AppLayout() {
   };
 
   return (
-    <main className="app-shell" data-theme={theme}>
-      <Sidebar view={currentView} summary={library.summary} onViewChange={handleViewChange} />
+    <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}`} data-theme={theme}>
+      <Sidebar
+        view={currentView}
+        summary={library.summary}
+        onViewChange={handleViewChange}
+        expanded={sidebarExpanded}
+        onToggleExpand={() => setSidebarExpanded((p) => !p)}
+      />
 
       <section className="workspace">
         <Toolbar 
