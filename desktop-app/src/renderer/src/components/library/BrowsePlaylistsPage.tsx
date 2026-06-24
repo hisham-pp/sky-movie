@@ -1,14 +1,13 @@
 import { ListMusic, Plus } from 'lucide-react';
 import type { Playlist } from '@shared/ipc';
 import { EmptyLibraryState } from './EmptyLibraryState';
-import { LibraryFilters } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
 
 export function BrowsePlaylistsPage({
   playlists,
   onSelectPlaylist,
-  onCreatePlaylist,
-  showCreateModal,
+  onCreatePlaylist: _onCreatePlaylist,
+  showCreateModal: _showCreateModal,
   setShowCreateModal,
   busy
 }: {
@@ -22,56 +21,45 @@ export function BrowsePlaylistsPage({
   return (
     <div className="browse-grid">
       <section className="library-list">
-        <div className="hero-strip browse-hero">
-          <div className="hero-copy">
-            <div className="hero-poster">
-              <ListMusic size={34} />
-            </div>
-            <div>
-              <span>Browse library</span>
-              <h2>Playlist Library</h2>
-              <p>Create and manage your custom playlists with movies and TV shows.</p>
-              <div className="hero-chips">
-                <span>
-                  {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="hero-actions">
-                <button
-                  className="create-playlist-button"
-                  onClick={() => setShowCreateModal(true)}
-                  disabled={busy}
-                >
-                  <Plus size={16} />
-                  Create Playlist
-                </button>
-              </div>
-            </div>
+        {/* Page header */}
+        <div className="playlist-browse-header">
+          <div className="playlist-browse-header-icon">
+            <ListMusic size={28} />
           </div>
+          <div className="playlist-browse-header-text">
+            <span className="playlist-browse-kicker">Library</span>
+            <h1>Playlists</h1>
+            <p>Organize your favorite movies and TV shows into custom collections.</p>
+          </div>
+          <button
+            className="playlist-browse-create-btn"
+            onClick={() => setShowCreateModal(true)}
+            disabled={busy}
+          >
+            <Plus size={16} />
+            New Playlist
+          </button>
         </div>
 
-        <LibraryFilters />
         <SectionTitle title="Your Playlists" count={playlists.length} />
 
         {playlists.length > 0 ? (
-          <div className="poster-grid">
+          <div className="playlist-browse-grid">
             {playlists.map((playlist) => (
-              <div
+              <button
                 key={playlist.id}
-                className="playlist-card"
+                className="playlist-browse-card"
                 onClick={() => onSelectPlaylist(playlist)}
               >
-                <div className="playlist-icon">
-                  <ListMusic size={32} />
+                <div className="playlist-browse-card-icon">
+                  <ListMusic size={28} />
                 </div>
-                <div className="playlist-info">
-                  <h3>{playlist.name}</h3>
-                  <p>{playlist.description || 'No description'}</p>
-                  <span>
-                    {playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}
-                  </span>
+                <div className="playlist-browse-card-body">
+                  <strong>{playlist.name}</strong>
+                  {playlist.description && <p>{playlist.description}</p>}
+                  <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         ) : (
