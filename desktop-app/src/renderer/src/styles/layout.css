@@ -1,6 +1,6 @@
 .app-shell {
   display: grid;
-  grid-template-columns: 215px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
   color: var(--ink);
@@ -35,7 +35,7 @@
 .toolbar {
   position: absolute;
   top: 0;
-  left: 215px;
+  left: 60px;
   right: 140px; /* clear native window controls */
   -webkit-app-region: drag;
   z-index: 10;
@@ -46,6 +46,11 @@
   border-bottom: 1px solid transparent;
   background: transparent;
   padding: 20px 40px;
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.sidebar-expanded .toolbar {
+  left: 210px;
 }
 
 .toolbar-spacer {

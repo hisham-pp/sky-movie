@@ -1,19 +1,54 @@
+/* ── Sidebar shell ─────────────────────────────────────── */
 .sidebar {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  width: 60px;
+  min-width: 60px;
   border-right: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel-solid) 90%, transparent);
-  padding: 20px 0 20px;
+  padding: 38px 0 12px;
   backdrop-filter: blur(24px);
-  padding-top: 38px; /* offset for the 30px title bar drag zone */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
+.sidebar--expanded {
+  width: 210px;
+  min-width: 210px;
+}
+
+/* ── Text labels — always in DOM, animate in/out ───────── */
+.nav-label,
+.brand-text,
+.sidebar-collapse-btn {
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  max-width: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.18s ease,
+              max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.18s ease;
+  pointer-events: none;
+}
+
+.sidebar--expanded .nav-label,
+.sidebar--expanded .brand-text,
+.sidebar--expanded .sidebar-collapse-btn {
+  opacity: 1;
+  max-width: 200px;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* ── Brand / logo area ─────────────────────────────────── */
 .brand {
-  padding: 0 18px 28px;
+  padding: 0 11px 22px;
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .brand-icon {
@@ -21,18 +56,35 @@
   place-items: center;
   width: 38px;
   height: 38px;
+  min-width: 38px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
   color: var(--on-primary);
   flex: 0 0 auto;
-  box-shadow: 0 4px 14px rgba(137, 206, 255, 0.28);
+  box-shadow: 0 4px 14px rgba(137, 206, 255, 0.22);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.brand-icon:hover {
+  opacity: 0.88;
+  transform: scale(1.04);
+  border: none;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+  box-shadow: 0 4px 14px rgba(137, 206, 255, 0.22);
+}
+
+.brand-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .brand-text h1 {
   margin: 0;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Inter, sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -41,33 +93,85 @@
 .brand-text p {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+.sidebar-collapse-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  flex: 0 0 auto;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sidebar-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--soft);
+  border-color: var(--line-strong);
+  box-shadow: none;
+}
+
+/* Rotate the chevron: collapsed = pointing right (expand), expanded = pointing left (collapse) */
+.sidebar-collapse-btn svg {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(180deg);
+}
+
+.sidebar--expanded .sidebar-collapse-btn svg {
+  transform: rotate(0deg);
+}
+
+/* ── Navigation ────────────────────────────────────────── */
 .nav {
   display: grid;
   gap: 2px;
-  padding: 0 10px;
+  padding: 0 8px;
+}
+
+.nav-bottom {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  margin-left: 8px;
+  margin-right: 8px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .nav button {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 100%;
-  min-height: 44px;
-  gap: 12px;
+  min-height: 42px;
+  gap: 11px;
   border: 0;
   border-radius: 10px;
   background: transparent;
   color: var(--muted);
-  padding: 0 14px;
+  padding: 0 10px;
   text-align: left;
   box-shadow: none;
   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar--expanded .nav button {
+  justify-content: flex-start;
+}
+
+.nav button svg {
+  flex: 0 0 auto;
 }
 
 .nav button:hover {
@@ -83,78 +187,11 @@
   font-weight: 700;
 }
 
-.nav button.active svg {
-  opacity: 1;
-}
-
 .nav button.passive {
   opacity: 0.55;
 }
 
-.nav span {
-  overflow: hidden;
-  min-width: 0;
-  font-size: 14px;
+.nav-label {
+  font-size: 13.5px;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
-.nav-section-label {
-  padding: 16px 14px 6px;
-  color: var(--muted);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.nav-divider {
-  height: 1px;
-  background: var(--line);
-  margin: 8px 14px;
-}
-
-.summary {
-  display: grid;
-  gap: 8px;
-  margin: auto 10px 0;
-  border-top: 1px solid var(--line);
-  padding-top: 16px;
-}
-
-.summary-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0 4px;
-}
-
-.summary div:not(.summary-heading) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0 12px;
-  transition: background 0.15s ease;
-}
-
-.summary div:not(.summary-heading):hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.summary strong {
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 700;
-}
-
