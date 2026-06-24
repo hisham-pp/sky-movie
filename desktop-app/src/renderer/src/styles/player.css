@@ -83,14 +83,20 @@
   opacity: 0.7;
 }
 
-/* Progress bar enhancement */
+/* Progress bar — always show full timeline, not just buffered portion */
 .player .artplayer-app .artplayer-progress {
   height: 5px;
   transition: height 0.2s ease;
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 
 .player .artplayer-app:hover .artplayer-progress {
   height: 8px;
+}
+
+/* Make buffered/loaded indicator invisible — full bar is always seekable */
+.player .artplayer-app .artplayer-progress-loaded {
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 
 .player .artplayer-app .artplayer-progress-indicator {

@@ -1,8 +1,11 @@
 import { ExternalLink, HardDrive } from 'lucide-react';
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 
-const SKIP_SECONDS = 10;
+const RESUME_START_THRESHOLD = 5;
+const RESUME_END_BUFFER = 10;
+const SAVE_INTERVAL_MS = 10000;
 
 export function PlayerPanel({
   player,
@@ -11,286 +14,209 @@ export function PlayerPanel({
   player: PlayMediaResult | null;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const initGenRef = useRef(0); // incremented each time we switch videos
+  const artRef = useRef<Artplayer | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
-  const isHTTPStream = player?.mediaUrl?.startsWith('http://') || player?.mediaUrl?.startsWith('https://');
 
-  // ── Keyboard shortcuts ────────────────────────────────────────────────────
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    const video = videoRef.current;
-    if (!video || !player) return;
-
-    // Don't hijack shortcuts when the user is typing in an input
-    if (
-      document.activeElement &&
-      ['INPUT', 'TEXTAREA', 'SELECT'].includes((document.activeElement as HTMLElement).tagName)
-    ) return;
-
-    switch (e.key) {
-      case ' ':
-      case 'k':
-        e.preventDefault();
-        if (video.paused) {
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-        break;
-
-      case 'ArrowRight':
-      case 'l':
-        e.preventDefault();
-        video.currentTime = Math.min(video.currentTime + SKIP_SECONDS, video.duration || Infinity);
-        break;
-
-      case 'ArrowLeft':
-      case 'j':
-        e.preventDefault();
-        video.currentTime = Math.max(video.currentTime - SKIP_SECONDS, 0);
-        break;
-
-      case 'ArrowUp':
-        e.preventDefault();
-        video.volume = Math.min(video.volume + 0.1, 1);
-        break;
-
-      case 'ArrowDown':
-        e.preventDefault();
-        video.volume = Math.max(video.volume - 0.1, 0);
-        break;
-
-      case 'm':
-      case 'M':
-        e.preventDefault();
-        video.muted = !video.muted;
-        break;
-
-      case 'f':
-      case 'F':
-        e.preventDefault();
-        toggleFullscreen();
-        break;
-
-      case 'Escape':
-        // Browser handles Escape to exit fullscreen natively; nothing extra needed.
-        break;
-
-      default:
-        break;
-    }
-  }, [player]);
-
-  function toggleFullscreen() {
+  useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      container.requestFullscreen().catch(() => {});
-    }
-  }
-
-  useEffect(() => {
-    // Use capture phase so our handler fires before the native <video controls>
-    // handler. This lets e.preventDefault() suppress the built-in Space/arrow
-    // behaviour and avoids the double-toggle that happens when the video element
-    // has focus.
-    document.addEventListener('keydown', handleKeyDown, true);
-    return () => document.removeEventListener('keydown', handleKeyDown, true);
-  }, [handleKeyDown]);
-
-  // ── Video source initialisation ───────────────────────────────────────────
-  useEffect(() => {
-    if (!player || !videoRef.current) {
-      console.log('[Player] No player or videoRef, skipping init', { hasPlayer: !!player, hasRef: !!videoRef.current });
-      return;
-    }
+    if (!container || !player) return;
 
     setPlaybackError(null);
-    const video = videoRef.current;
 
-    console.log('[Player] Initializing playback', {
-      mediaFileId: player.mediaFileId,
-      mediaUrl: player.mediaUrl,
-      isHTTPStream,
-      hasWatchProgress: !!player.watchProgress,
-      audioTracks: player.audioTracks?.length ?? 0
-    });
+    // Build subtitle list: sidecar files first, then embedded tracks via streaming
+    const subtitleOptions: Artplayer['option']['subtitle'] = undefined;
+    const sidecarList = player.sidecarSubtitles ?? [];
 
-    const onLoadStart = () => console.log('[Player] loadstart — browser began loading', video.src);
-    const onLoadedMetadata = () => console.log('[Player] loadedmetadata — duration:', video.duration, 'readyState:', video.readyState);
-    const onCanPlayThrough = () => console.log('[Player] canplaythrough');
-    const onWaiting = () => console.log('[Player] waiting — buffering…');
-    const onStalled = () => console.log('[Player] stalled');
-    const onSuspend = () => console.log('[Player] suspend');
-
-    video.addEventListener('loadstart', onLoadStart);
-    video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('canplaythrough', onCanPlayThrough);
-    video.addEventListener('waiting', onWaiting);
-    video.addEventListener('stalled', onStalled);
-    video.addEventListener('suspend', onSuspend);
-
-    // Increment generation so any in-flight callbacks from the previous video
-    // know they are stale and must not touch the element.
-    const gen = ++initGenRef.current;
-
-    // Mute and stop BEFORE clearing src so there is no audio gap between
-    // the old stream stopping and the new one starting.
-    video.muted = true;
-    video.pause();
-    video.src = '';
-    video.load();
-
-    // Handlers added inside initialize() must also be cleaned up; keep refs
-    // to them so the effect cleanup can remove them if they haven't fired yet.
-    let onMeta: (() => void) | null = null;
-    let onCanPlay: (() => void) | null = null;
-
-    const initialize = () => {
-      if (gen !== initGenRef.current) return; // stale — a newer video was selected
-      try {
-        console.log('[Player] Setting src:', player.mediaUrl);
-        video.src = player.mediaUrl;
-        video.load();
-        console.log('[Player] video.load() called, readyState:', video.readyState, 'networkState:', video.networkState);
-
-        // Restore watch progress once metadata is known
-        onMeta = () => {
-          if (gen !== initGenRef.current) return;
-          if (player.watchProgress) {
-            const savedPosition = player.watchProgress.positionSeconds;
-            console.log('[Player] Watch progress found:', { savedPosition, duration: player.watchProgress.durationSeconds, completed: player.watchProgress.completed });
-            if (
-              savedPosition >= 5 &&
-              player.watchProgress.durationSeconds - savedPosition >= 10 &&
-              !player.watchProgress.completed
-            ) {
-              video.currentTime = savedPosition;
-              console.log('[Player] Restored position to:', savedPosition);
-            }
+    const art = new Artplayer({
+      container,
+      url: player.mediaUrl,
+      theme: '#89ceff',
+      volume: 0.8,
+      autoplay: true,
+      pip: true,
+      mutex: true,
+      hotkey: true,
+      setting: true,
+      playbackRate: true,
+      aspectRatio: true,
+      fullscreen: true,
+      fullscreenWeb: true,
+      miniProgressBar: true,
+      flip: true,
+      moreVideoAttr: {
+        preload: 'auto',
+        playsInline: true,
+        crossOrigin: 'anonymous'
+      },
+      // Load first sidecar sub if available
+      ...(sidecarList.length > 0 ? {
+        subtitle: {
+          url: sidecarList[0].url,
+          type: sidecarList[0].type,
+          encoding: 'utf-8',
+          escape: false
+        }
+      } : {}),
+      settings: [
+        // ── Playback speed ──────────────────────────────
+        {
+          html: 'Speed',
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+          selector: [
+            { html: '0.5×', value: '0.5' },
+            { html: '0.75×', value: '0.75' },
+            { html: '1×', value: '1', default: true },
+            { html: '1.25×', value: '1.25' },
+            { html: '1.5×', value: '1.5' },
+            { html: '2×', value: '2' },
+          ],
+          onSelect(item: any) {
+            art.playbackRate = parseFloat(item.value);
+            return item.html;
           }
-          onMeta = null;
-        };
-        video.addEventListener('loadedmetadata', onMeta, { once: true });
+        },
+        // ── Audio tracks ────────────────────────────────
+        {
+          html: 'Audio',
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+          selector: player.audioTracks?.length
+            ? [
+                { html: 'Default', value: '-1', default: true },
+                ...player.audioTracks.map((t, i) => ({
+                  html: t.title || t.language || `Track ${i + 1}`,
+                  value: String(i)
+                }))
+              ]
+            : [{ html: 'Default', value: '-1', default: true }],
+          onSelect(item: any) {
+            const video = art.video as any;
+            const idx = parseInt(item.value);
+            if (video.audioTracks) {
+              for (let i = 0; i < video.audioTracks.length; i++) {
+                video.audioTracks[i].enabled = idx === -1 ? i === 0 : i === idx;
+              }
+            }
+            return item.html;
+          }
+        },
+        // ── Subtitles ───────────────────────────────────
+        {
+          html: 'Subtitles',
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>',
+          selector: [
+            { html: 'Off', value: 'off', default: sidecarList.length === 0 },
+            ...sidecarList.map((s, i) => ({
+              html: s.label,
+              value: `sidecar:${i}`,
+              default: i === 0 && sidecarList.length > 0
+            })),
+            ...(player.subtitleTracks ?? []).map((t, i) => ({
+              html: t.title || t.language || `Sub ${i + 1}`,
+              value: `embedded:${i}`
+            }))
+          ],
+          onSelect(item: any) {
+            if (item.value === 'off') {
+              art.subtitle.show = false;
+              return item.html;
+            }
+            if (item.value.startsWith('sidecar:')) {
+              const idx = parseInt(item.value.split(':')[1]);
+              const sub = sidecarList[idx];
+              art.subtitle.url = sub.url;
+              art.subtitle.show = true;
+              return item.html;
+            }
+            if (item.value.startsWith('embedded:')) {
+              const idx = parseInt(item.value.split(':')[1]);
+              const video = art.video;
+              if (video.textTracks) {
+                for (let i = 0; i < video.textTracks.length; i++) {
+                  video.textTracks[i].mode = i === idx ? 'showing' : 'hidden';
+                }
+              }
+              art.subtitle.show = false; // hide sidecar overlay
+              return item.html;
+            }
+            return item.html;
+          }
+        }
+      ]
+    } as any);
 
-        onCanPlay = () => {
-          if (gen !== initGenRef.current) return;
-          console.log('[Player] canplay fired — volume:', video.volume, 'muted:', video.muted);
-          video.muted = false;
-          video.volume = 1.0;
-          video.play().catch((err) => {
-            console.warn('[Player] play() blocked, retrying muted:', err);
-            video.muted = true;
-            video.play()
-              .then(() => {
-                video.muted = false;
-                console.log('[Player] unmuted after muted-play fallback');
-              })
-              .catch((e) => console.error('[Player] muted play also blocked:', e));
-          });
-          onCanPlay = null;
-        };
-        video.addEventListener('canplay', onCanPlay, { once: true });
+    artRef.current = art;
 
-      } catch (error) {
-        console.error('[Player] Error initializing playback:', error);
-        setPlaybackError('Failed to initialize playback');
+    let restoredPosition = false;
+    let lastSavedPosition = -1;
+    let lastSavedAt = 0;
+
+    const loadTimer = window.setTimeout(() => {
+      const video = art.video;
+      if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) {
+        setPlaybackError('The built-in player did not load this file. HEVC/x265 videos usually need the system player.');
       }
+    }, 5000);
+
+    const updateProgress = async (force = false) => {
+      const video = art.video;
+      if (!video || !Number.isFinite(video.duration) || video.duration <= 0 || !Number.isFinite(video.currentTime)) return;
+      const positionSeconds = Math.floor(video.currentTime);
+      const now = Date.now();
+      if (!force && (positionSeconds === lastSavedPosition || now - lastSavedAt < SAVE_INTERVAL_MS)) return;
+      await window.skyMovie.updateWatchProgress({
+        mediaFileId: player.mediaFileId,
+        positionSeconds,
+        durationSeconds: Math.floor(video.duration),
+        completed: video.duration > 0 && video.currentTime / video.duration > 0.92
+      });
+      lastSavedPosition = positionSeconds;
+      lastSavedAt = now;
     };
 
-    initialize();
+    const restorePosition = () => {
+      if (restoredPosition) return;
+      const video = art.video;
+      const savedPosition = player.watchProgress?.positionSeconds ?? 0;
+      const savedDuration = player.watchProgress?.durationSeconds ?? 0;
+      const duration = Number.isFinite(video?.duration) && video.duration > 0 ? video.duration : savedDuration;
+      restoredPosition = true;
+      if (player.watchProgress?.completed || savedPosition < RESUME_START_THRESHOLD || duration - savedPosition < RESUME_END_BUFFER) return;
+      if (video) video.currentTime = Math.min(savedPosition, Math.max(duration - RESUME_END_BUFFER, 0));
+    };
+
+    art.on('video:pause', () => void updateProgress(true));
+    art.on('video:seeked', () => void updateProgress(true));
+    art.on('video:timeupdate', () => void updateProgress());
+    art.on('video:ended', () => void updateProgress(true));
+    art.on('video:error', () => setPlaybackError('The built-in player cannot decode this file. Try opening with system player.'));
+    art.on('video:loadedmetadata', () => {
+      window.clearTimeout(loadTimer);
+      setPlaybackError(null);
+      restorePosition();
+    });
+    art.on('video:canplay', () => {
+      window.clearTimeout(loadTimer);
+      setPlaybackError(null);
+      restorePosition();
+    });
 
     return () => {
-      // Stop audio immediately so it doesn't bleed into the next video
-      video.muted = true;
-      video.pause();
-
-      video.removeEventListener('loadstart', onLoadStart);
-      video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('canplaythrough', onCanPlayThrough);
-      video.removeEventListener('waiting', onWaiting);
-      video.removeEventListener('stalled', onStalled);
-      video.removeEventListener('suspend', onSuspend);
-      // Remove handlers that were added inside initialize() and may not have fired
-      if (onMeta) video.removeEventListener('loadedmetadata', onMeta);
-      if (onCanPlay) video.removeEventListener('canplay', onCanPlay);
+      window.clearTimeout(loadTimer);
+      void updateProgress(true);
+      art.destroy(false);
+      artRef.current = null;
+      container.textContent = '';
     };
   }, [player]);
 
-  const handleError = () => {
-    const video = videoRef.current;
-    if (!video?.error) return;
-
-    const errorCode = video.error.code;
-    const errorNames: Record<number, string> = {
-      [MediaError.MEDIA_ERR_ABORTED]: 'MEDIA_ERR_ABORTED',
-      [MediaError.MEDIA_ERR_NETWORK]: 'MEDIA_ERR_NETWORK',
-      [MediaError.MEDIA_ERR_DECODE]: 'MEDIA_ERR_DECODE',
-      [MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED]: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
-    };
-
-    console.error('[Player] Video error:', {
-      code: errorCode,
-      codeName: errorNames[errorCode] ?? 'UNKNOWN',
-      message: video.error.message,
-      url: video.src,
-      networkState: video.networkState,
-      readyState: video.readyState,
-      isHTTPStream
-    });
-
-    let message = 'Unable to play video. ';
-    if (errorCode === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED || errorCode === MediaError.MEDIA_ERR_DECODE) {
-      message += isHTTPStream
-        ? 'Stream codec not supported. Make sure FFmpeg is installed on your system.'
-        : 'Codec may not be supported on this system. Try opening with system player.';
-    } else if (errorCode === MediaError.MEDIA_ERR_NETWORK) {
-      message += 'Network error loading video. Is the streaming server running?';
-    } else if (errorCode === MediaError.MEDIA_ERR_ABORTED) {
-      message += 'Video loading was aborted.';
+  useEffect(() => {
+    if (!player) {
+      artRef.current?.destroy(false);
+      artRef.current = null;
+      setPlaybackError(null);
     }
-
-    setPlaybackError(message);
-  };
-
-  const handleTimeUpdate = async () => {
-    const video = videoRef.current;
-    if (!video || !player || !Number.isFinite(video.currentTime) || !Number.isFinite(video.duration)) {
-      return;
-    }
-
-    const now = Date.now();
-    const lastSaved = parseInt(video.dataset.lastSaved || '0');
-    if (now - lastSaved < 10000) return;
-
-    const positionSeconds = Math.floor(video.currentTime);
-    const durationSeconds = Math.floor(video.duration);
-    const completed = durationSeconds > 0 && video.currentTime / durationSeconds > 0.92;
-
-    await window.skyMovie.updateWatchProgress({
-      mediaFileId: player.mediaFileId,
-      positionSeconds,
-      durationSeconds,
-      completed
-    });
-
-    video.dataset.lastSaved = now.toString();
-  };
-
-  const handleEnded = async () => {
-    const video = videoRef.current;
-    if (!video || !player) return;
-
-    await window.skyMovie.updateWatchProgress({
-      mediaFileId: player.mediaFileId,
-      positionSeconds: Math.floor(video.currentTime),
-      durationSeconds: Math.floor(video.duration),
-      completed: true
-    });
-  };
+  }, [player]);
 
   if (!player) {
     return (
@@ -304,41 +230,17 @@ export function PlayerPanel({
 
   return (
     <div className="player">
-      <div
-        ref={containerRef}
-        className="player-container"
-        style={{ width: '100%', height: '100%', background: '#000' }}
-      >
-        <video
-          ref={videoRef}
-          className="w-full h-full"
-          controls
-          onError={handleError}
-          onTimeUpdate={handleTimeUpdate}
-          onEnded={handleEnded}
-          onPause={handleTimeUpdate}
-          style={{ display: 'block' }}
-        />
-      </div>
-
-      {player.audioTracks && player.audioTracks.length > 1 ? (
-        <div className="player-tracks-panel" style={{ padding: '12px', background: '#1a1a1a', borderTop: '1px solid #333' }}>
-          <div style={{ fontSize: '12px', color: '#888' }}>
-            {player.audioTracks.length} audio tracks available (switching via system player)
-          </div>
-        </div>
-      ) : null}
-
+      <div key={player.mediaUrl} ref={containerRef} className="artplayer-host" />
       <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
         <ExternalLink size={15} />
         Open in system player
       </button>
-      {playbackError ? (
+      {playbackError && (
         <div className="player-error">
           <span>{playbackError}</span>
           <button onClick={() => onOpenExternal(player.mediaFileId)}>Open externally</button>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

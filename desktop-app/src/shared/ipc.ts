@@ -222,6 +222,13 @@ export interface PlayMediaResult {
   watchProgress: WatchProgressSnapshot | null;
   audioTracks?: MediaTrack[];
   subtitleTracks?: MediaTrack[];
+  sidecarSubtitles?: SidecarSubtitle[];
+}
+
+export interface SidecarSubtitle {
+  label: string;
+  url: string;
+  type: 'srt' | 'vtt' | 'ass';
 }
 
 export interface MediaTrack {
