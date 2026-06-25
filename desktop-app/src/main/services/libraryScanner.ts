@@ -232,7 +232,7 @@ export class LibraryScanner {
     };
   }
 
-  private async findVideoFiles(rootPath: string): Promise<string[]> {
+  private async findVideoFiles(rootPath: string, visited = new Set<string>()): Promise<string[]> {
     let entries;
     try {
       entries = await readdir(rootPath, { withFileTypes: true });
@@ -243,9 +243,16 @@ export class LibraryScanner {
     const found: string[] = [];
 
     for (const entry of entries) {
+      // Skip symlinks to avoid infinite loops on circular directory structures
+      if (entry.isSymbolicLink()) continue;
+
       const entryPath = join(rootPath, entry.name);
+
       if (entry.isDirectory()) {
-        found.push(...(await this.findVideoFiles(entryPath)));
+        // Guard against hard-linked directories (rare but possible on some FSes)
+        if (visited.has(entryPath)) continue;
+        visited.add(entryPath);
+        found.push(...(await this.findVideoFiles(entryPath, visited)));
       } else if (entry.isFile() && videoExtensions.has(extname(entry.name).toLowerCase())) {
         found.push(entryPath);
       }

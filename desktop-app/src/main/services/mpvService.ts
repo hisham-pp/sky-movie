@@ -125,7 +125,8 @@ interface RenderSession {
   sessionStartMs: number;
   // Cleanup listeners attached to the webContents so we can remove them on close
   wcDestroyedHandler: () => void;
-  wcNavigatedHandler: () => void;
+  wcStartNavHandler: (_e: Electron.Event, url: string, isSameDocument: boolean) => void;
+  wcRenderGoneHandler: () => void;
 }
 
 // ── MpvService ───────────────────────────────────────────────────────────────
@@ -200,18 +201,31 @@ export class MpvService {
 
     this.closeSession();
 
-    // Listeners that auto-close the session if the renderer goes away
-    // (page refresh, navigate away, window close) without calling mpvClose().
+    // Auto-close the session if the renderer disappears without calling mpvClose().
+    //
+    // Events used:
+    //  - 'destroyed'           : WebContents torn down (window close, app quit)
+    //  - 'did-start-navigation': fires at the START of ANY navigation including
+    //                            Ctrl+R / F5 reload and location.href changes.
+    //                            'will-navigate' does NOT fire for reload() calls.
+    //  - 'render-process-gone' : renderer crash / kill
     const wcDestroyedHandler = () => {
       log.info('[MpvService] webContents destroyed — auto-closing session');
       this.closeSession();
     };
-    const wcNavigatedHandler = () => {
-      log.info('[MpvService] webContents navigated — auto-closing session');
+    const wcStartNavHandler = (_e: Electron.Event, url: string, isSameDocument: boolean) => {
+      // Skip hash-only / pushState in-page navigations — those don't reload the renderer
+      if (isSameDocument) return;
+      log.info(`[MpvService] navigation started (${url}) — auto-closing session`);
       this.closeSession();
     };
-    webContents.once('destroyed', wcDestroyedHandler);
-    webContents.on('did-navigate', wcNavigatedHandler);
+    const wcRenderGoneHandler = () => {
+      log.info('[MpvService] render process gone — auto-closing session');
+      this.closeSession();
+    };
+    webContents.once('destroyed',            wcDestroyedHandler);
+    webContents.on('did-start-navigation',   wcStartNavHandler as any);
+    webContents.on('render-process-gone',    wcRenderGoneHandler);
 
     const session: RenderSession = {
       player: null as unknown as MpvPlayerAddon,
@@ -224,7 +238,8 @@ export class MpvService {
       slowEncodes: 0,
       sessionStartMs: Date.now(),
       wcDestroyedHandler,
-      wcNavigatedHandler
+      wcStartNavHandler,
+      wcRenderGoneHandler
     };
     this.session = session;
 
@@ -250,8 +265,9 @@ export class MpvService {
 
     // Remove the auto-close listeners we attached to webContents
     if (!s.webContents.isDestroyed()) {
-      s.webContents.off('destroyed',    s.wcDestroyedHandler);
-      s.webContents.off('did-navigate', s.wcNavigatedHandler);
+      s.webContents.off('destroyed',           s.wcDestroyedHandler);
+      s.webContents.off('did-start-navigation', s.wcStartNavHandler as any);
+      s.webContents.off('render-process-gone', s.wcRenderGoneHandler);
     }
 
     const elapsed = Date.now() - s.sessionStartMs;

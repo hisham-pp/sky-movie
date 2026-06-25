@@ -1,5 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import mpvService from './services/mpvService';
+import { logger } from './utils/logger';
 import type { MpvOpenRequest } from '../shared/ipc';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
@@ -25,6 +26,19 @@ import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
 
+
+const log = logger('IPC');
+
+// Wraps an IPC handler so any thrown error is logged and re-thrown as a
+// plain string (IPC can't serialize Error objects across the context bridge).
+function safe<T>(channel: string, fn: () => Promise<T> | T): Promise<T> {
+  return Promise.resolve().then(fn).catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    log.error(`[${channel}]`, message);
+    throw new Error(message);
+  });
+}
+
 interface IpcServices {
   catalog: CatalogService;
   backup: BackupService;
@@ -40,173 +54,164 @@ interface IpcServices {
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
-  ipcMain.handle(ipcChannels.chooseFolder, async (_event, title?: string) =>
-    chooseDirectory(services.getMainWindow(), title ?? 'Choose folder')
+  const h = ipcMain.handle.bind(ipcMain);
+
+  h(ipcChannels.chooseFolder, (_e, title?: string) =>
+    safe(ipcChannels.chooseFolder, () => chooseDirectory(services.getMainWindow(), title ?? 'Choose folder'))
   );
-  ipcMain.handle(ipcChannels.chooseFolders, async (_event, title?: string) =>
-    chooseDirectories(services.getMainWindow(), title ?? 'Choose library folders')
-  );
-
-  ipcMain.handle(ipcChannels.scanLibrary, async (_event, requestInput?: string | ScanLibraryRequest) => {
-    const request = normalizeScanRequest(requestInput);
-    const settings = services.settings.getSettings();
-    const folderPath = request.path ?? (await chooseDirectory(services.getMainWindow(), 'Choose library folder'));
-    if (!folderPath) {
-      return null;
-    }
-
-    return scanOneLibrary(services, folderPath, request);
-  });
-
-  ipcMain.handle(ipcChannels.scanLibraries, async (_event, requestInput?: string[] | ScanLibrariesRequest) => {
-    const request = normalizeScanLibrariesRequest(requestInput);
-    const paths = request.paths?.length
-      ? request.paths
-      : await chooseDirectories(services.getMainWindow(), 'Choose library folders');
-    const uniquePaths = [...new Set(paths.filter(Boolean))];
-    const results = [];
-
-    for (const folderPath of uniquePaths) {
-      results.push(await scanOneLibrary(services, folderPath, request));
-    }
-
-    return results;
-  });
-
-  ipcMain.handle(ipcChannels.getMovies, (_event, query?: string) => services.catalog.getMovies(query));
-  ipcMain.handle(ipcChannels.getMovieById, (_event, id: number) => services.catalog.getMovieById(id));
-  ipcMain.handle(ipcChannels.getShows, (_event, query?: string) => services.catalog.getShows(query));
-  ipcMain.handle(ipcChannels.getShowById, (_event, id: number) => services.catalog.getShowById(id));
-  ipcMain.handle(ipcChannels.getUnmatchedFiles, () => services.catalog.getUnmatchedFiles());
-  ipcMain.handle(ipcChannels.getLibrarySummary, () => services.scanner.getSummary());
-
-  ipcMain.handle(ipcChannels.updateMetadata, (_event, update: MetadataUpdate) => {
-    services.metadata.updateMetadata(update);
-  });
-  ipcMain.handle(ipcChannels.searchMovieMetadata, (_event, request: MovieMetadataSearchRequest) =>
-    services.metadata.searchMovieMetadata(request)
-  );
-  ipcMain.handle(ipcChannels.applyMovieMetadata, (_event, request: ApplyMovieMetadataRequest) =>
-    services.metadata.applyMovieMetadata(request)
-  );
-  ipcMain.handle(ipcChannels.searchTvMetadata, (_event, request: TvMetadataSearchRequest) =>
-    services.metadata.searchTvMetadata(request)
-  );
-  ipcMain.handle(ipcChannels.applyTvMetadata, (_event, request: ApplyTvMetadataRequest) =>
-    services.metadata.applyTvMetadata(request)
-  );
-  ipcMain.handle(ipcChannels.markFileAsIgnored, (_event, fileId: number) => {
-    services.catalog.markFileAsIgnored(fileId);
-  });
-  ipcMain.handle(ipcChannels.unmarkFileAsIgnored, (_event, fileId: number) => {
-    services.catalog.unmarkFileAsIgnored(fileId);
-  });
-  ipcMain.handle(ipcChannels.updateFileMatch, (_event, fileId: number, matchedMovieId: number | null, matchedShowId: number | null) => {
-    services.catalog.updateFileMatch(fileId, matchedMovieId, matchedShowId);
-  });
-  ipcMain.handle(ipcChannels.deleteMediaFile, async (_event, fileId: number) => {
-    await services.catalog.deleteMediaFile(fileId);
-  });
-  ipcMain.handle(ipcChannels.showItemInFolder, async (_event, fileId: number) => {
-    const file = services.catalog.getMediaFile(fileId);
-    if (file) {
-      shell.showItemInFolder(file.absolutePath);
-    }
-  });
-
-  ipcMain.handle(ipcChannels.playMedia, (_event, mediaFileId: number) => services.player.playMedia(mediaFileId));
-  ipcMain.handle(ipcChannels.openMediaExternally, (_event, mediaFileId: number) =>
-    services.player.openExternally(mediaFileId)
+  h(ipcChannels.chooseFolders, (_e, title?: string) =>
+    safe(ipcChannels.chooseFolders, () => chooseDirectories(services.getMainWindow(), title ?? 'Choose library folders'))
   );
 
-  ipcMain.handle(ipcChannels.updateWatchProgress, (_event, update: WatchProgressUpdate) => {
-    services.player.updateWatchProgress(update);
-  });
+  h(ipcChannels.scanLibrary, async (_e, requestInput?: string | ScanLibraryRequest) =>
+    safe(ipcChannels.scanLibrary, async () => {
+      const request = normalizeScanRequest(requestInput);
+      const folderPath = request.path ?? (await chooseDirectory(services.getMainWindow(), 'Choose library folder'));
+      if (!folderPath) return null;
+      return scanOneLibrary(services, folderPath, request);
+    })
+  );
 
-  ipcMain.handle(ipcChannels.exportLibrary, async (_event, request?: SyncRequest) => {
-    const destinationPath =
-      request?.destinationPath ?? (await chooseDirectory(services.getMainWindow(), 'Choose export destination'));
-    if (!destinationPath) {
-      return null;
-    }
+  h(ipcChannels.scanLibraries, async (_e, requestInput?: string[] | ScanLibrariesRequest) =>
+    safe(ipcChannels.scanLibraries, async () => {
+      const request = normalizeScanLibrariesRequest(requestInput);
+      const paths = request.paths?.length
+        ? request.paths
+        : await chooseDirectories(services.getMainWindow(), 'Choose library folders');
+      const uniquePaths = [...new Set(paths.filter(Boolean))];
+      const results = [];
+      for (const folderPath of uniquePaths) {
+        results.push(await scanOneLibrary(services, folderPath, request));
+      }
+      return results;
+    })
+  );
 
-    return services.sync.exportLibrary({ type: request?.type ?? 'metadata-only', ...request, destinationPath });
-  });
+  h(ipcChannels.getMovies,        (_e, query?: string) => safe(ipcChannels.getMovies,        () => services.catalog.getMovies(query)));
+  h(ipcChannels.getMovieById,     (_e, id: number)     => safe(ipcChannels.getMovieById,     () => services.catalog.getMovieById(id)));
+  h(ipcChannels.getShows,         (_e, query?: string) => safe(ipcChannels.getShows,         () => services.catalog.getShows(query)));
+  h(ipcChannels.getShowById,      (_e, id: number)     => safe(ipcChannels.getShowById,      () => services.catalog.getShowById(id)));
+  h(ipcChannels.getUnmatchedFiles, ()                  => safe(ipcChannels.getUnmatchedFiles, () => services.catalog.getUnmatchedFiles()));
+  h(ipcChannels.getLibrarySummary, ()                  => safe(ipcChannels.getLibrarySummary, () => services.scanner.getSummary()));
 
-  ipcMain.handle(ipcChannels.importLibrary, async (_event, path?: string) => {
-    const importPath = path ?? (await chooseDirectory(services.getMainWindow(), 'Choose movie-library-sync folder'));
-    if (!importPath) {
-      return null;
-    }
+  h(ipcChannels.updateMetadata, (_e, update: MetadataUpdate) =>
+    safe(ipcChannels.updateMetadata, () => services.metadata.updateMetadata(update))
+  );
+  h(ipcChannels.searchMovieMetadata, (_e, request: MovieMetadataSearchRequest) =>
+    safe(ipcChannels.searchMovieMetadata, () => services.metadata.searchMovieMetadata(request))
+  );
+  h(ipcChannels.applyMovieMetadata, (_e, request: ApplyMovieMetadataRequest) =>
+    safe(ipcChannels.applyMovieMetadata, () => services.metadata.applyMovieMetadata(request))
+  );
+  h(ipcChannels.searchTvMetadata, (_e, request: TvMetadataSearchRequest) =>
+    safe(ipcChannels.searchTvMetadata, () => services.metadata.searchTvMetadata(request))
+  );
+  h(ipcChannels.applyTvMetadata, (_e, request: ApplyTvMetadataRequest) =>
+    safe(ipcChannels.applyTvMetadata, () => services.metadata.applyTvMetadata(request))
+  );
 
-    return services.sync.importLibrary(importPath);
-  });
+  h(ipcChannels.markFileAsIgnored,   (_e, fileId: number) => safe(ipcChannels.markFileAsIgnored,   () => services.catalog.markFileAsIgnored(fileId)));
+  h(ipcChannels.unmarkFileAsIgnored, (_e, fileId: number) => safe(ipcChannels.unmarkFileAsIgnored, () => services.catalog.unmarkFileAsIgnored(fileId)));
+  h(ipcChannels.updateFileMatch, (_e, fileId: number, matchedMovieId: number | null, matchedShowId: number | null) =>
+    safe(ipcChannels.updateFileMatch, () => services.catalog.updateFileMatch(fileId, matchedMovieId, matchedShowId))
+  );
+  h(ipcChannels.deleteMediaFile, (_e, fileId: number) =>
+    safe(ipcChannels.deleteMediaFile, () => services.catalog.deleteMediaFile(fileId))
+  );
+  h(ipcChannels.showItemInFolder, (_e, fileId: number) =>
+    safe(ipcChannels.showItemInFolder, () => {
+      const file = services.catalog.getMediaFile(fileId);
+      if (file) shell.showItemInFolder(file.absolutePath);
+    })
+  );
 
-  ipcMain.handle(ipcChannels.syncLibrary, async (_event, request: SyncRequest) => {
-    const destinationPath =
-      request.destinationPath ?? (await chooseDirectory(services.getMainWindow(), 'Choose sync destination'));
-    if (!destinationPath) {
-      return null;
-    }
+  h(ipcChannels.playMedia, (_e, mediaFileId: number) =>
+    safe(ipcChannels.playMedia, () => services.player.playMedia(mediaFileId))
+  );
+  h(ipcChannels.openMediaExternally, (_e, mediaFileId: number) =>
+    safe(ipcChannels.openMediaExternally, () => services.player.openExternally(mediaFileId))
+  );
+  h(ipcChannels.updateWatchProgress, (_e, update: WatchProgressUpdate) =>
+    safe(ipcChannels.updateWatchProgress, () => services.player.updateWatchProgress(update))
+  );
 
-    return services.sync.syncLibrary({ ...request, destinationPath });
-  });
+  h(ipcChannels.exportLibrary, async (_e, request?: SyncRequest) =>
+    safe(ipcChannels.exportLibrary, async () => {
+      const destinationPath =
+        request?.destinationPath ?? (await chooseDirectory(services.getMainWindow(), 'Choose export destination'));
+      if (!destinationPath) return null;
+      return services.sync.exportLibrary({ type: request?.type ?? 'metadata-only', ...request, destinationPath });
+    })
+  );
+  h(ipcChannels.importLibrary, async (_e, path?: string) =>
+    safe(ipcChannels.importLibrary, async () => {
+      const importPath = path ?? (await chooseDirectory(services.getMainWindow(), 'Choose movie-library-sync folder'));
+      if (!importPath) return null;
+      return services.sync.importLibrary(importPath);
+    })
+  );
+  h(ipcChannels.syncLibrary, async (_e, request: SyncRequest) =>
+    safe(ipcChannels.syncLibrary, async () => {
+      const destinationPath =
+        request.destinationPath ?? (await chooseDirectory(services.getMainWindow(), 'Choose sync destination'));
+      if (!destinationPath) return null;
+      return services.sync.syncLibrary({ ...request, destinationPath });
+    })
+  );
 
-  ipcMain.handle(ipcChannels.getSettings, () => services.settings.getSettings());
-  ipcMain.handle(ipcChannels.updateSettings, (_event, update) => services.settings.updateSettings(update));
-  ipcMain.handle(ipcChannels.clearLocalLibraryData, () => services.maintenance.clearLocalLibraryData());
-  ipcMain.handle(ipcChannels.createBackup, async (_event, destinationPath?: string) => {
-    const backupPath = destinationPath ?? (await chooseBackupSavePath(services.getMainWindow()));
-    if (!backupPath) {
-      return null;
-    }
+  h(ipcChannels.getSettings,          ()             => safe(ipcChannels.getSettings,          () => services.settings.getSettings()));
+  h(ipcChannels.updateSettings,       (_e, update)   => safe(ipcChannels.updateSettings,       () => services.settings.updateSettings(update)));
+  h(ipcChannels.clearLocalLibraryData, ()            => safe(ipcChannels.clearLocalLibraryData, () => services.maintenance.clearLocalLibraryData()));
 
-    return services.backup.createBackup(backupPath);
-  });
-  ipcMain.handle(ipcChannels.restoreBackup, async (_event, path?: string) => {
-    const backupPath = path ?? (await chooseBackupOpenPath(services.getMainWindow()));
-    if (!backupPath) {
-      return null;
-    }
+  h(ipcChannels.createBackup, async (_e, destinationPath?: string) =>
+    safe(ipcChannels.createBackup, async () => {
+      const backupPath = destinationPath ?? (await chooseBackupSavePath(services.getMainWindow()));
+      if (!backupPath) return null;
+      return services.backup.createBackup(backupPath);
+    })
+  );
+  h(ipcChannels.restoreBackup, async (_e, path?: string) =>
+    safe(ipcChannels.restoreBackup, async () => {
+      const backupPath = path ?? (await chooseBackupOpenPath(services.getMainWindow()));
+      if (!backupPath) return null;
+      return services.backup.restoreBackup(backupPath);
+    })
+  );
 
-    return services.backup.restoreBackup(backupPath);
-  });
-  ipcMain.handle(ipcChannels.checkForUpdates, () => services.update.checkForUpdates());
-  ipcMain.handle(ipcChannels.downloadAndInstallUpdate, () => services.update.downloadAndInstallUpdate());
-  ipcMain.handle(ipcChannels.getUpdateStatus, () => services.update.getStatus());
-  ipcMain.handle(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification());
+  h(ipcChannels.checkForUpdates,           () => safe(ipcChannels.checkForUpdates,           () => services.update.checkForUpdates()));
+  h(ipcChannels.downloadAndInstallUpdate,  () => safe(ipcChannels.downloadAndInstallUpdate,  () => services.update.downloadAndInstallUpdate()));
+  h(ipcChannels.getUpdateStatus,           () => safe(ipcChannels.getUpdateStatus,           () => services.update.getStatus()));
+  h(ipcChannels.dismissUpdateNotification, () => safe(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification()));
 
   // Playlist handlers
-  ipcMain.handle(ipcChannels.getPlaylists, () => services.playlist.getPlaylists());
-  ipcMain.handle(ipcChannels.getPlaylistById, (_event, id: number) => services.playlist.getPlaylistById(id));
-  ipcMain.handle(ipcChannels.createPlaylist, (_event, request) => services.playlist.createPlaylist(request));
-  ipcMain.handle(ipcChannels.updatePlaylist, (_event, request) => services.playlist.updatePlaylist(request));
-  ipcMain.handle(ipcChannels.deletePlaylist, (_event, id: number) => services.playlist.deletePlaylist(id));
-  ipcMain.handle(ipcChannels.addToPlaylist, (_event, request) => services.playlist.addToPlaylist(request));
-  ipcMain.handle(ipcChannels.removeFromPlaylist, (_event, request) => services.playlist.removeFromPlaylist(request));
-  ipcMain.handle(ipcChannels.reorderPlaylistItem, (_event, playlistId: number, itemId: number, newSortOrder: number) =>
-    services.playlist.reorderPlaylistItem(playlistId, itemId, newSortOrder)
+  h(ipcChannels.getPlaylists,       ()               => safe(ipcChannels.getPlaylists,       () => services.playlist.getPlaylists()));
+  h(ipcChannels.getPlaylistById,    (_e, id: number) => safe(ipcChannels.getPlaylistById,    () => services.playlist.getPlaylistById(id)));
+  h(ipcChannels.createPlaylist,     (_e, request)    => safe(ipcChannels.createPlaylist,     () => services.playlist.createPlaylist(request)));
+  h(ipcChannels.updatePlaylist,     (_e, request)    => safe(ipcChannels.updatePlaylist,     () => services.playlist.updatePlaylist(request)));
+  h(ipcChannels.deletePlaylist,     (_e, id: number) => safe(ipcChannels.deletePlaylist,     () => services.playlist.deletePlaylist(id)));
+  h(ipcChannels.addToPlaylist,      (_e, request)    => safe(ipcChannels.addToPlaylist,      () => services.playlist.addToPlaylist(request)));
+  h(ipcChannels.removeFromPlaylist, (_e, request)    => safe(ipcChannels.removeFromPlaylist, () => services.playlist.removeFromPlaylist(request)));
+  h(ipcChannels.reorderPlaylistItem, (_e, playlistId: number, itemId: number, newSortOrder: number) =>
+    safe(ipcChannels.reorderPlaylistItem, () => services.playlist.reorderPlaylistItem(playlistId, itemId, newSortOrder))
   );
 
   // ── mpv player ─────────────────────────────────────────────────────────────
-  ipcMain.handle(ipcChannels.mpvIsAvailable, () => mpvService.isAvailable);
+  h(ipcChannels.mpvIsAvailable, () => mpvService.isAvailable);
 
-  ipcMain.handle(ipcChannels.mpvOpen, (event, req: MpvOpenRequest) => {
-    const wc = event.sender;
-    mpvService.openFile(req.filePath, wc, req.renderWidth, req.renderHeight);
-  });
+  h(ipcChannels.mpvOpen, (event, req: MpvOpenRequest) =>
+    safe(ipcChannels.mpvOpen, () => mpvService.openFile(req.filePath, event.sender, req.renderWidth, req.renderHeight))
+  );
+  h(ipcChannels.mpvClose, () => safe(ipcChannels.mpvClose, () => mpvService.closeSession()));
+  h(ipcChannels.mpvPlay,  () => safe(ipcChannels.mpvPlay,  () => mpvService.play()));
+  h(ipcChannels.mpvPause, () => safe(ipcChannels.mpvPause, () => mpvService.pause()));
 
-  ipcMain.handle(ipcChannels.mpvClose, () => mpvService.closeSession());
-  ipcMain.handle(ipcChannels.mpvPlay,  () => mpvService.play());
-  ipcMain.handle(ipcChannels.mpvPause, () => mpvService.pause());
-
-  ipcMain.handle(ipcChannels.mpvSeek,          (_e, s: number)  => mpvService.seek(s));
-  ipcMain.handle(ipcChannels.mpvSetVolume,      (_e, v: number)  => mpvService.setVolume(v));
-  ipcMain.handle(ipcChannels.mpvSetAudioTrack,  (_e, id: number) => mpvService.setAudioTrack(id));
-  ipcMain.handle(ipcChannels.mpvSetSubTrack,    (_e, id: number) => mpvService.setSubTrack(id));
-  ipcMain.handle(ipcChannels.mpvSetSpeed,       (_e, s: number)  => mpvService.setSpeed(s));
-  ipcMain.handle(ipcChannels.mpvSetRenderSize,  (_e, w: number, h: number) => mpvService.setRenderSize(w, h));
-  ipcMain.handle(ipcChannels.mpvSetSubFile,     (_e, path: string) => mpvService.setSubFile(path));
+  h(ipcChannels.mpvSeek,         (_e, s: number)          => safe(ipcChannels.mpvSeek,         () => mpvService.seek(s)));
+  h(ipcChannels.mpvSetVolume,    (_e, v: number)          => safe(ipcChannels.mpvSetVolume,    () => mpvService.setVolume(v)));
+  h(ipcChannels.mpvSetAudioTrack,(_e, id: number)         => safe(ipcChannels.mpvSetAudioTrack,() => mpvService.setAudioTrack(id)));
+  h(ipcChannels.mpvSetSubTrack,  (_e, id: number)         => safe(ipcChannels.mpvSetSubTrack,  () => mpvService.setSubTrack(id)));
+  h(ipcChannels.mpvSetSpeed,     (_e, s: number)          => safe(ipcChannels.mpvSetSpeed,     () => mpvService.setSpeed(s)));
+  h(ipcChannels.mpvSetRenderSize,(_e, w: number, h2: number) => safe(ipcChannels.mpvSetRenderSize, () => mpvService.setRenderSize(w, h2)));
+  h(ipcChannels.mpvSetSubFile,   (_e, path: string)       => safe(ipcChannels.mpvSetSubFile,   () => mpvService.setSubFile(path)));
 }
 
 function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibraryRequest {

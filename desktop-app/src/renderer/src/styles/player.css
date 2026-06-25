@@ -305,12 +305,59 @@
 
 .mpv-volume-slider {
   -webkit-appearance: none;
-  width: 72px;
+  appearance: none;
+  width: 80px;
   height: 4px;
-  background: rgba(255,255,255,0.3);
   border-radius: 2px;
   cursor: pointer;
-  accent-color: var(--primary, #89ceff);
+  outline: none;
+  /* Fill is faked via a background gradient driven by a CSS custom property
+     set inline on the element (--vol). Falls back to 80% if not set. */
+  background: linear-gradient(
+    to right,
+    var(--primary, #89ceff) 0%,
+    var(--primary, #89ceff) var(--vol, 80%),
+    rgba(255,255,255,0.28) var(--vol, 80%),
+    rgba(255,255,255,0.28) 100%
+  );
+}
+
+.mpv-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.12s;
+}
+
+.mpv-volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.mpv-volume-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.mpv-volume-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.28);
+}
+
+.mpv-volume-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--primary, #89ceff);
 }
 
 .mpv-time {

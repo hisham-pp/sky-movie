@@ -241,7 +241,7 @@ class MpvPlayer : public Napi::ObjectWrap<MpvPlayer> {
         }
 
         int sw_size[2]  = {w, h};
-        const char* fmt = "rgba";
+        const char* fmt = "bgra";
         size_t stride   = (size_t)w * 4;
         void*  ptr      = frame_buf_.data();
 

@@ -1,5 +1,8 @@
-import { appendFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readdirSync, renameSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+
+// Rotate the log file when it exceeds this size (50 MB)
+const MAX_LOG_BYTES = 50 * 1024 * 1024;
 
 interface Logger {
   info(...args: any[]): void;
@@ -29,6 +32,14 @@ function formatArgs(args: any[]): string {
 function writeToFile(line: string): void {
   if (!logFilePath) return;
   try {
+    // Rotate if the file has grown beyond the size cap
+    try {
+      if (statSync(logFilePath).size > MAX_LOG_BYTES) {
+        const rotated = logFilePath.replace(/\.log$/, '.1.log');
+        try { unlinkSync(rotated); } catch {}
+        renameSync(logFilePath, rotated);
+      }
+    } catch {}
     appendFileSync(logFilePath, line + '\n');
   } catch {
     // ignore — don't crash the app over logging

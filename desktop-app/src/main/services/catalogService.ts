@@ -24,15 +24,21 @@ export class CatalogService {
   }
 
   getMovieById(id: number): DetailResult<Movie> {
-    const row = this.db.prepare('SELECT * FROM movies WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    const row = this.db.prepare(
+      `SELECT m.*, GROUP_CONCAT(mf.id) AS _file_ids
+       FROM movies m
+       LEFT JOIN media_files mf ON mf.matched_movie_id = m.id
+       WHERE m.id = ?
+       GROUP BY m.id`
+    ).get(id) as Record<string, unknown> | undefined;
+
+    if (!row) return { item: null, files: [] };
+
     const files = this.db
       .prepare('SELECT * FROM media_files WHERE matched_movie_id = ? ORDER BY file_name ASC')
       .all(id) as Record<string, unknown>[];
 
-    return {
-      item: row ? mapMovie(row) : null,
-      files: files.map(mapMediaFile)
-    };
+    return { item: mapMovie(row), files: files.map(mapMediaFile) };
   }
 
   getShows(query = ''): TvShow[] {
@@ -129,24 +135,21 @@ export class CatalogService {
   }
 
   async deleteMediaFile(fileId: number): Promise<void> {
-    const file = this.db.prepare('SELECT absolute_path FROM media_files WHERE id = ?').get(fileId) as { absolute_path: string } | undefined;
-    
-    if (!file) {
-      throw new Error('File not found');
-    }
+    const file = this.db
+      .prepare('SELECT absolute_path FROM media_files WHERE id = ?')
+      .get(fileId) as { absolute_path: string } | undefined;
 
-    // Delete the file from disk
+    if (!file) throw new Error('Media file not found in library');
+
     try {
       await unlinkAsync(file.absolute_path);
-    } catch (error) {
-      console.error(`Failed to delete file ${file.absolute_path}:`, error);
-      throw new Error('Failed to delete file from disk');
+    } catch (err: unknown) {
+      const code = (err as NodeJS.ErrnoException).code;
+      // ENOENT means the file was already gone — still clean up the DB record
+      if (code !== 'ENOENT') throw new Error(`Failed to delete file from disk: ${(err as Error).message}`);
     }
 
-    // Delete the media file record
     this.db.prepare('DELETE FROM media_files WHERE id = ?').run(fileId);
-
-    // Clean up orphaned movies, shows, episodes, etc.
     pruneOrphans(this.db);
   }
 }

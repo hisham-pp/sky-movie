@@ -40,6 +40,11 @@ interface TranscodeJob {
   process: ChildProcess;
   codec: string;
   done: boolean;
+  // Active HTTP connections serving this job. When it drops to zero after
+  // a short grace period we kill the FFmpeg process so a refresh/nav-away
+  // doesn't leave dozens of orphaned processes outputting audio.
+  activeConnections: number;
+  killTimer: ReturnType<typeof setTimeout> | null;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -55,6 +60,9 @@ async function readFileSlice(filePath: string, start: number, end: number): Prom
     stream.on('error', reject);
   });
 }
+
+// Max total size of the temp directory before old files are evicted (2 GB).
+const MAX_TEMP_BYTES = 2 * 1024 * 1024 * 1024;
 
 export class StreamingServer {
   private server: ReturnType<typeof createServer> | null = null;
@@ -97,11 +105,28 @@ export class StreamingServer {
   private cleanOldTempFiles(): void {
     const maxAge = 2 * 60 * 60 * 1000; // 2 hours
     try {
+      const entries: Array<{ fp: string; mtime: number; size: number }> = [];
       for (const f of readdirSync(this.tempDir)) {
         try {
           const fp = join(this.tempDir, f);
-          if (Date.now() - statSync(fp).mtimeMs > maxAge) unlinkSync(fp);
+          const st = statSync(fp);
+          if (Date.now() - st.mtimeMs > maxAge) {
+            unlinkSync(fp);
+          } else {
+            entries.push({ fp, mtime: st.mtimeMs, size: st.size });
+          }
         } catch {}
+      }
+
+      // Evict oldest files first if total size exceeds cap
+      const total = entries.reduce((s, e) => s + e.size, 0);
+      if (total > MAX_TEMP_BYTES) {
+        entries.sort((a, b) => a.mtime - b.mtime);
+        let running = total;
+        for (const e of entries) {
+          if (running <= MAX_TEMP_BYTES) break;
+          try { unlinkSync(e.fp); running -= e.size; } catch {}
+        }
       }
     } catch {}
   }
@@ -160,6 +185,44 @@ export class StreamingServer {
    * FFmpeg transcodes to <tempDir>/<fileId>-<audioTrack>.mp4 once; any
    * subsequent request (including range / resume) is served from that file.
    */
+  private killJob(jobKey: string): void {
+    const job = this.jobs.get(jobKey);
+    if (!job) return;
+    if (job.killTimer) { clearTimeout(job.killTimer); job.killTimer = null; }
+    if (!job.done) {
+      try { job.process.kill('SIGKILL'); } catch {}
+    }
+    this.jobs.delete(jobKey);
+    log.info(`Killed transcode job ${jobKey}`);
+  }
+
+  private trackConnection(jobKey: string, req: IncomingMessage): void {
+    const job = this.jobs.get(jobKey);
+    if (!job) return;
+
+    // Cancel any pending kill — a new connection just arrived
+    if (job.killTimer) { clearTimeout(job.killTimer); job.killTimer = null; }
+    job.activeConnections++;
+
+    req.on('close', () => {
+      const j = this.jobs.get(jobKey);
+      if (!j) return;
+      j.activeConnections = Math.max(0, j.activeConnections - 1);
+      if (j.activeConnections === 0 && !j.done) {
+        // All connections closed (page refresh / navigate away). Wait 3 s in
+        // case the browser immediately reconnects (seek / resume). If nothing
+        // reconnects, kill the FFmpeg process.
+        j.killTimer = setTimeout(() => {
+          const still = this.jobs.get(jobKey);
+          if (still && still.activeConnections === 0 && !still.done) {
+            log.info(`No active connections for ${jobKey} — killing FFmpeg`);
+            this.killJob(jobKey);
+          }
+        }, 3000);
+      }
+    });
+  }
+
   private async streamMKV(
     req: IncomingMessage,
     res: ServerResponse,
@@ -171,18 +234,40 @@ export class StreamingServer {
     const outputPath = join(this.tempDir, `${jobKey}.mp4`);
     const ffmpegPath = ffmpegManager.getFFmpegPath();
 
-    // Probe the file for stream info.
+    // ── Dedup check BEFORE spawnSync ────────────────────────────────────────
+    // spawnSync blocks the Node.js event loop for ~500ms. If we check for an
+    // existing job AFTER spawnSync, all the simultaneous byte-range requests
+    // that were queued during the block all see jobAlive=false and each spawn
+    // their own FFmpeg process → hundreds of processes, duplicate audio.
+    // Checking FIRST means only the very first request ever starts a transcode.
+    {
+      const outputExists = existsSync(outputPath);
+      const job = this.jobs.get(jobKey);
+      const jobAlive = !!job && !job.done && job.process.exitCode === null;
+
+      // File exists from a previous session or job already running — skip probe
+      if (outputExists || jobAlive) {
+        this.trackConnection(jobKey, req);
+        // Fall through to wait + serve below
+        return this.waitAndServe(req, res, outputPath, jobKey);
+      }
+
+      // Stale map entry for a dead process — clean up
+      if (job) {
+        try { job.process.kill('SIGKILL'); } catch {}
+        this.jobs.delete(jobKey);
+      }
+    }
+
+    // ── Probe file (only runs once per job) ─────────────────────────────────
     const probe = spawnSync(ffmpegPath, ['-i', filePath], { encoding: 'utf8', timeout: 5000 });
     const probeInfo = probe.stderr ?? '';
 
-    // Video codec selection
     const videoCodec = /Video: hevc|Video: av1|Video: vp9|Video: mpeg2video/i.test(probeInfo)
       ? 'libx264'
       : 'copy';
     log.info(videoCodec === 'libx264' ? 'Non-H264 — transcoding to H264' : 'H264 — stream copy');
 
-    // Audio stream selection: prefer a native browser-compatible track (AAC / MP3 / Opus)
-    // so we can stream-copy without any re-encoding.
     const audioStreamRegex = /Stream #0:\d+(?:\([^)]*\))?: Audio: (\w+)/g;
     const audioStreams: Array<{ codec: string; idx: number }> = [];
     let m: RegExpExecArray | null;
@@ -195,12 +280,10 @@ export class StreamingServer {
     let audioEncodeArgs: string[];
 
     if (nativeIdx !== -1) {
-      // Stream-copy the native track — no transcoding, no quality loss
       audioMap = `0:a:${nativeIdx}`;
       audioEncodeArgs = ['-c:a', 'copy'];
       log.info(`Using native ${audioStreams[nativeIdx].codec} audio (stream idx ${nativeIdx}) — copy`);
     } else {
-      // Transcode the requested track to AAC stereo
       audioMap = `0:a:${audioTrack}`;
       audioEncodeArgs = [
         '-af', 'aformat=channel_layouts=stereo',
@@ -211,93 +294,93 @@ export class StreamingServer {
       log.info(`No native audio track — transcoding track ${audioTrack} to AAC stereo`);
     }
 
-    const outputExists = existsSync(outputPath);
-    const job = this.jobs.get(jobKey);
-    const jobAlive = !!job && !job.done && job.process.exitCode === null;
-
-    if (!outputExists && !jobAlive) {
-      // Kill any stale entry for this key
-      if (job) {
-        try { job.process.kill('SIGKILL'); } catch {}
-        this.jobs.delete(jobKey);
+    // Re-check after the blocking probe — another request may have started the
+    // job during the spawnSync (shouldn't happen since spawnSync blocks, but
+    // be defensive).
+    {
+      const outputExists = existsSync(outputPath);
+      const existingJob = this.jobs.get(jobKey);
+      const jobAlive = !!existingJob && !existingJob.done && existingJob.process.exitCode === null;
+      if (outputExists || jobAlive) {
+        this.trackConnection(jobKey, req);
+        return this.waitAndServe(req, res, outputPath, jobKey);
       }
-
-      const args = [
-        '-i', filePath,
-        '-map', '0:v:0',
-        '-map', audioMap,
-        // Video: stream-copy H264 or re-encode HEVC/AV1 to H264
-        '-c:v', videoCodec,
-        ...(videoCodec !== 'copy' ? ['-preset', 'ultrafast', '-crf', '28'] : []),
-        // Audio: either stream-copy native AAC or transcode to AAC stereo
-        ...audioEncodeArgs,
-        '-f', 'mp4',
-        // frag_keyframe: fragment at video keyframes so the browser can start
-        // playing before the file is complete.
-        // default_base_moof: use absolute timestamps for correct seeking.
-        // No empty_moov: with a temp file the browser waits for real moov data,
-        // so omitting empty_moov gives us a complete moov with full codec info
-        // (which Chromium needs to initialise the audio decoder).
-        // empty_moov: write the moov atom (with duration + codec info) immediately
-        // so the browser can show the seek bar before transcoding finishes.
-        // frag_keyframe: one fragment per video keyframe → browser can play the
-        // first fragment without waiting for the full file.
-        '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
-        '-fflags', '+genpts',
-        '-y',
-        outputPath
-      ];
-
-      log.info('Starting transcode', { jobKey, codec: videoCodec });
-      log.debug('FFmpeg args:', args.join(' '));
-
-      let proc: ChildProcess;
-      try {
-        proc = spawn(ffmpegPath, args, {
-          stdio: ['ignore', 'ignore', 'pipe'],
-          windowsHide: true
-        });
-      } catch (e) {
-        log.error('Failed to spawn FFmpeg:', e);
-        res.writeHead(503, { 'Content-Type': 'text/plain' });
-        res.end('FFmpeg not available');
-        return;
-      }
-
-      const newJob: TranscodeJob = {
-        filePath,
-        outputPath,
-        process: proc,
-        codec: videoCodec,
-        done: false
-      };
-      this.jobs.set(jobKey, newJob);
-
-      proc.stderr?.on('data', (d: Buffer) => {
-        const s = d.toString().trimEnd();
-        if (/error|invalid|no such/i.test(s)) {
-          log.error('FFmpeg stderr:', s);
-        } else {
-          log.debug('FFmpeg stderr:', s);
-        }
-      });
-
-      proc.on('close', (code) => {
-        log.info(`Transcode ${jobKey} exited with code ${code}`);
-        const j = this.jobs.get(jobKey);
-        if (j) j.done = true;
-      });
-
-      proc.on('error', (e) => {
-        log.error(`Transcode ${jobKey} error:`, e);
-        const j = this.jobs.get(jobKey);
-        if (j) j.done = true;
-      });
     }
 
-    // Wait for the moov atom + first fragment to land (≈8 KB with empty_moov).
-    // empty_moov makes FFmpeg write the moov atom immediately, so this resolves
-    // within the first ~500 ms of transcoding rather than waiting for 64 KB.
+    // ── Start FFmpeg ─────────────────────────────────────────────────────────
+    const args = [
+      '-i', filePath,
+      '-map', '0:v:0',
+      '-map', audioMap,
+      '-c:v', videoCodec,
+      ...(videoCodec !== 'copy' ? ['-preset', 'ultrafast', '-crf', '28'] : []),
+      ...audioEncodeArgs,
+      '-f', 'mp4',
+      '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
+      '-fflags', '+genpts',
+      '-y',
+      outputPath
+    ];
+
+    log.info('Starting transcode', { jobKey, codec: videoCodec });
+    log.debug('FFmpeg args:', args.join(' '));
+
+    let proc: ChildProcess;
+    try {
+      proc = spawn(ffmpegPath, args, {
+        stdio: ['ignore', 'ignore', 'pipe'],
+        windowsHide: true
+      });
+    } catch (e) {
+      log.error('Failed to spawn FFmpeg:', e);
+      res.writeHead(503, { 'Content-Type': 'text/plain' });
+      res.end('FFmpeg not available');
+      return;
+    }
+
+    const newJob: TranscodeJob = {
+      filePath,
+      outputPath,
+      process: proc,
+      codec: videoCodec,
+      done: false,
+      activeConnections: 0,
+      killTimer: null
+    };
+    this.jobs.set(jobKey, newJob);
+
+    proc.stderr?.on('data', (d: Buffer) => {
+      const s = d.toString().trimEnd();
+      if (/error|invalid|no such/i.test(s)) {
+        log.error('FFmpeg stderr:', s);
+      } else {
+        log.debug('FFmpeg stderr:', s);
+      }
+    });
+
+    proc.on('close', (code) => {
+      log.info(`Transcode ${jobKey} exited with code ${code}`);
+      const j = this.jobs.get(jobKey);
+      if (j) j.done = true;
+    });
+
+    proc.on('error', (e) => {
+      log.error(`Transcode ${jobKey} error:`, e);
+      const j = this.jobs.get(jobKey);
+      if (j) j.done = true;
+    });
+
+    this.trackConnection(jobKey, req);
+    return this.waitAndServe(req, res, outputPath, jobKey);
+  }
+
+  private async waitAndServe(
+    req: IncomingMessage,
+    res: ServerResponse,
+    outputPath: string,
+    jobKey: string
+  ): Promise<void> {
+
     const waitDeadline = Date.now() + 8000;
     while (Date.now() < waitDeadline) {
       if (existsSync(outputPath) && statSync(outputPath).size > 8192) break;
@@ -315,13 +398,11 @@ export class StreamingServer {
 
     const currentJob = this.jobs.get(jobKey);
 
-    // If transcoding is complete, serve as a normal static file
     if (!currentJob || currentJob.done) {
       await this.streamDirectFile(req, res, outputPath);
       return;
     }
 
-    // Still transcoding — stream the growing file
     await this.serveGrowingFile(req, res, outputPath, currentJob);
   }
 
@@ -545,6 +626,7 @@ export class StreamingServer {
 
   stop(): void {
     for (const [key, job] of this.jobs) {
+      if (job.killTimer) clearTimeout(job.killTimer);
       if (!job.done) {
         try { job.process.kill('SIGKILL'); } catch {}
       }

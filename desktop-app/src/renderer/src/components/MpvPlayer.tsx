@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useEffect,
   useRef,
@@ -408,6 +408,7 @@ export function MpvPlayer({
                 type="range"
                 min={0} max={100} step={1}
                 value={state.muted ? 0 : state.volume}
+                style={{ '--vol': `${state.muted ? 0 : state.volume}%` } as React.CSSProperties}
                 onChange={e => changeVolume(Number(e.target.value))}
               />
             </div>
