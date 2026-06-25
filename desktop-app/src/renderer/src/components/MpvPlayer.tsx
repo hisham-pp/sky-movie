@@ -13,8 +13,12 @@ import {
   Maximize,
   Minimize,
   Settings,
-  ChevronDown
+  ChevronDown,
+  RotateCcw,
+  RotateCw
 } from 'lucide-react';
+
+const VOLUME_MAX = 200;
 import type { MpvTrack } from '@shared/ipc';
 import type { PlayMediaResult } from '@shared/ipc';
 
@@ -45,7 +49,7 @@ const DEFAULT_STATE: PlayerState = {
   playing:   false,
   position:  0,
   duration:  0,
-  volume:    80,
+  volume:    100,
   muted:     false,
   speed:     1,
   buffering: true
@@ -71,6 +75,15 @@ export function MpvPlayer({
   const [isFullscreen, setFullscr]  = useState(false);
   const [showMenu,   setShowMenu]   = useState<'audio' | 'sub' | 'speed' | null>(null);
   const [error,      setError]      = useState<string | null>(null);
+  const [volOsd,     setVolOsd]     = useState(false);   // top-left volume OSD
+  const [volExpanded, setVolExpand] = useState(false);   // hover-expand in controls bar
+  const volOsdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Gesture ripple: null | 'left' | 'right'
+  const [ripple, setRipple] = useState<'left' | 'right' | null>(null);
+  const rippleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Double-click detection
+  const clickTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickCount  = useRef(0);
 
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seeking   = useRef(false);
@@ -241,7 +254,7 @@ export function MpvPlayer({
         case 'ArrowUp':
           e.preventDefault();
           resetHideTimer();
-          changeVolume(Math.min(100, stateRef.current.volume + 5));
+          changeVolume(Math.min(VOLUME_MAX, stateRef.current.volume + 5));
           break;
         case 'ArrowDown':
           e.preventDefault();
@@ -298,9 +311,56 @@ export function MpvPlayer({
     window.skyMovie.mpvSetVolume(muted ? 0 : stateRef.current.volume).catch(() => {});
   };
 
+  const showVolOsd = () => {
+    setVolOsd(true);
+    if (volOsdTimer.current) clearTimeout(volOsdTimer.current);
+    volOsdTimer.current = setTimeout(() => setVolOsd(false), 1800);
+  };
+
+  const showRipple = (side: 'left' | 'right') => {
+    setRipple(side);
+    if (rippleTimer.current) clearTimeout(rippleTimer.current);
+    rippleTimer.current = setTimeout(() => setRipple(null), 600);
+  };
+
+  // YouTube-style: single click = play/pause, double-click left/right = ±10s
+  const onVideoClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Ignore clicks that originated inside the controls bar
+    if ((e.target as HTMLElement).closest('.mpv-controls')) return;
+    resetHideTimer();
+    clickCount.current += 1;
+    if (clickCount.current === 1) {
+      clickTimer.current = setTimeout(() => {
+        if (clickCount.current === 1) togglePlay();
+        clickCount.current = 0;
+      }, 250);
+    } else if (clickCount.current === 2) {
+      if (clickTimer.current) clearTimeout(clickTimer.current);
+      clickCount.current = 0;
+      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+      const isLeft = e.clientX - rect.left < rect.width / 2;
+      if (isLeft) {
+        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - 10)).catch(() => {});
+        showRipple('left');
+      } else {
+        window.skyMovie.mpvSeek(stateRef.current.position + 10).catch(() => {});
+        showRipple('right');
+      }
+    }
+  };
+
+  // Scroll wheel = volume
+  const onVideoWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('.mpv-controls')) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 5 : -5;
+    changeVolume(Math.min(VOLUME_MAX, Math.max(0, stateRef.current.volume + delta)));
+  };
+
   const changeVolume = (v: number) => {
     updateState({ volume: v, muted: v === 0 });
     window.skyMovie.mpvSetVolume(v).catch(() => {});
+    showVolOsd();
   };
 
   const toggleFullscreen = () => {
@@ -354,9 +414,33 @@ export function MpvPlayer({
       className="mpv-player"
       onMouseMove={resetHideTimer}
       onPointerDown={() => setShowMenu(null)}
+      onClick={onVideoClick}
+      onWheel={onVideoWheel}
     >
       {/* Video canvas */}
       <canvas ref={canvasRef} className="mpv-canvas" />
+
+      {/* Double-click skip ripples (YouTube style) */}
+      <div className={`mpv-ripple mpv-ripple-left${ripple === 'left' ? ' active' : ''}`}>
+        <RotateCcw size={28} />
+        <span>10 seconds</span>
+      </div>
+      <div className={`mpv-ripple mpv-ripple-right${ripple === 'right' ? ' active' : ''}`}>
+        <RotateCw size={28} />
+        <span>10 seconds</span>
+      </div>
+
+      {/* Top-left volume OSD — appears on keyboard volume change */}
+      <div className={`mpv-vol-osd${volOsd ? ' visible' : ''}`}>
+        {state.muted || state.volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        <div className="mpv-vol-osd-bar">
+          <div
+            className="mpv-vol-osd-fill"
+            style={{ width: `${((state.muted ? 0 : state.volume) / VOLUME_MAX) * 100}%` }}
+          />
+        </div>
+        <span>{state.muted ? 0 : Math.round(state.volume)}%</span>
+      </div>
 
       {/* Buffering spinner */}
       {state.buffering && (
@@ -391,31 +475,67 @@ export function MpvPlayer({
           </div>
         </div>
 
-        {/* Bottom row */}
+        {/* Bottom row — left / center / right */}
         <div className="mpv-bottom">
-          {/* Left group */}
+          {/* Left: volume (collapsed, expands on hover) + time */}
           <div className="mpv-left">
-            <button className="mpv-btn" onClick={togglePlay} title={state.playing ? 'Pause (Space)' : 'Play (Space)'}>
-              {state.playing ? <Pause size={18} /> : <Play size={18} />}
-            </button>
-
-            <div className="mpv-volume-group">
+            <div
+              className={`mpv-volume-group${volExpanded ? ' expanded' : ''}`}
+              onMouseEnter={() => setVolExpand(true)}
+              onMouseLeave={() => setVolExpand(false)}
+            >
               <button className="mpv-btn" onClick={toggleMute} title="Mute (M)">
                 {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
-              <input
-                className="mpv-volume-slider"
-                type="range"
-                min={0} max={100} step={1}
-                value={state.muted ? 0 : state.volume}
-                style={{ '--vol': `${state.muted ? 0 : state.volume}%` } as React.CSSProperties}
-                onChange={e => changeVolume(Number(e.target.value))}
-              />
+              <div className="mpv-volume-expand">
+                <input
+                  className="mpv-volume-slider"
+                  type="range"
+                  min={0} max={VOLUME_MAX} step={1}
+                  value={state.muted ? 0 : state.volume}
+                  style={{ '--vol': `${((state.muted ? 0 : state.volume) / VOLUME_MAX) * 100}%` } as React.CSSProperties}
+                  onChange={e => changeVolume(Number(e.target.value))}
+                />
+                <span className="mpv-vol-label">{state.muted ? 0 : Math.round(state.volume)}%</span>
+              </div>
             </div>
 
             <span className="mpv-time">
               {formatTime(state.position)} / {formatTime(state.duration)}
             </span>
+          </div>
+
+          {/* Center: −10s · play/pause · +10s */}
+          <div className="mpv-center">
+            <button
+              className="mpv-btn mpv-skip-btn"
+              onClick={() => window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - 10)).catch(() => {})}
+              title="Rewind 10s"
+            >
+              <span className="mpv-skip-inner">
+                <RotateCcw size={18} />
+                <span className="mpv-skip-label">10</span>
+              </span>
+            </button>
+
+            <button
+              className="mpv-btn mpv-play-btn"
+              onClick={togglePlay}
+              title={state.playing ? 'Pause (Space)' : 'Play (Space)'}
+            >
+              {state.playing ? <Pause size={22} /> : <Play size={22} />}
+            </button>
+
+            <button
+              className="mpv-btn mpv-skip-btn"
+              onClick={() => window.skyMovie.mpvSeek(stateRef.current.position + 10).catch(() => {})}
+              title="Forward 10s"
+            >
+              <span className="mpv-skip-inner">
+                <RotateCw size={18} />
+                <span className="mpv-skip-label">10</span>
+              </span>
+            </button>
           </div>
 
           {/* Right group */}
