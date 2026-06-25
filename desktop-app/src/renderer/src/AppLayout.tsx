@@ -8,6 +8,7 @@ import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { useLibraryController } from './hooks/useLibraryController';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
+import { LoadingScreen } from './components/LoadingScreen';
 import type { ViewMode } from './types';
 
 export function AppLayout() {
@@ -98,6 +99,8 @@ export function AppLayout() {
   };
 
   return (
+    <>
+    <LoadingScreen visible={library.settings === null} />
     <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}`} data-theme={theme}>
       <Sidebar
         view={currentView}
@@ -157,5 +160,6 @@ export function AppLayout() {
 
       </section>
     </main>
+    </>
   );
 }
