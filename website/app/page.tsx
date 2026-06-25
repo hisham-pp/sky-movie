@@ -29,44 +29,41 @@ const releaseManifest = releaseManifestJson as ReleaseManifest;
 export default function Home() {
   const latestRelease = releaseManifest.releases[0];
   const secondRelease = releaseManifest.releases[1];
-  
-  // Get download artifacts for common platforms
-  const getDmgArtifact = (release: typeof latestRelease) => 
+
+  const getDmgArtifact = (release: typeof latestRelease) =>
     release?.artifacts.find(a => a.kind === 'dmg');
-  const getExeArtifact = (release: typeof latestRelease) => 
+  const getExeArtifact = (release: typeof latestRelease) =>
     release?.artifacts.find(a => a.kind === 'installer');
-  
+
   const latestDmg = getDmgArtifact(latestRelease);
   const latestExe = getExeArtifact(latestRelease);
-  
+
   const formatReleaseDate = (dateStr: string | null) => {
     if (!dateStr) return 'Not released yet';
     const date = new Date(dateStr);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+    const diffDays = Math.ceil(Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
     return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
   };
-  
+
   const isBetaVersion = (version: string) => {
     const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
     if (!match) return false;
-    const major = parseInt(match[1]);
-    return major < 1;
+    return parseInt(match[1]) < 1;
   };
-  
+
   return (
     <>
-      {/* Global Top Bar */}
+      {/* Top Bar */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-surface/40 flex justify-between items-center px-container-padding h-20">
         <div className="flex items-center gap-4">
           <span className="font-display-lg text-headline-sm text-primary tracking-tight">Sky Movie</span>
         </div>
         <nav className="hidden md:flex items-center gap-8">
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#features">Features</a>
+          <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#player">Player</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#downloads">Download</a>
           <Link className="text-secondary font-label-md hover:text-primary transition-colors" href="/docs">Docs</Link>
           <a className="px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-primary font-label-md transition-all flex items-center gap-2" href={repoUrl}>
@@ -77,19 +74,19 @@ export default function Home() {
       </header>
 
       <main>
-        {/* Hero Section */}
+        {/* Hero */}
         <section className="relative pt-40 pb-20 px-container-padding overflow-hidden">
           <div className="max-w-5xl mx-auto text-center relative z-10">
             <h1 className="font-display-lg text-[64px] md:text-[80px] leading-[1.1] mb-6 tracking-tight">
               Your Personal Cinema, <span className="gradient-text">Perfected.</span>
             </h1>
             <p className="font-body-lg text-secondary max-w-2xl mx-auto mb-10 text-lg md:text-xl">
-              The premium media manager for the cinematic connoisseur. Scan local collections, automate metadata, and experience your library in stunning 4K HDR.
+              The premium media manager for the cinematic connoisseur. Scan local collections, automate metadata, and experience your library with a native libmpv player — smooth, fast, and gesture-driven.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a className="w-full sm:w-auto px-8 py-4 bg-primary text-on-primary font-label-md text-base rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2" href="#downloads">
                 <span className="material-symbols-outlined">download</span>
-                Download on GitHub
+                Download Free
               </a>
               <Link className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-primary font-label-md text-base rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2" href="/docs">
                 View Documentation
@@ -98,13 +95,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Product Preview (Mockup) */}
+        {/* App Screenshot */}
         <section className="px-container-padding pb-stack-lg max-w-7xl mx-auto">
           <div className="relative group">
             <div className="glass-panel p-2 rounded-[32px] shadow-2xl overflow-hidden group-hover:border-primary/30 transition-colors duration-500">
               <div className="rounded-[24px] overflow-hidden relative aspect-[16/10] bg-surface-container-lowest">
                 <div className="flex h-full">
-                  <div className="w-[200px] border-r border-white/5 h-full bg-surface-dim/80 p-6 flex flex-col gap-6 hidden lg:flex">
+                  <div className="w-[200px] border-r border-white/5 h-full bg-surface-dim/80 p-6 flex-col gap-6 hidden lg:flex">
                     <div className="w-8 h-8 bg-primary rounded-lg mb-4"></div>
                     <div className="space-y-4">
                       <div className="h-2 w-24 bg-primary/20 rounded"></div>
@@ -139,8 +136,12 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Grid */}
+        {/* Library Features Grid */}
         <section className="py-24 px-container-padding max-w-7xl mx-auto" id="features">
+          <div className="text-center mb-16">
+            <h2 className="font-headline-md text-3xl md:text-4xl mb-4">Everything your library needs</h2>
+            <p className="text-secondary font-body-lg max-w-xl mx-auto">From scanning to playback, Sky Movie handles your entire collection with zero compromise.</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-grid-gutter">
             <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
@@ -162,8 +163,8 @@ export default function Home() {
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-3xl">high_quality</span>
               </div>
-              <h3 className="font-headline-sm text-xl mb-3">4K & HDR Support</h3>
-              <p className="text-secondary text-sm leading-relaxed">Full technical info displays for your high-fidelity collection, including HDR10+ and Dolby Vision.</p>
+              <h3 className="font-headline-sm text-xl mb-3">4K &amp; HDR Support</h3>
+              <p className="text-secondary text-sm leading-relaxed">Full technical info for your high-fidelity collection, including HDR10+ and Dolby Vision.</p>
             </div>
 
             <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
@@ -176,7 +177,173 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Downloads Section */}
+        {/* ── Player Showcase ───────────────────────────────────────────────── */}
+        <section className="py-24 px-container-padding relative overflow-hidden" id="player">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10"></div>
+          <div className="max-w-7xl mx-auto">
+
+            {/* Heading */}
+            <div className="text-center mb-20">
+              <span className="inline-flex items-center gap-2 text-primary text-sm font-label-md bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full mb-6">
+                <span className="material-symbols-outlined text-base">play_circle</span>
+                Native libmpv Player
+              </span>
+              <h2 className="font-headline-md text-3xl md:text-5xl mb-6">
+                A player built for <span className="gradient-text">real cinephiles.</span>
+              </h2>
+              <p className="text-secondary font-body-lg max-w-2xl mx-auto text-lg">
+                Powered by libmpv under the hood — the same engine behind VLC and MPV. Hardware-decoded, frame-accurate, and gesture-native.
+              </p>
+            </div>
+
+            {/* Player mockup */}
+            <div className="relative max-w-4xl mx-auto mb-24">
+              <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl border-white/10">
+                {/* Fake player chrome */}
+                <div className="relative bg-black aspect-video flex items-end">
+                  {/* Placeholder video frame */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-950 flex items-center justify-center">
+                    <div className="text-center opacity-20">
+                      <span className="material-symbols-outlined text-8xl text-white">movie</span>
+                    </div>
+                  </div>
+
+                  {/* Skip ripple indicator — left */}
+                  <div className="absolute left-[10%] top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 border border-white/20">
+                    <span className="material-symbols-outlined text-white text-2xl">replay_10</span>
+                    <span className="text-white text-[10px] font-bold">10 sec</span>
+                  </div>
+
+                  {/* Skip ripple indicator — right */}
+                  <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 border border-white/20 opacity-40">
+                    <span className="material-symbols-outlined text-white text-2xl">forward_10</span>
+                    <span className="text-white text-[10px] font-bold">10 sec</span>
+                  </div>
+
+                  {/* Volume OSD badge */}
+                  <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-xl px-3 py-2 border border-white/10">
+                    <span className="material-symbols-outlined text-white text-base">volume_up</span>
+                    <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
+                      <div className="h-full w-3/4 bg-primary rounded-full"></div>
+                    </div>
+                    <span className="text-white text-xs font-bold tabular-nums">150%</span>
+                  </div>
+
+                  {/* Controls bar */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-4 pb-3 pt-8">
+                    {/* Seek bar */}
+                    <div className="relative h-1 bg-white/20 rounded-full mb-3">
+                      <div className="absolute inset-y-0 left-0 w-[42%] bg-primary rounded-full"></div>
+                      <div className="absolute top-1/2 left-[42%] -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"></div>
+                    </div>
+                    {/* Bottom row: left / center / right */}
+                    <div className="grid grid-cols-3 items-center">
+                      {/* Left: volume + time */}
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-white text-lg opacity-80">volume_up</span>
+                        <span className="text-white/60 text-xs tabular-nums">1:23:44 / 2:11:30</span>
+                      </div>
+                      {/* Center: −10 · play · +10 */}
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="material-symbols-outlined text-white text-xl opacity-70">replay_10</span>
+                        <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-white text-xl">pause</span>
+                        </div>
+                        <span className="material-symbols-outlined text-white text-xl opacity-70">forward_10</span>
+                      </div>
+                      {/* Right: speed / audio / sub / fullscreen */}
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="text-white/60 text-xs">1×</span>
+                        <span className="text-white/60 text-xs">Audio</span>
+                        <span className="material-symbols-outlined text-white text-base opacity-70">settings</span>
+                        <span className="material-symbols-outlined text-white text-base opacity-70">fullscreen</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Glow */}
+              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-1/2 h-24 bg-primary/20 blur-[60px] -z-10"></div>
+            </div>
+
+            {/* Player feature cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+              <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">touch_app</span>
+                </div>
+                <h3 className="font-headline-sm text-lg mb-3">Gesture Controls</h3>
+                <ul className="text-secondary text-sm leading-relaxed space-y-2">
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Single click — Play / Pause</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Double-click left — Rewind 10s</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Double-click right — Forward 10s</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Scroll wheel — Volume</li>
+                </ul>
+              </div>
+
+              <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">volume_up</span>
+                </div>
+                <h3 className="font-headline-sm text-lg mb-3">Audio Boost up to 200%</h3>
+                <p className="text-secondary text-sm leading-relaxed mb-4">Push quiet content beyond 100% with native mpv audio amplification. A top-left OSD instantly shows your volume level whenever you adjust it.</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full w-3/4 bg-gradient-to-r from-primary to-primary/60 rounded-full"></div>
+                  </div>
+                  <span className="text-primary text-xs font-bold tabular-nums">150%</span>
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">keyboard</span>
+                </div>
+                <h3 className="font-headline-sm text-lg mb-3">Keyboard Shortcuts</h3>
+                <ul className="text-secondary text-sm leading-relaxed space-y-2">
+                  <li className="flex justify-between"><span>Space / K</span><kbd className="text-xs bg-white/5 border border-white/10 rounded px-1.5">Play/Pause</kbd></li>
+                  <li className="flex justify-between"><span>← / →</span><kbd className="text-xs bg-white/5 border border-white/10 rounded px-1.5">±5 seconds</kbd></li>
+                  <li className="flex justify-between"><span>↑ / ↓</span><kbd className="text-xs bg-white/5 border border-white/10 rounded px-1.5">Volume ±5%</kbd></li>
+                  <li className="flex justify-between"><span>F</span><kbd className="text-xs bg-white/5 border border-white/10 rounded px-1.5">Fullscreen</kbd></li>
+                  <li className="flex justify-between"><span>M</span><kbd className="text-xs bg-white/5 border border-white/10 rounded px-1.5">Mute</kbd></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Second row: wider cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+                <div className="flex items-start gap-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-2xl">tune</span>
+                  </div>
+                  <div>
+                    <h3 className="font-headline-sm text-lg mb-3">Track &amp; Subtitle Control</h3>
+                    <p className="text-secondary text-sm leading-relaxed">Switch audio tracks on the fly, toggle subtitles, or load external SRT / ASS files without interrupting playback. Multiple language tracks supported natively.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+                <div className="flex items-start gap-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-2xl">speed</span>
+                  </div>
+                  <div>
+                    <h3 className="font-headline-sm text-lg mb-3">Variable Speed &amp; Watch Progress</h3>
+                    <p className="text-secondary text-sm leading-relaxed">Playback speeds from 0.25× to 2×. Resume exactly where you left off — progress is saved automatically every 10 seconds and on close.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* Downloads */}
         <section className="py-20 bg-surface-container-low px-container-padding relative overflow-hidden" id="downloads">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
@@ -185,7 +352,7 @@ export default function Home() {
               {isBetaVersion(latestRelease?.version || '') && (
                 <div className="mt-6 max-w-2xl mx-auto p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
                   <p className="text-orange-400 text-sm">
-                    <strong>⚠️ Beta Software Notice:</strong> Windows may show a security warning because this app is not yet code-signed. 
+                    <strong>⚠️ Beta Software Notice:</strong> Windows may show a security warning because this app is not yet code-signed.
                     Click "More info" → "Run anyway" to install. The app is safe and open source.
                   </p>
                 </div>
@@ -278,18 +445,20 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Final CTA Section */}
+        {/* Final CTA */}
         <section className="py-32 px-container-padding text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5 -z-10"></div>
           <div className="max-w-3xl mx-auto">
-            <h2 className="font-headline-md text-4xl mb-8">Experience Cinema at Home.</h2>
+            <h2 className="font-headline-md text-4xl mb-4">Experience Cinema at Home.</h2>
+            <p className="text-secondary mb-10 font-body-lg">Native player. Gesture controls. Audio boost. Everything you need, nothing you don't.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-10 py-5 bg-primary text-on-primary rounded-2xl font-label-md text-lg hover:shadow-[0_0_40px_rgba(137,206,255,0.3)] transition-all">
+              <a href="#downloads" className="px-10 py-5 bg-primary text-on-primary rounded-2xl font-label-md text-lg hover:shadow-[0_0_40px_rgba(137,206,255,0.3)] transition-all">
                 Get Started Now
-              </button>
-              <button className="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-label-md text-lg hover:bg-white/10 transition-all">
+              </a>
+              <a href={repoUrl} className="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-label-md text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
                 Star on GitHub
-              </button>
+              </a>
             </div>
           </div>
         </section>
@@ -298,16 +467,16 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-background border-t border-white/5 pt-20 pb-10 px-container-padding">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-          <div className="col-span-1 md:col-span-1">
+          <div className="col-span-1">
             <span className="font-display-lg text-headline-sm text-primary tracking-tight block mb-6">Sky Movie</span>
             <p className="text-secondary text-sm leading-relaxed">The premium open-source movie library manager built for the next generation of cinema lovers.</p>
           </div>
           <div>
             <h5 className="text-white font-label-md mb-6 uppercase tracking-widest text-[10px]">Product</h5>
             <ul className="space-y-4 text-sm text-secondary">
-              <li><a className="hover:text-primary transition-colors" href="#">Changelog</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Documentation</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Releases</a></li>
+              <li><Link className="hover:text-primary transition-colors" href="/whats-new">Changelog</Link></li>
+              <li><Link className="hover:text-primary transition-colors" href="/docs">Documentation</Link></li>
+              <li><a className="hover:text-primary transition-colors" href="#downloads">Releases</a></li>
             </ul>
           </div>
           <div>
@@ -332,30 +501,14 @@ export default function Home() {
             <p className="text-secondary text-xs">© 2024 Sky Movie Project. Released under MIT License.</p>
             <p className="text-white/30 text-xs">
               Inspired by{" "}
-              <a
-                href="https://seanime.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/50 hover:text-primary transition-colors"
-              >
-                Seanime
-              </a>
+              <a href="https://seanime.app/" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-primary transition-colors">Seanime</a>
               {" "}—{" "}
-              <a
-                href="https://github.com/5rahim/seanime"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/50 hover:text-primary transition-colors"
-              >
-                GitHub
-              </a>
+              <a href="https://github.com/5rahim/seanime" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-primary transition-colors">GitHub</a>
             </p>
           </div>
-          <div className="flex items-center gap-6">
-            <a className="text-secondary hover:text-white transition-colors" href={repoUrl}>
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
-            </a>
-          </div>
+          <a className="text-secondary hover:text-white transition-colors" href={repoUrl}>
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+          </a>
         </div>
       </footer>
     </>
