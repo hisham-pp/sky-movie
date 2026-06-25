@@ -101,3 +101,10 @@ const api: SkyMovieApi = {
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);
+
+// Kill mpv synchronously before the page unloads (Ctrl+R, F5, window close).
+// ipcRenderer.sendSync blocks until the main process returns, guaranteeing
+// the mpv session is fully destroyed and audio has stopped before unload completes.
+window.addEventListener('beforeunload', () => {
+  ipcRenderer.sendSync(ipcChannels.mpvForceClose);
+});

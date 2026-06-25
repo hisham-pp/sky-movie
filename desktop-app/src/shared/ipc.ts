@@ -509,5 +509,7 @@ export const ipcChannels = {
   // push channels (main → renderer)
   mpvFrame:          'mpv:frame',
   mpvEvent:          'mpv:event',
-  mpvTracks:         'mpv:tracks'
+  mpvTracks:         'mpv:tracks',
+  // Synchronous close sent from beforeunload — kills mpv before the page unloads
+  mpvForceClose:     'mpv:force-close'
 } as const;

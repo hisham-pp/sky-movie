@@ -297,6 +297,19 @@ class MpvPlayer : public Napi::ObjectWrap<MpvPlayer> {
 
     fprintf(stderr, "[mpv_player] Teardown start\n");
 
+    // Step 0: Silence audio IMMEDIATELY.
+    // Thread joins below (render_thread_ in particular) can block for
+    // 100-300 ms while mpv_render_context_render() finishes a frame decode.
+    // During that window mpv would keep driving the audio driver.  Issuing
+    // "stop" and zeroing the volume here kills audio output before we even
+    // touch the threads, making the switch-movie / refresh experience instant.
+    if (handle_) {
+      mpv_command_string(handle_, "stop");
+      double zero = 0.0;
+      mpv_set_property(handle_, "volume", MPV_FORMAT_DOUBLE, &zero);
+      fprintf(stderr, "[mpv_player] Teardown: playback stopped, volume zeroed\n");
+    }
+
     running_ = false;
 
     // 1. Stop the render thread FIRST — it owns mpv_render_context_render().
