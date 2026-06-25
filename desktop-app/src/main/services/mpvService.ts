@@ -11,10 +11,60 @@
 import { createRequire } from 'node:module';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cpus, totalmem } from 'node:os';
 import { app, nativeImage, type WebContents } from 'electron';
 import { logger } from '../utils/logger';
 
 const log = logger('MpvService');
+
+// ── Quality tier ─────────────────────────────────────────────────────────────
+//
+// Tier is detected once at startup from logical CPU count and total RAM.
+// It controls the render resolution cap and JPEG quality sent to the renderer.
+//
+//  Tier   CPUs   RAM     Resolution   Quality   Target use-case
+//  ────   ────   ───     ──────────   ───────   ───────────────
+//  low    ≤4     any     1280×720     65        Low-end / old laptop
+//  mid    ≤8    <16 GB   1920×1080    75        Mid-range (default)
+//  high   >8   ≥16 GB   2560×1440    82        High-end desktop / workstation
+
+type QualityTier = 'low' | 'mid' | 'high';
+
+interface TierConfig {
+  maxWidth:  number;
+  maxHeight: number;
+  jpegQuality: number;
+}
+
+const TIER_CONFIG: Record<QualityTier, TierConfig> = {
+  low:  { maxWidth: 1280, maxHeight: 720,  jpegQuality: 65 },
+  mid:  { maxWidth: 1920, maxHeight: 1080, jpegQuality: 75 },
+  high: { maxWidth: 2560, maxHeight: 1440, jpegQuality: 82 },
+};
+
+function detectTier(): QualityTier {
+  const cores   = cpus().length;
+  const ramGB   = totalmem() / (1024 ** 3);
+
+  let tier: QualityTier;
+  if (cores <= 4) {
+    tier = 'low';
+  } else if (cores <= 8 || ramGB < 16) {
+    tier = 'mid';
+  } else {
+    tier = 'high';
+  }
+
+  log.info(
+    `[MpvService] quality tier: ${tier} ` +
+    `(${cores} logical CPUs, ${ramGB.toFixed(1)} GB RAM) — ` +
+    `${TIER_CONFIG[tier].maxWidth}×${TIER_CONFIG[tier].maxHeight} @ q${TIER_CONFIG[tier].jpegQuality}`
+  );
+  return tier;
+}
+
+const TIER = detectTier();
+const TIER_CFG = TIER_CONFIG[TIER];
 
 // ── Addon types ──────────────────────────────────────────────────────────────
 
@@ -73,6 +123,9 @@ interface RenderSession {
   framesSent: number;
   slowEncodes: number;
   sessionStartMs: number;
+  // Cleanup listeners attached to the webContents so we can remove them on close
+  wcDestroyedHandler: () => void;
+  wcNavigatedHandler: () => void;
 }
 
 // ── MpvService ───────────────────────────────────────────────────────────────
@@ -81,6 +134,11 @@ export class MpvService {
   private addon: MpvAddonModule | null = null;
   private session: RenderSession | null = null;
   private addonLoaded = false;
+  // Prevents a new session from starting while the previous one is still tearing down.
+  // Teardown() joins C++ threads which can take ~50-200ms, blocking the Node.js event
+  // loop. Without this guard, rapid card clicks queue multiple openFile() calls that
+  // all serialize through closeSession(), causing a stutter of open/close/open/close.
+  private closing = false;
 
   constructor() {
     this.loadAddon();
@@ -126,15 +184,34 @@ export class MpvService {
   ): void {
     if (!this.addon) throw new Error('libmpv addon not loaded');
 
-    // Cap render resolution — higher resolutions give diminishing returns but
-    // dramatically increase JPEG encode time on the main thread.
-    const w = Math.min(renderWidth,  1280);
-    const h = Math.min(renderHeight, 720);
+    // If a teardown is already in progress (rapid card clicks), skip this open.
+    // The renderer will call mpvOpen again when the user clicks; this prevents
+    // stacked sessions from starting and producing overlapping audio.
+    if (this.closing) {
+      log.warn('[MpvService] openFile called while closing — ignoring to prevent overlap');
+      return;
+    }
+
+    const w = Math.min(renderWidth,  TIER_CFG.maxWidth);
+    const h = Math.min(renderHeight, TIER_CFG.maxHeight);
 
     log.info(`[MpvService] openFile: ${filePath} @ ${w}x${h}`);
     const t0 = Date.now();
 
     this.closeSession();
+
+    // Listeners that auto-close the session if the renderer goes away
+    // (page refresh, navigate away, window close) without calling mpvClose().
+    const wcDestroyedHandler = () => {
+      log.info('[MpvService] webContents destroyed — auto-closing session');
+      this.closeSession();
+    };
+    const wcNavigatedHandler = () => {
+      log.info('[MpvService] webContents navigated — auto-closing session');
+      this.closeSession();
+    };
+    webContents.once('destroyed', wcDestroyedHandler);
+    webContents.on('did-navigate', wcNavigatedHandler);
 
     const session: RenderSession = {
       player: null as unknown as MpvPlayerAddon,
@@ -145,7 +222,9 @@ export class MpvService {
       framesReceived: 0,
       framesSent: 0,
       slowEncodes: 0,
-      sessionStartMs: Date.now()
+      sessionStartMs: Date.now(),
+      wcDestroyedHandler,
+      wcNavigatedHandler
     };
     this.session = session;
 
@@ -153,7 +232,6 @@ export class MpvService {
       width: w,
       height: h,
       onEvent: (ev) => this.onMpvEvent(ev, webContents),
-      // Buffer arrives pre-rendered from the C++ render thread — main thread safe.
       onFrameReady: (buf: Buffer, fw: number, fh: number) =>
         this.onFrameReceived(buf, fw, fh)
     });
@@ -170,6 +248,12 @@ export class MpvService {
     const s = this.session;
     this.session = null;  // null first so onFrameReceived no-ops during teardown
 
+    // Remove the auto-close listeners we attached to webContents
+    if (!s.webContents.isDestroyed()) {
+      s.webContents.off('destroyed',    s.wcDestroyedHandler);
+      s.webContents.off('did-navigate', s.wcNavigatedHandler);
+    }
+
     const elapsed = Date.now() - s.sessionStartMs;
     log.info(
       `[MpvService] closeSession — elapsed: ${elapsed}ms, ` +
@@ -177,7 +261,12 @@ export class MpvService {
       `slow encodes: ${s.slowEncodes}`
     );
 
-    s.player.destroy();
+    this.closing = true;
+    try {
+      s.player.destroy();  // synchronous — joins C++ threads, blocks briefly
+    } finally {
+      this.closing = false;
+    }
   }
 
   play(): void         { log.info('[MpvService] play'); this.session?.player.play(); }
@@ -192,8 +281,8 @@ export class MpvService {
 
   setRenderSize(width: number, height: number): void {
     if (!this.session) return;
-    const w = Math.min(width,  1280);
-    const h = Math.min(height, 720);
+    const w = Math.min(width,  TIER_CFG.maxWidth);
+    const h = Math.min(height, TIER_CFG.maxHeight);
     if (w === this.session.width && h === this.session.height) return;
     log.info(`[MpvService] setRenderSize: ${w}x${h}`);
     this.session.width  = w;
@@ -233,7 +322,7 @@ export class MpvService {
     try {
       const t0 = Date.now();
       const img  = nativeImage.createFromBuffer(rgba, { width, height });
-      const jpeg = img.toJPEG(75);
+      const jpeg = img.toJPEG(TIER_CFG.jpegQuality);
       const encMs = Date.now() - t0;
 
       if (encMs > 20) {
