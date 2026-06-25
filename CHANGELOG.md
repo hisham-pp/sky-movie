@@ -5,6 +5,29 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-25
+
+### Added
+
+- implement synchronous mpv session close on page unload to stop audio immediately (Hisham)
+- enhance catalog service to include media file IDs in movie details (Hisham)
+- implement dynamic quality tier detection based on CPU and RAM (Hisham)
+- integrate mpv player with IPC and UI enhancements (Hisham)
+- add loading screen shown during app initialization (Hisham)
+- create landing page with product showcases and download links for Sky Movie (Hisham)
+- initialize Next.js website project with custom metadata and layout configuration (Hisham)
+- implement documentation page and add supporting screenshot assets (Hisham)
+- implement settings UI with IPC integration for library, metadata, and update management (Hisham)
+
+### Changed
+
+- optimize video player, streaming, and UI rendering (Hisham)
+
+### Other
+
+- update player controls (Hisham)
+- chore(release): publish Sky Movie 0.5.1 downloads from GitHub (Hisham)
+
 ## [0.5.1] - 2026-06-24
 
 ### Added
@@ -273,3 +296,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.4.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.4.3
 [0.5.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.5.0
 [0.5.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.5.1
+[0.6.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.0
