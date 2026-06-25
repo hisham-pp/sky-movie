@@ -120,6 +120,252 @@
   font-size: 12px;
 }
 
+/* ── mpv player ─────────────────────────────────────────────────────────── */
+
+.mpv-player {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  cursor: none;
+}
+
+.mpv-player:hover {
+  cursor: default;
+}
+
+.mpv-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: high-quality;
+}
+
+/* Buffering overlay */
+.mpv-buffering {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 5;
+}
+
+.mpv-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: var(--primary, #89ceff);
+  border-radius: 50%;
+  animation: mpv-spin 0.8s linear infinite;
+}
+
+@keyframes mpv-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error overlay */
+.mpv-error {
+  position: absolute;
+  inset: auto 14px 14px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255,180,171,0.36);
+  border-radius: 8px;
+  background: rgba(12,14,18,0.92);
+  color: #ffdad6;
+  font-size: 13px;
+  padding: 10px 12px;
+  backdrop-filter: blur(12px);
+}
+
+.mpv-error button {
+  min-height: 30px;
+  padding: 0 10px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* Controls overlay */
+.mpv-controls {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 8;
+  padding: 0 14px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.mpv-controls.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Seek bar */
+.mpv-seek {
+  padding: 10px 0 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mpv-seek-track {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+  transition: height 0.15s;
+}
+
+.mpv-seek:hover .mpv-seek-track {
+  height: 6px;
+}
+
+.mpv-seek-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--primary, #89ceff);
+  border-radius: 2px;
+}
+
+.mpv-seek-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+
+.mpv-seek:hover .mpv-seek-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Bottom row */
+.mpv-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mpv-left,
+.mpv-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mpv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.88);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mpv-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.mpv-btn-text {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 8px;
+}
+
+.mpv-volume-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mpv-volume-slider {
+  -webkit-appearance: none;
+  width: 72px;
+  height: 4px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  accent-color: var(--primary, #89ceff);
+}
+
+.mpv-time {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  padding: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dropdown menus */
+.mpv-menu-wrap {
+  position: relative;
+}
+
+.mpv-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  min-width: 140px;
+  background: rgba(18,20,26,0.96);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 4px;
+  backdrop-filter: blur(16px);
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.mpv-menu-item {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mpv-menu-item:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.mpv-menu-item.active {
+  color: var(--primary, #89ceff);
+}
+
 .player-empty {
   display: grid;
   place-items: center;

@@ -2,6 +2,7 @@ import { ExternalLink, HardDrive } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
+import { MpvPlayer } from './MpvPlayer';
 
 const RESUME_START_THRESHOLD = 5;
 const RESUME_END_BUFFER = 10;
@@ -14,11 +15,57 @@ export function PlayerPanel({
   player: PlayMediaResult | null;
   onOpenExternal(mediaFileId: number): void;
 }) {
+  const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
+
+  // Probe once whether the native addon is loaded
+  useEffect(() => {
+    window.skyMovie.mpvIsAvailable()
+      .then(v => setMpvAvailable(v))
+      .catch(() => setMpvAvailable(false));
+  }, []);
+
+  if (!player) {
+    return (
+      <div className="player">
+        <div className="player-empty">
+          <HardDrive size={26} />
+        </div>
+      </div>
+    );
+  }
+
+  // Wait until we know which player to use
+  if (mpvAvailable === null) return null;
+
+  if (mpvAvailable) {
+    return (
+      <div className="player">
+        <MpvPlayer player={player} onOpenExternal={onOpenExternal} />
+        <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
+          <ExternalLink size={15} />
+          Open in system player
+        </button>
+      </div>
+    );
+  }
+
+  // ── Artplayer fallback (unchanged from previous implementation) ─────────────
+  return <ArtplayerFallback player={player} onOpenExternal={onOpenExternal} />;
+}
+
+// ── Artplayer fallback ───────────────────────────────────────────────────────
+
+function ArtplayerFallback({
+  player,
+  onOpenExternal
+}: {
+  player: PlayMediaResult;
+  onOpenExternal(mediaFileId: number): void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const artRef = useRef<Artplayer | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
-  // Only recreate Artplayer when the actual media file changes, not on every render
   const mediaFileId = player?.mediaFileId ?? null;
   const mediaUrl = player?.mediaUrl ?? null;
 
@@ -28,8 +75,6 @@ export function PlayerPanel({
 
     setPlaybackError(null);
 
-    // Build subtitle list: sidecar files first, then embedded tracks via streaming
-    const subtitleOptions: Artplayer['option']['subtitle'] = undefined;
     const sidecarList = player.sidecarSubtitles ?? [];
 
     const art = new Artplayer({
@@ -53,7 +98,6 @@ export function PlayerPanel({
         playsInline: true,
         crossOrigin: 'anonymous'
       },
-      // Load first sidecar sub if available
       ...(sidecarList.length > 0 ? {
         subtitle: {
           url: sidecarList[0].url,
@@ -63,7 +107,6 @@ export function PlayerPanel({
         }
       } : {}),
       settings: [
-        // ── Playback speed ──────────────────────────────
         {
           html: 'Speed',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
@@ -80,7 +123,6 @@ export function PlayerPanel({
             return item.html;
           }
         },
-        // ── Audio tracks ────────────────────────────────
         {
           html: 'Audio',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
@@ -104,7 +146,6 @@ export function PlayerPanel({
             return item.html;
           }
         },
-        // ── Subtitles ───────────────────────────────────
         {
           html: 'Subtitles',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>',
@@ -140,7 +181,7 @@ export function PlayerPanel({
                   video.textTracks[i].mode = i === idx ? 'showing' : 'hidden';
                 }
               }
-              art.subtitle.show = false; // hide sidecar overlay
+              art.subtitle.show = false;
               return item.html;
             }
             return item.html;
@@ -189,9 +230,6 @@ export function PlayerPanel({
       if (video) video.currentTime = Math.min(savedPosition, Math.max(duration - RESUME_END_BUFFER, 0));
     };
 
-    // Fullscreen via keyboard — Artplayer's built-in hotkey uses
-    // requestFullscreen() which can be blocked in Electron's sandbox.
-    // Override by listening at the capture phase and calling art.fullscreen.
     const handleFullscreenKey = (e: KeyboardEvent) => {
       if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const tag = (document.activeElement as HTMLElement)?.tagName;
@@ -236,16 +274,6 @@ export function PlayerPanel({
       setPlaybackError(null);
     }
   }, [mediaFileId]);
-
-  if (!player) {
-    return (
-      <div className="player">
-        <div className="player-empty">
-          <HardDrive size={26} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="player">

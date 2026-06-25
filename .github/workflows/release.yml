@@ -59,15 +59,38 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install Linux packaging tools
+      # ── Platform deps ────────────────────────────────────────────────────────
+      - name: Install Linux system deps
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libarchive-tools rpm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools rpm libmpv-dev
+
+      - name: Install macOS system deps
+        if: runner.os == 'macOS'
+        run: brew install mpv
+
+      - name: Add VS C++ workload (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $vsWhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installer = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $vsInstallPath = & $vsWhere -latest -property installationPath
+          Start-Process $installer -ArgumentList "modify --installPath `"$vsInstallPath`" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet --norestart" -Wait
+      # ────────────────────────────────────────────────────────────────────────
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Prepare FFmpeg bundle
         run: pnpm --filter @sky-movie/desktop-app run prepare:ffmpeg
+
+      - name: Prepare libmpv
+        run: pnpm --filter @sky-movie/desktop-app run prepare:libmpv
+
+      - name: Build mpv native addon
+        run: pnpm --filter @sky-movie/desktop-app run build:native
 
       - name: Rebuild native modules for Electron
         run: pnpm --filter @sky-movie/desktop-app run rebuild:electron

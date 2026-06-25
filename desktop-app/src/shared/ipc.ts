@@ -218,6 +218,7 @@ export interface ApplyTvMetadataRequest {
 export interface PlayMediaResult {
   mediaFileId: number;
   mediaUrl: string;
+  absolutePath: string;
   title: string;
   watchProgress: WatchProgressSnapshot | null;
   audioTracks?: MediaTrack[];
@@ -353,8 +354,55 @@ export type UpdateProgressEvent =
   | { type: 'download-progress'; bytesDownloaded: number; totalBytes: number; percentage: number }
   | { type: 'update-available'; version: string; notes: string };
 
+// ── mpv player IPC ──────────────────────────────────────────────────────────
+
+export interface MpvTrack {
+  id: number;
+  type: 'audio' | 'sub' | 'video';
+  title?: string;
+  lang?: string;
+  codec?: string;
+  default?: boolean;
+  selected?: boolean;
+}
+
+export interface MpvPropertyEvent {
+  type: 'property';
+  name: string;
+  value: number | boolean | string | null;
+}
+
+export interface MpvLifecycleEvent {
+  type: 'end-file' | 'start-file' | 'file-loaded';
+}
+
+export type MpvEvent = MpvPropertyEvent | MpvLifecycleEvent;
+
+export interface MpvOpenRequest {
+  filePath: string;
+  mediaFileId: number;
+  renderWidth: number;
+  renderHeight: number;
+}
+
 export interface SkyMovieApi {
   onUpdateProgress(callback: (event: UpdateProgressEvent) => void): () => void;
+  // mpv player
+  mpvIsAvailable(): Promise<boolean>;
+  mpvOpen(req: MpvOpenRequest): Promise<void>;
+  mpvClose(): Promise<void>;
+  mpvPlay(): Promise<void>;
+  mpvPause(): Promise<void>;
+  mpvSeek(seconds: number): Promise<void>;
+  mpvSetVolume(percent: number): Promise<void>;
+  mpvSetAudioTrack(id: number): Promise<void>;
+  mpvSetSubTrack(id: number): Promise<void>;
+  mpvSetSpeed(speed: number): Promise<void>;
+  mpvSetRenderSize(width: number, height: number): Promise<void>;
+  mpvSetSubFile(path: string): Promise<void>;
+  onMpvFrame(callback: (jpeg: Uint8Array) => void): () => void;
+  onMpvEvent(callback: (ev: MpvEvent) => void): () => void;
+  onMpvTracks(callback: (tracks: MpvTrack[]) => void): () => void;
   chooseFolder(title?: string): Promise<string | null>;
   chooseFolders(title?: string): Promise<string[]>;
   scanLibrary(request?: ScanLibraryRequest | string): Promise<ScanResult | null>;
@@ -444,5 +492,22 @@ export const ipcChannels = {
   deletePlaylist: 'playlist:delete',
   addToPlaylist: 'playlist:add-item',
   removeFromPlaylist: 'playlist:remove-item',
-  reorderPlaylistItem: 'playlist:reorder-item'
+  reorderPlaylistItem: 'playlist:reorder-item',
+  // mpv
+  mpvIsAvailable:    'mpv:is-available',
+  mpvOpen:           'mpv:open',
+  mpvClose:          'mpv:close',
+  mpvPlay:           'mpv:play',
+  mpvPause:          'mpv:pause',
+  mpvSeek:           'mpv:seek',
+  mpvSetVolume:      'mpv:set-volume',
+  mpvSetAudioTrack:  'mpv:set-audio-track',
+  mpvSetSubTrack:    'mpv:set-sub-track',
+  mpvSetSpeed:       'mpv:set-speed',
+  mpvSetRenderSize:  'mpv:set-render-size',
+  mpvSetSubFile:     'mpv:set-sub-file',
+  // push channels (main → renderer)
+  mpvFrame:          'mpv:frame',
+  mpvEvent:          'mpv:event',
+  mpvTracks:         'mpv:tracks'
 } as const;

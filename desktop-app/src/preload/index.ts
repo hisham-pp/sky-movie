@@ -6,6 +6,9 @@ import type {
   CreatePlaylistRequest,
   MetadataUpdate,
   MovieMetadataSearchRequest,
+  MpvEvent,
+  MpvOpenRequest,
+  MpvTrack,
   RemoveFromPlaylistRequest,
   SkyMovieApi,
   SyncRequest,
@@ -66,6 +69,34 @@ const api: SkyMovieApi = {
     const listener = (_: Electron.IpcRendererEvent, event: UpdateProgressEvent) => callback(event);
     ipcRenderer.on(ipcChannels.updateProgress, listener);
     return () => ipcRenderer.off(ipcChannels.updateProgress, listener);
+  },
+  // ── mpv player ────────────────────────────────────────────────────────────
+  mpvIsAvailable:   () => ipcRenderer.invoke(ipcChannels.mpvIsAvailable),
+  mpvOpen:          (req: MpvOpenRequest) => ipcRenderer.invoke(ipcChannels.mpvOpen, req),
+  mpvClose:         () => ipcRenderer.invoke(ipcChannels.mpvClose),
+  mpvPlay:          () => ipcRenderer.invoke(ipcChannels.mpvPlay),
+  mpvPause:         () => ipcRenderer.invoke(ipcChannels.mpvPause),
+  mpvSeek:          (s: number)  => ipcRenderer.invoke(ipcChannels.mpvSeek, s),
+  mpvSetVolume:     (v: number)  => ipcRenderer.invoke(ipcChannels.mpvSetVolume, v),
+  mpvSetAudioTrack: (id: number) => ipcRenderer.invoke(ipcChannels.mpvSetAudioTrack, id),
+  mpvSetSubTrack:   (id: number) => ipcRenderer.invoke(ipcChannels.mpvSetSubTrack, id),
+  mpvSetSpeed:      (s: number)  => ipcRenderer.invoke(ipcChannels.mpvSetSpeed, s),
+  mpvSetRenderSize: (w: number, h: number) => ipcRenderer.invoke(ipcChannels.mpvSetRenderSize, w, h),
+  mpvSetSubFile:    (path: string) => ipcRenderer.invoke(ipcChannels.mpvSetSubFile, path),
+  onMpvFrame: (callback: (jpeg: Uint8Array) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, data: Uint8Array) => callback(data);
+    ipcRenderer.on(ipcChannels.mpvFrame, listener);
+    return () => ipcRenderer.off(ipcChannels.mpvFrame, listener);
+  },
+  onMpvEvent: (callback: (ev: MpvEvent) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, ev: MpvEvent) => callback(ev);
+    ipcRenderer.on(ipcChannels.mpvEvent, listener);
+    return () => ipcRenderer.off(ipcChannels.mpvEvent, listener);
+  },
+  onMpvTracks: (callback: (tracks: MpvTrack[]) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, tracks: MpvTrack[]) => callback(tracks);
+    ipcRenderer.on(ipcChannels.mpvTracks, listener);
+    return () => ipcRenderer.off(ipcChannels.mpvTracks, listener);
   }
 };
 

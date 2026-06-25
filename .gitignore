@@ -1,20 +1,32 @@
 node_modules
-desktop-app/resources/ffmpeg/
-.next
-out
+
+# Build outputs
 desktop-app/out/*
 desktop-app/dist/*
-website\tsconfig.tsbuildinfo
+.next
+out
+
+# Bundled binaries (downloaded/built at build time, not committed)
+desktop-app/resources/ffmpeg/
+desktop-app/resources/mpv/
+
+# Native addon build artifacts and downloaded SDK files
+desktop-app/native/mpv-player/build/
+desktop-app/native/mpv-player/bin/
+desktop-app/native/mpv-player/lib/
+desktop-app/native/mpv-player/include/
+desktop-app/native/mpv-player/node_modules/
+desktop-app/native/mpv-player/package-lock.json
+
+# TypeScript cache
 website/tsconfig.tsbuildinfo
 website/next-dev.log
+*.tsbuildinfo
 
-# Env
+# Env / secrets
 envs/*
 
-# files
+# Misc
 *.asar
-8.log
-
-
 tmp/*
 temp/*

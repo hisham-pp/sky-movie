@@ -22,6 +22,10 @@ extraResources:
     to: ffmpeg
     filter:
       - '**/*'
+  - from: resources/mpv
+    to: mpv
+    filter:
+      - '**/*'
 
 npmRebuild: true
 buildDependenciesFromSource: false

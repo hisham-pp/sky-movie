@@ -159,6 +159,7 @@ export class PlayerService {
     const result: PlayMediaResult = {
       mediaFileId,
       mediaUrl,
+      absolutePath: mediaFile.absolutePath,
       title: mediaFile.fileName,
       watchProgress: this.getWatchProgress(mediaFileId),
       audioTracks,

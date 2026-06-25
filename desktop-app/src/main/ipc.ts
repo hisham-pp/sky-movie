@@ -1,4 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import mpvService from './services/mpvService';
+import type { MpvOpenRequest } from '../shared/ipc';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type {
   MetadataUpdate,
@@ -185,6 +187,26 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(ipcChannels.reorderPlaylistItem, (_event, playlistId: number, itemId: number, newSortOrder: number) =>
     services.playlist.reorderPlaylistItem(playlistId, itemId, newSortOrder)
   );
+
+  // ── mpv player ─────────────────────────────────────────────────────────────
+  ipcMain.handle(ipcChannels.mpvIsAvailable, () => mpvService.isAvailable);
+
+  ipcMain.handle(ipcChannels.mpvOpen, (event, req: MpvOpenRequest) => {
+    const wc = event.sender;
+    mpvService.openFile(req.filePath, wc, req.renderWidth, req.renderHeight);
+  });
+
+  ipcMain.handle(ipcChannels.mpvClose, () => mpvService.closeSession());
+  ipcMain.handle(ipcChannels.mpvPlay,  () => mpvService.play());
+  ipcMain.handle(ipcChannels.mpvPause, () => mpvService.pause());
+
+  ipcMain.handle(ipcChannels.mpvSeek,          (_e, s: number)  => mpvService.seek(s));
+  ipcMain.handle(ipcChannels.mpvSetVolume,      (_e, v: number)  => mpvService.setVolume(v));
+  ipcMain.handle(ipcChannels.mpvSetAudioTrack,  (_e, id: number) => mpvService.setAudioTrack(id));
+  ipcMain.handle(ipcChannels.mpvSetSubTrack,    (_e, id: number) => mpvService.setSubTrack(id));
+  ipcMain.handle(ipcChannels.mpvSetSpeed,       (_e, s: number)  => mpvService.setSpeed(s));
+  ipcMain.handle(ipcChannels.mpvSetRenderSize,  (_e, w: number, h: number) => mpvService.setRenderSize(w, h));
+  ipcMain.handle(ipcChannels.mpvSetSubFile,     (_e, path: string) => mpvService.setSubFile(path));
 }
 
 function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibraryRequest {

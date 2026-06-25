@@ -1,0 +1,13 @@
+{
+  "name": "mpv-player-native",
+  "version": "1.0.0",
+  "description": "libmpv N-API native addon for Sky Movie",
+  "main": "build/Release/mpv_player.node",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "build:electron": "electron-rebuild -f -w mpv-player-native"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.3.1"
+  }
+}
