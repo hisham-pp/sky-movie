@@ -238,7 +238,11 @@ export class StreamingServer {
         // No empty_moov: with a temp file the browser waits for real moov data,
         // so omitting empty_moov gives us a complete moov with full codec info
         // (which Chromium needs to initialise the audio decoder).
-        '-movflags', 'frag_keyframe+default_base_moof',
+        // empty_moov: write the moov atom (with duration + codec info) immediately
+        // so the browser can show the seek bar before transcoding finishes.
+        // frag_keyframe: one fragment per video keyframe → browser can play the
+        // first fragment without waiting for the full file.
+        '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
         '-fflags', '+genpts',
         '-y',
         outputPath
@@ -291,14 +295,15 @@ export class StreamingServer {
       });
     }
 
-    // Wait for the output file to accumulate enough data for the browser to
-    // read the moov atom and first fragment (≈64 KB).
-    const waitDeadline = Date.now() + 12000;
+    // Wait for the moov atom + first fragment to land (≈8 KB with empty_moov).
+    // empty_moov makes FFmpeg write the moov atom immediately, so this resolves
+    // within the first ~500 ms of transcoding rather than waiting for 64 KB.
+    const waitDeadline = Date.now() + 8000;
     while (Date.now() < waitDeadline) {
-      if (existsSync(outputPath) && statSync(outputPath).size > 65536) break;
+      if (existsSync(outputPath) && statSync(outputPath).size > 8192) break;
       const j = this.jobs.get(jobKey);
       if (j?.done) break;
-      await sleep(100);
+      await sleep(50);
     }
 
     if (!existsSync(outputPath) || statSync(outputPath).size === 0) {
@@ -343,13 +348,15 @@ export class StreamingServer {
       if (m) start = parseInt(m[1], 10);
     }
 
-    // For range requests, wait until the file has the requested position
+    // For range requests, wait until FFmpeg has written past the requested offset.
+    // Timeout is 60 s to handle slow HEVC→H264 transcodes where 15 s isn't
+    // enough to reach a mid-file seek position.
     if (start > 0) {
-      const deadline = Date.now() + 15000;
+      const deadline = Date.now() + 60000;
       while (Date.now() < deadline) {
         if (statSync(outputPath).size > start) break;
         if (job.done) break;
-        await sleep(200);
+        await sleep(100);
       }
     }
 
@@ -415,7 +422,7 @@ export class StreamingServer {
         break;
       }
 
-      if (!job.done) await sleep(200);
+      if (!job.done) await sleep(100);
     }
   }
 

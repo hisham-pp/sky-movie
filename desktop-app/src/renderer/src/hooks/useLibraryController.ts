@@ -67,9 +67,12 @@ export function useLibraryController() {
   }, []);
 
   useEffect(() => {
-    void refreshLists().catch((error) => {
-      setStatus(`Refresh failed: ${formatError(error)}`);
-    });
+    const timer = setTimeout(() => {
+      void refreshLists().catch((error) => {
+        setStatus(`Refresh failed: ${formatError(error)}`);
+      });
+    }, 300);
+    return () => clearTimeout(timer);
   }, [query]);
 
   async function refreshAll() {
@@ -755,47 +758,39 @@ export function useLibraryController() {
       return null;
     }
 
-    const summary: AutoMetadataSummary = {
-      applied: 0,
-      queued: 0,
-      skipped: 0,
-      failed: 0
-    };
+    const summary: AutoMetadataSummary = { applied: 0, queued: 0, skipped: 0, failed: 0 };
     const prompts: PendingMovieMetadataPrompt[] = [];
 
-    for (const movieId of uniqueMovieIds) {
-      const details = await api.getMovieById(movieId);
-      const movie = details.item;
-      if (!movie) {
-        continue;
-      }
+    // Fetch all movie details in parallel, then process concurrently with a
+    // cap of 4 simultaneous searches to avoid saturating the TMDB rate limit.
+    const details = await Promise.all(uniqueMovieIds.map((id) => api.getMovieById(id)));
+    const moviesNeedingLookup = details
+      .map((d) => d.item)
+      .filter((movie): movie is NonNullable<typeof movie> => {
+        if (!movie) return false;
+        if (hasLocalMovieMetadata(movie)) { summary.skipped += 1; return false; }
+        return true;
+      });
 
-      if (hasLocalMovieMetadata(movie)) {
-        summary.skipped += 1;
-        continue;
-      }
-
-      try {
-        const results = await api.searchMovieMetadata({
-          query: movie.title,
-          year: movie.releaseYear
-        });
-
-        if (results.length === 1) {
-          const [result] = results;
-          await api.applyMovieMetadata({
-            movieId: movie.id,
-            provider: result.provider,
-            providerId: result.providerId
-          });
-          summary.applied += 1;
-        } else if (results.length > 1) {
-          prompts.push({ movie, results });
-          summary.queued += 1;
-        }
-      } catch {
-        summary.failed += 1;
-      }
+    const CONCURRENCY = 4;
+    for (let i = 0; i < moviesNeedingLookup.length; i += CONCURRENCY) {
+      const batch = moviesNeedingLookup.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        batch.map(async (movie) => {
+          try {
+            const results = await api.searchMovieMetadata({ query: movie.title, year: movie.releaseYear });
+            if (results.length === 1) {
+              await api.applyMovieMetadata({ movieId: movie.id, provider: results[0].provider, providerId: results[0].providerId });
+              summary.applied += 1;
+            } else if (results.length > 1) {
+              prompts.push({ movie, results });
+              summary.queued += 1;
+            }
+          } catch {
+            summary.failed += 1;
+          }
+        })
+      );
     }
 
     if (prompts.length) {

@@ -1,5 +1,5 @@
 import { SettingsPanel } from '../components/SettingsPanel';
-import { useLibraryController } from '../hooks/useLibraryController';
+import { useLibraryControllerContext as useLibraryController } from '../hooks/LibraryControllerContext';
 
 export function SettingsRoute() {
   const library = useLibraryController();

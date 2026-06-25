@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clapperboard } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
 import { MovieTile } from '../LibraryTile';
@@ -22,7 +22,7 @@ export function BrowseMoviesPage({
   onViewMovieDetails(movie: Movie): void;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const moviesWithBackdrop = movies.filter((m) => m.backdropPath);
+  const moviesWithBackdrop = useMemo(() => movies.filter((m) => m.backdropPath), [movies]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   // Auto-rotate banner only when nothing is selected

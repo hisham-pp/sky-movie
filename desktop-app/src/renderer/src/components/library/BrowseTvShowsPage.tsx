@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Tv2 } from 'lucide-react';
 import type { TvShow, PlayMediaResult } from '@shared/ipc';
 import { ShowTile } from '../LibraryTile';
@@ -22,7 +22,7 @@ export function BrowseTvShowsPage({
   onViewShowDetails(show: TvShow): void;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const showsWithBackdrop = shows.filter((s) => s.backdropPath);
+  const showsWithBackdrop = useMemo(() => shows.filter((s) => s.backdropPath), [shows]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   // Auto-rotate banner only when nothing is selected

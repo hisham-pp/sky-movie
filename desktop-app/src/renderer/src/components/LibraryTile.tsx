@@ -1,13 +1,14 @@
+import { memo } from 'react';
 import { Film, Star, Tv, Info } from 'lucide-react';
 import type { Movie, TvShow } from '@shared/ipc';
 
-export function MovieTile({ 
-  movie, 
-  onClick, 
+export const MovieTile = memo(function MovieTile({
+  movie,
+  onClick,
   onViewDetails,
-  isSelected 
-}: { 
-  movie: Movie; 
+  isSelected
+}: {
+  movie: Movie;
   onClick(): void;
   onViewDetails(): void;
   isSelected?: boolean;
@@ -20,7 +21,7 @@ export function MovieTile({
         <span className="tile-overlay">
           <strong>{movie.title}</strong>
           <small>{movie.releaseYear ?? 'Unknown year'}</small>
-          <button 
+          <button
             className="details-button"
             onClick={(e) => {
               e.stopPropagation();
@@ -37,15 +38,15 @@ export function MovieTile({
       {movie.favorite ? <Star className="favorite" size={16} /> : null}
     </div>
   );
-}
+});
 
-export function ShowTile({ 
-  show, 
+export const ShowTile = memo(function ShowTile({
+  show,
   onClick,
   onViewDetails,
-  isSelected 
-}: { 
-  show: TvShow; 
+  isSelected
+}: {
+  show: TvShow;
   onClick(): void;
   onViewDetails(): void;
   isSelected?: boolean;
@@ -58,7 +59,7 @@ export function ShowTile({
         <span className="tile-overlay">
           <strong>{show.title}</strong>
           <small>{show.firstAirYear ?? 'Unknown year'}</small>
-          <button 
+          <button
             className="details-button"
             onClick={(e) => {
               e.stopPropagation();
@@ -75,4 +76,4 @@ export function ShowTile({
       {show.favorite ? <Star className="favorite" size={16} /> : null}
     </div>
   );
-}
+});

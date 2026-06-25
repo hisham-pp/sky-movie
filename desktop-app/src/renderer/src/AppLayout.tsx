@@ -6,13 +6,21 @@ import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
-import { useLibraryController } from './hooks/useLibraryController';
+import { LibraryControllerProvider, useLibraryControllerContext } from './hooks/LibraryControllerContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/LoadingScreen';
 import type { ViewMode } from './types';
 
 export function AppLayout() {
-  const library = useLibraryController();
+  return (
+    <LibraryControllerProvider>
+      <AppLayoutInner />
+    </LibraryControllerProvider>
+  );
+}
+
+function AppLayoutInner() {
+  const library = useLibraryControllerContext();
   const navigate = useNavigate();
   const location = useLocation();
   const theme = library.settings?.theme ?? 'cinema';

@@ -79,7 +79,8 @@ export function handleAudioTrackSelection(
     return;
   }
 
-  const trackIndex = value === 'default' ? -1 : parseInt(value);
+  // 'default' means enable first track; otherwise enable the selected index
+  const trackIndex = value === 'default' ? 0 : parseInt(value);
 
   for (let i = 0; i < video.audioTracks.length; i++) {
     video.audioTracks[i].enabled = i === trackIndex;

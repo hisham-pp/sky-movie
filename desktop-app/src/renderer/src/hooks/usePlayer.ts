@@ -69,7 +69,6 @@ export function usePlayer(
 
     // Initialize progress tracking state
     const progressState = initializeProgressTracking();
-    let loadTimer: NodeJS.Timeout;
 
     // Setup load timeout to detect codecs that can't be played
     loadTimerRef.current = setTimeout(() => {
@@ -174,7 +173,6 @@ export function usePlayer(
         clearTimeout(loadTimerRef.current);
       }
       setPlaybackError(null);
-      ensureAudioIsReady();
       restorePosition();
     });
 

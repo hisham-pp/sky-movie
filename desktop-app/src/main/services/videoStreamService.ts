@@ -1,15 +1,15 @@
 /**
  * FFmpeg-based video streaming service
  * Handles MKV and other container formats by extracting video stream
- * Similar to Seanime's DirectStream approach
  */
 
-import { spawn, ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createReadStream, existsSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { logger } from '../utils/logger';
+import ffmpegManager from './ffmpegManager';
 
 const log = logger('VideoStreamService');
 
@@ -21,32 +21,10 @@ interface StreamRequest {
   endByte?: number;
 }
 
-interface StreamSession {
-  process: ChildProcess;
-  createdAt: number;
-  lastAccessedAt: number;
-}
-
 export class VideoStreamService {
-  private activeSessions = new Map<string, StreamSession>();
-  private readonly SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
-  /**
-   * Check if FFmpeg is available
-   */
-  private isFFmpegAvailable(): boolean {
-    try {
-      const proc = spawn('ffmpeg', ['-version'], { stdio: 'ignore' });
-      proc.kill();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   /**
    * Handle video stream request
-   * Streams MKV files by extracting video with FFmpeg
+   * Streams MKV files by transcoding audio with FFmpeg; other formats use range-request passthrough
    */
   async handleStreamRequest(
     req: IncomingMessage,
@@ -60,19 +38,16 @@ export class VideoStreamService {
         return;
       }
 
-      if (!this.isFFmpegAvailable()) {
-        res.writeHead(503, { 'Content-Type': 'text/plain' });
-        res.end('FFmpeg not available');
-        return;
-      }
-
       const isMKV = extname(streamRequest.filePath).toLowerCase() === '.mkv';
 
       if (isMKV) {
-        // Stream MKV via FFmpeg extraction
+        if (!ffmpegManager.isFFmpegAvailable()) {
+          res.writeHead(503, { 'Content-Type': 'text/plain' });
+          res.end('FFmpeg not available');
+          return;
+        }
         await this.streamMKVWithFFmpeg(req, res, streamRequest);
       } else {
-        // Stream regular file with range support
         await this.streamRegularFile(req, res, streamRequest);
       }
     } catch (error) {
@@ -85,7 +60,7 @@ export class VideoStreamService {
   }
 
   /**
-   * Stream MKV file by extracting video with FFmpeg
+   * Stream MKV file via FFmpeg — copies video, transcodes audio to AAC for browser compat
    */
   private async streamMKVWithFFmpeg(
     req: IncomingMessage,
@@ -93,72 +68,67 @@ export class VideoStreamService {
     streamRequest: StreamRequest
   ): Promise<void> {
     const { filePath, audioTrack } = streamRequest;
+    const ffmpegPath = ffmpegManager.getFFmpegPath();
 
-    // Build FFmpeg command
-    const ffmpegArgs = [
+    const ffmpegArgs: string[] = [
+      '-threads', '0',         // Use all available CPU threads for decoding
       '-i', filePath,
-      '-c:v', 'copy',           // Copy video codec (no re-encoding)
-      '-c:a', 'aac',            // Re-encode audio to AAC (browser friendly)
-      '-c:s', 'mov_text',       // Convert subtitles to mov_text format
-      '-f', 'matroska',         // Output as Matroska
-      '-y',                      // Overwrite without asking
-      'pipe:1'                  // Output to stdout
+      '-map', '0:v',           // Always include video
     ];
 
-    // Add audio track selection if specified
+    // Select specific audio track or default to first
     if (typeof audioTrack === 'number' && audioTrack >= 0) {
-      // Insert after -i argument
-      ffmpegArgs.splice(2, 0, '-map', `0:a:${audioTrack}`);
+      ffmpegArgs.push('-map', `0:a:${audioTrack}`);
+    } else {
+      ffmpegArgs.push('-map', '0:a:0?');  // First audio track, optional (? = don't fail if absent)
     }
 
-    log.info('Starting FFmpeg stream for:', { filePath, audioTrack });
+    ffmpegArgs.push(
+      '-c:v', 'copy',          // Copy video — no re-encoding cost
+      '-c:a', 'aac',           // Transcode audio to AAC (browser compatible)
+      '-b:a', '192k',          // Reasonable stereo bitrate
+      '-ac', '2',              // Downmix to stereo (handles 5.1/7.1 DTS/TrueHD)
+      '-c:s', 'copy',          // Copy subtitle streams (Matroska supports them natively)
+      '-f', 'matroska',        // Matroska container output
+      'pipe:1'                 // Write to stdout
+    );
 
-    const ffmpeg = spawn('ffmpeg', ffmpegArgs, {
+    log.info('Starting FFmpeg stream:', { filePath, audioTrack });
+
+    const ffmpeg = spawn(ffmpegPath, ffmpegArgs, {
       stdio: ['ignore', 'pipe', 'pipe']
     });
 
-    let headersSent = false;
-
-    // Handle FFmpeg stderr for debugging
-    ffmpeg.stderr?.on('data', (data) => {
-      if (!headersSent) {
-        log.debug('FFmpeg:', data.toString().split('\n')[0]);
-      }
+    ffmpeg.stderr?.on('data', (data: Buffer) => {
+      log.debug('FFmpeg:', data.toString().split('\n')[0]);
     });
 
-    // Handle FFmpeg process errors
     ffmpeg.on('error', (error) => {
       log.error('FFmpeg process error:', error);
       if (!res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Stream error');
       }
-      ffmpeg.kill();
     });
 
-    // Handle process exit
     ffmpeg.on('exit', (code) => {
       if (code !== 0 && code !== null) {
         log.warn('FFmpeg exited with code:', code);
       }
     });
 
-    // Send headers
     res.writeHead(200, {
       'Content-Type': 'video/x-matroska',
-      'Accept-Ranges': 'bytes',
+      'Accept-Ranges': 'none',
       'Cache-Control': 'no-store',
       'Connection': 'keep-alive'
     });
-    headersSent = true;
 
-    // Stream the output
     if (ffmpeg.stdout) {
       ffmpeg.stdout.pipe(res);
 
-      // Handle client disconnect
       req.on('close', () => {
-        ffmpeg.kill();
+        ffmpeg.kill('SIGTERM');
       });
     }
   }
@@ -175,7 +145,6 @@ export class VideoStreamService {
     const fileStat = await stat(filePath);
     const fileSize = fileStat.size;
 
-    // Parse range header
     const rangeHeader = req.headers.range;
     let start = 0;
     let end = fileSize - 1;
@@ -248,39 +217,8 @@ export class VideoStreamService {
       case '.m2ts':
         return 'video/mp2t';
       default:
-        return 'video/mp4'; // Default to mp4
+        return 'video/mp4';
     }
-  }
-
-  /**
-   * Cleanup expired sessions
-   */
-  private cleanupExpiredSessions(): void {
-    const now = Date.now();
-    for (const [key, session] of this.activeSessions.entries()) {
-      if (now - session.lastAccessedAt > this.SESSION_TIMEOUT) {
-        log.info('Terminating expired stream session:', key);
-        session.process.kill();
-        this.activeSessions.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Periodic cleanup of expired sessions
-   */
-  startPeriodicCleanup(): NodeJS.Timeout {
-    return setInterval(() => this.cleanupExpiredSessions(), 60000); // Every minute
-  }
-
-  /**
-   * Cleanup all sessions
-   */
-  terminateAllSessions(): void {
-    for (const [, session] of this.activeSessions.entries()) {
-      session.process.kill();
-    }
-    this.activeSessions.clear();
   }
 }
 

@@ -83,18 +83,7 @@ export class FFmpegManager {
    */
   isFFmpegAvailable(): boolean {
     this.init();
-    if (this.isAvailable) return true;
-
-    try {
-      execSync('ffmpeg -version', { stdio: 'pipe', timeout: 5000 });
-      this.isAvailable = true;
-      this.ffmpegPath = 'ffmpeg';
-      log.info('FFmpeg found in system PATH');
-      return true;
-    } catch {
-      log.warn('FFmpeg not available in system PATH');
-      return false;
-    }
+    return this.isAvailable;
   }
 
   /**
@@ -102,17 +91,11 @@ export class FFmpegManager {
    * Returns 'ffmpeg' if in system PATH, otherwise full path to bundled version
    */
   getFFmpegPath(): string {
+    this.init();
     if (this.ffmpegPath) {
       return this.ffmpegPath;
     }
-
-    // If available in system PATH, return command name
-    try {
-      execSync('ffmpeg -version', { stdio: 'pipe', timeout: 5000 });
-      return 'ffmpeg';
-    } catch {
-      throw new Error('FFmpeg not found');
-    }
+    throw new Error('FFmpeg not found');
   }
 
   /**
