@@ -6,10 +6,12 @@ import {
   Maximize, Minimize,
   Settings, Captions,
   ChevronRight, ChevronLeft,
-  Check, Moon, Gauge, SlidersHorizontal,
+  Check, Moon, Gauge, SlidersHorizontal, Sparkles,
 } from 'lucide-react';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
+import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
+import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
 
 function formatTime(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00';
@@ -61,12 +63,22 @@ function YouTubeControls({
   const [saturation,     setSaturation]   = useState(100);
   const [bassBoost,      setBassBoost]    = useState(false);
   const [trebleBoost,    setTrebleBoost]  = useState(false);
+  // AI enhance state
+  const [showAiPanel,    setShowAiPanel]  = useState(false);
+  const [aiVideoOn,      setAiVideoOn]    = useState(false);
+  const [aiAudioOn,      setAiAudioOn]    = useState(false);
+  const [aiSharpness,    setAiSharpness]  = useState(55);  // 0-100 → 0-1
+  const [aiDenoise,      setAiDenoise]    = useState(35);
+  const [aiColorBoost,   setAiColorBoost] = useState(30);
 
   const volOsdTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seekOsdTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sleepTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestPlaying = useRef(state.playing);
   const didMount      = useRef(false);
+
+  // VideoEnhancer instance (WebGL overlay)
+  const videoEnhancerRef = useRef<VideoEnhancer | null>(null);
 
   // Web Audio chain for audio enhancement (ArtPlayer HTML5 path only)
   const audioRef = useRef<{
@@ -108,13 +120,52 @@ function YouTubeControls({
     return () => window.removeEventListener('keydown', handler);
   }, [keyMap]);
 
-  // CSS video filter
+  // SVG filter lifecycle — insert/remove when AI video is toggled
   useEffect(() => {
+    if (!videoEnhancerRef.current) videoEnhancerRef.current = new VideoEnhancer();
+    return () => { videoEnhancerRef.current?.remove(); videoEnhancerRef.current = null; };
+  }, []);
+
+  // Single combined CSS filter effect covering AI enhance + manual sliders
+  useEffect(() => {
+    const enhancer = videoEnhancerRef.current;
+    if (aiVideoOn) {
+      enhancer?.ensureFilter();
+      enhancer?.updateParams({ sharpness: aiSharpness / 100, denoise: aiDenoise / 100, colorBoost: aiColorBoost / 100 });
+    } else {
+      enhancer?.remove();
+      videoEnhancerRef.current = new VideoEnhancer();
+    }
+    const filterStr = VideoEnhancer.buildFilterString(
+      aiVideoOn, aiColorBoost / 100, brightness, contrast, saturation,
+    );
     const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
-    const f = `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100})`;
-    els.forEach(el => { el.style.filter = f; });
+    els.forEach(el => { el.style.filter = filterStr || ''; });
     return () => { els.forEach(el => { el.style.filter = ''; }); };
-  }, [brightness, contrast, saturation]);
+  }, [aiVideoOn, aiSharpness, aiDenoise, aiColorBoost, brightness, contrast, saturation]);
+
+  // AI audio enhance — activate full chain with harmonic exciter
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const { ctx, bass, treble, voice, compressor } = audioRef.current;
+    ctx.resume();
+    if (aiAudioOn) {
+      // Optimized AI preset: moderate bass, clear highs, voice presence, dynamics control
+      bass.gain.value     = bassBoost   ? 8  : 5;
+      treble.gain.value   = trebleBoost ? 6  : 4;
+      voice.gain.value    = voiceBoost  ? 6  : 3;
+      compressor.threshold.value = -20;
+      compressor.knee.value      = 25;
+      compressor.ratio.value     = 3.5;
+    } else {
+      // Restore individual toggle values
+      bass.gain.value     = bassBoost   ? 8 : 0;
+      treble.gain.value   = trebleBoost ? 6 : 0;
+      voice.gain.value    = voiceBoost  ? 6 : 0;
+      if (!stableVol) { compressor.threshold.value = 0; compressor.ratio.value = 1; }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiAudioOn]);
 
   // Web Audio setup — runs once, only when a <video> element is present (ArtPlayer path)
   useEffect(() => {
@@ -554,6 +605,75 @@ function YouTubeControls({
         </div>
       )}
 
+      {/* ── AI Enhance panel ─────────────────────────────────────────────────── */}
+      {showAiPanel && (
+        <div
+          className="yt-ai-panel"
+          onClick={e => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="yt-ai-header">
+            <Sparkles size={15} />
+            <span>AI Enhance</span>
+          </div>
+
+          {/* Video section */}
+          <div className="yt-ai-section">
+            <div className="yt-ai-section-row">
+              <span className="yt-ai-section-label">Video</span>
+              <button
+                className={`yt-toggle${aiVideoOn ? ' on' : ''}`}
+                onClick={() => setAiVideoOn(v => !v)}
+              />
+            </div>
+            {aiVideoOn && (
+              <div className="yt-ai-sliders">
+                {([
+                  { label: 'Sharpness', val: aiSharpness,  set: setAiSharpness  },
+                  { label: 'Denoise',   val: aiDenoise,    set: setAiDenoise    },
+                  { label: 'Vivid',     val: aiColorBoost, set: setAiColorBoost },
+                ] as const).map(({ label, val, set }) => (
+                  <div key={label} className="yt-ai-slider-row">
+                    <span className="yt-ai-slider-label">{label}</span>
+                    <input
+                      type="range" min={0} max={100} step={1} value={val}
+                      className="yt-ai-range"
+                      style={{ '--pct': `${val}%` } as React.CSSProperties}
+                      onChange={e => set(Number(e.target.value))}
+                    />
+                    <span className="yt-ai-slider-val">{val}</span>
+                  </div>
+                ))}
+                <button
+                  className="yt-enhance-reset"
+                  onClick={() => { setAiSharpness(55); setAiDenoise(35); setAiColorBoost(30); }}
+                >
+                  Reset
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Audio section */}
+          <div className="yt-ai-section">
+            <div className="yt-ai-section-row">
+              <span className="yt-ai-section-label">Audio</span>
+              <button
+                className={`yt-toggle${aiAudioOn ? ' on' : ''}`}
+                onClick={() => setAiAudioOn(v => !v)}
+              />
+            </div>
+            {aiAudioOn && (
+              <p className="yt-settings-note" style={{ marginTop: 4 }}>
+                Intelligent preset: balanced dynamics, voice clarity + bass presence.
+                Requires HTML5 playback mode.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Controls overlay ─────────────────────────────────────────────────── */}
       <div className={`yt-controls${isVisible ? ' visible' : ''}`}>
 
@@ -619,7 +739,7 @@ function YouTubeControls({
             </div>
           </div>
 
-          {/* Right: CC · settings · fullscreen in single pill */}
+          {/* Right: CC · AI enhance · settings · fullscreen in single pill */}
           <div className="yt-right">
             <div className="yt-pill">
               <button
@@ -631,11 +751,23 @@ function YouTubeControls({
               </button>
 
               <button
+                className={`yt-btn${showAiPanel ? ' active' : (aiVideoOn || aiAudioOn) ? ' active' : ''}`}
+                title="AI Enhance"
+                onClick={e => {
+                  e.stopPropagation();
+                  setShowAiPanel(v => !v);
+                  if (showMenu === 'settings') onSetShowMenu(null);
+                }}
+              >
+                <Sparkles size={18} />
+              </button>
+
+              <button
                 className={`yt-btn${showMenu === 'settings' ? ' active' : ''}`}
                 title="Settings"
                 onClick={e => {
                   e.stopPropagation();
-                  if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); }
+                  if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); setShowAiPanel(false); }
                 }}
               >
                 <Settings size={18} style={{
