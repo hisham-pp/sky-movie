@@ -5,6 +5,28 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.7] - 2026-06-26
+
+### Added
+
+- implement SVG filter-based video enhancement; integrate AI sharpening and manual color adjustments (Hisham)
+- implement AI video and audio enhancement features; add controls and UI for sharpness, denoise, and color boost (Hisham)
+- add video and audio enhancement controls to YouTube skin; implement brightness, contrast, saturation, and audio boost features (Hisham)
+- add Switch component for improved toggle functionality in SettingsPanel; update styles (Hisham)
+- enhance AppShowcase with new detail tabs and improved image loading; add new screenshots (Hisham)
+
+### Changed
+
+- release v0.6.6 (Hisham)
+- release v0.6.5 (Hisham)
+- release v0.6.4 (Hisham)
+
+### Other
+
+- fix last watch styling (Hisham)
+- add last watched option (Hisham)
+- chore(release): publish Sky Movie 0.6.4 downloads from GitHub (Hisham)
+
 ## [0.6.6] - 2026-06-26
 
 ### Other
@@ -372,3 +394,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.4
 [0.6.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.5
 [0.6.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.6
+[0.6.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.7
