@@ -80,13 +80,23 @@ function DefaultControls({
     volOsdTimer.current = setTimeout(() => setVolOsd(false), 1800);
   }, [state.volume, state.muted]);
 
-  // CSS video filter
+  // Single combined filter effect (AI sharpening SVG + manual CSS sliders)
   useEffect(() => {
+    const enhancer = videoEnhancerRef.current;
+    if (aiVideoOn) {
+      enhancer?.ensureFilter();
+      enhancer?.updateParams({ sharpness: aiSharpness / 100, denoise: aiDenoise / 100, colorBoost: aiColorBoost / 100 });
+    } else {
+      enhancer?.remove();
+      if (enhancer) videoEnhancerRef.current = new VideoEnhancer();
+    }
+    const filterStr = VideoEnhancer.buildFilterString(
+      aiVideoOn, aiColorBoost / 100, brightness, contrast, saturation,
+    );
     const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
-    const f = `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100})`;
-    els.forEach(el => { el.style.filter = f; });
+    els.forEach(el => { el.style.filter = filterStr || ''; });
     return () => { els.forEach(el => { el.style.filter = ''; }); };
-  }, [brightness, contrast, saturation]);
+  }, [aiVideoOn, aiSharpness, aiDenoise, aiColorBoost, brightness, contrast, saturation]);
 
   // Web Audio setup
   useEffect(() => {
@@ -120,30 +130,11 @@ function DefaultControls({
     else { compressor.threshold.value = 0; compressor.ratio.value = 1; }
   }, [stableVol]);
 
-  // AI Video enhancer
+  // Initialize VideoEnhancer instance on mount
   useEffect(() => {
     if (!videoEnhancerRef.current) videoEnhancerRef.current = new VideoEnhancer();
-    return () => { videoEnhancerRef.current?.disable(); videoEnhancerRef.current = null; };
+    return () => { videoEnhancerRef.current?.remove(); videoEnhancerRef.current = null; };
   }, []);
-
-  useEffect(() => {
-    const e = videoEnhancerRef.current;
-    if (!e) return;
-    if (aiVideoOn) {
-      const src = document.querySelector<HTMLCanvasElement | HTMLVideoElement>('.player canvas, .player video');
-      if (src) e.enable(src);
-    } else {
-      e.disable();
-    }
-  }, [aiVideoOn]);
-
-  useEffect(() => {
-    videoEnhancerRef.current?.setParams({
-      sharpness:  aiSharpness  / 100,
-      denoise:    aiDenoise    / 100,
-      colorBoost: aiColorBoost / 100,
-    } satisfies VideoEnhancerParams);
-  }, [aiSharpness, aiDenoise, aiColorBoost]);
 
   // AI Audio enhance preset
   useEffect(() => {

@@ -120,30 +120,29 @@ function YouTubeControls({
     return () => window.removeEventListener('keydown', handler);
   }, [keyMap]);
 
-  // AI video enhancer — WebGL overlay
+  // SVG filter lifecycle — insert/remove when AI video is toggled
   useEffect(() => {
     if (!videoEnhancerRef.current) videoEnhancerRef.current = new VideoEnhancer();
-    return () => { videoEnhancerRef.current?.disable(); videoEnhancerRef.current = null; };
+    return () => { videoEnhancerRef.current?.remove(); videoEnhancerRef.current = null; };
   }, []);
 
+  // Single combined CSS filter effect covering AI enhance + manual sliders
   useEffect(() => {
     const enhancer = videoEnhancerRef.current;
-    if (!enhancer) return;
     if (aiVideoOn) {
-      const src = document.querySelector<HTMLCanvasElement | HTMLVideoElement>('.player canvas, .player video');
-      if (src) enhancer.enable(src);
+      enhancer?.ensureFilter();
+      enhancer?.updateParams({ sharpness: aiSharpness / 100, denoise: aiDenoise / 100, colorBoost: aiColorBoost / 100 });
     } else {
-      enhancer.disable();
+      enhancer?.remove();
+      videoEnhancerRef.current = new VideoEnhancer();
     }
-  }, [aiVideoOn]);
-
-  useEffect(() => {
-    videoEnhancerRef.current?.setParams({
-      sharpness:  aiSharpness  / 100,
-      denoise:    aiDenoise    / 100,
-      colorBoost: aiColorBoost / 100,
-    } satisfies VideoEnhancerParams);
-  }, [aiSharpness, aiDenoise, aiColorBoost]);
+    const filterStr = VideoEnhancer.buildFilterString(
+      aiVideoOn, aiColorBoost / 100, brightness, contrast, saturation,
+    );
+    const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
+    els.forEach(el => { el.style.filter = filterStr || ''; });
+    return () => { els.forEach(el => { el.style.filter = ''; }); };
+  }, [aiVideoOn, aiSharpness, aiDenoise, aiColorBoost, brightness, contrast, saturation]);
 
   // AI audio enhance — activate full chain with harmonic exciter
   useEffect(() => {
@@ -167,14 +166,6 @@ function YouTubeControls({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiAudioOn]);
-
-  // CSS video filter
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
-    const f = `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100})`;
-    els.forEach(el => { el.style.filter = f; });
-    return () => { els.forEach(el => { el.style.filter = ''; }); };
-  }, [brightness, contrast, saturation]);
 
   // Web Audio setup — runs once, only when a <video> element is present (ArtPlayer path)
   useEffect(() => {
