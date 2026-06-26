@@ -5,6 +5,18 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2026-06-26
+
+### Added
+
+- implement PlayerCarousel component and integrate it into the homepage (Hisham)
+- add YouTube player style and corresponding skin (Hisham)
+- update build commands for CI and add caching for dependencies (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.6.1 downloads from GitHub (Hisham)
+
 ## [0.6.1] - 2026-06-26
 
 ### Added
@@ -309,3 +321,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.5.1
 [0.6.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.0
 [0.6.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.1
+[0.6.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.2
