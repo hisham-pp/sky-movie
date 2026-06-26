@@ -2,6 +2,7 @@ import releaseManifestJson from "../public/releases.json";
 import Link from "next/link";
 import { ExpandableImage } from "./ExpandableImage";
 import { PlayerCarousel } from "./PlayerCarousel";
+import { AppShowcase } from "./AppShowcase";
 
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
@@ -34,9 +35,15 @@ export default function Home() {
     release?.artifacts.find(a => a.kind === 'dmg');
   const getExeArtifact = (release: typeof latestRelease) =>
     release?.artifacts.find(a => a.kind === 'installer');
+  const getDebArtifact = (release: typeof latestRelease) =>
+    release?.artifacts.find(a => a.kind === 'deb' && a.fileName.includes('amd64'));
+  const getAppImageArtifact = (release: typeof latestRelease) =>
+    release?.artifacts.find(a => a.kind === 'appimage');
 
   const latestDmg = getDmgArtifact(latestRelease);
   const latestExe = getExeArtifact(latestRelease);
+  const latestDeb = getDebArtifact(latestRelease);
+  const latestAppImage = getAppImageArtifact(latestRelease);
 
   const formatReleaseDate = (dateStr: string | null) => {
     if (!dateStr) return 'Not released yet';
@@ -96,19 +103,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* App Screenshot */}
-        <section className="px-container-padding pb-stack-lg max-w-7xl mx-auto">
-          <div className="relative">
-            <div className="glass-panel p-2 rounded-[32px] shadow-2xl overflow-hidden">
-              <ExpandableImage
-                src="/screen-shots/movies-list.png"
-                alt="Sky Movie Desktop App Screenshot"
-                className="w-full h-auto block rounded-[24px]"
-              />
-            </div>
-            <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-primary/10 blur-[100px] -z-10"></div>
-            <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 blur-[100px] -z-10"></div>
-          </div>
+        {/* App Showcase */}
+        <section className="px-container-padding pb-stack-lg max-w-6xl mx-auto">
+          <AppShowcase />
         </section>
 
         {/* Library Features Grid */}
@@ -117,7 +114,7 @@ export default function Home() {
             <h2 className="font-headline-md text-3xl md:text-4xl mb-4">Everything your library needs</h2>
             <p className="text-secondary font-body-lg max-w-xl mx-auto">From scanning to playback, Sky Movie handles your entire collection with zero compromise.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-grid-gutter">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-grid-gutter mb-grid-gutter">
             <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-3xl">folder_managed</span>
@@ -141,13 +138,28 @@ export default function Home() {
               <h3 className="font-headline-sm text-xl mb-3">4K &amp; HDR Support</h3>
               <p className="text-secondary text-sm leading-relaxed">Full technical info for your high-fidelity collection, including HDR10+ and Dolby Vision.</p>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-grid-gutter">
             <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-3xl">collections</span>
               </div>
               <h3 className="font-headline-sm text-xl mb-3">Clean Management</h3>
               <p className="text-secondary text-sm leading-relaxed">Organize by genre, year, or rating with a UI that stays out of your way.</p>
+            </div>
+
+            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group border-primary/20">
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-3xl">search</span>
+              </div>
+              <h3 className="font-headline-sm text-xl mb-3">Instant Search <span className="text-primary text-sm font-label-md ml-2 bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full align-middle">Ctrl+K</span></h3>
+              <p className="text-secondary text-sm leading-relaxed mb-4">Search your entire library in milliseconds. Navigate to Movies, TV Shows, Playlists, Scan, or Settings — all from one keystroke. Results prioritize navigation then content.</p>
+              <div className="flex flex-wrap gap-2">
+                {['Movies', 'TV Shows', 'Playlists', 'Scan', 'Settings'].map(item => (
+                  <span key={item} className="text-xs bg-white/5 border border-white/10 text-secondary px-2.5 py-1 rounded-full">{item}</span>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -296,6 +308,18 @@ export default function Home() {
                       .exe
                     </a>
                   )}
+                  {latestDeb && (
+                    <a href={latestDeb.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">terminal</span>
+                      .deb
+                    </a>
+                  )}
+                  {latestAppImage && (
+                    <a href={latestAppImage.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">terminal</span>
+                      .AppImage
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -397,32 +421,32 @@ export default function Home() {
             </div>
 
             {/* Linux */}
-            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group opacity-70">
+            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined text-2xl">terminal</span>
                 </div>
                 <div>
                   <h3 className="font-headline-sm text-lg">Linux</h3>
-                  <span className="text-orange-400 text-xs font-bold bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">Coming Soon</span>
+                  <span className="text-primary text-xs font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">✓ Supported</span>
                 </div>
               </div>
               <ul className="text-secondary text-sm space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
                   Ubuntu 20.04+ / Debian 11+
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
                   Fedora 38+, Arch Linux
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
-                  x64 and ARM64 planned
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  x64 and ARM64
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
-                  AppImage / .deb packages planned
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Download as <code className="text-primary">.deb</code> or <code className="text-primary">.AppImage</code>
                 </li>
               </ul>
             </div>
