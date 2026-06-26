@@ -64,6 +64,7 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8">
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#features">Features</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#player">Player</a>
+          <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#platforms">Platforms</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#downloads">Download</a>
           <Link className="text-secondary font-label-md hover:text-primary transition-colors" href="/docs">Docs</Link>
           <a className="px-6 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-primary font-label-md transition-all flex items-center gap-2" href={repoUrl}>
@@ -322,6 +323,120 @@ export default function Home() {
                 <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Supported Platforms */}
+        <section className="py-20 px-container-padding max-w-5xl mx-auto" id="platforms">
+          <div className="text-center mb-12">
+            <h2 className="font-headline-md text-3xl md:text-4xl mb-4">Supported Platforms</h2>
+            <p className="text-secondary font-body-lg max-w-xl mx-auto">Sky Movie runs natively on all major desktop operating systems.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* macOS */}
+            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">desktop_mac</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-lg">macOS</h3>
+                  <span className="text-primary text-xs font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">✓ Supported</span>
+                </div>
+              </div>
+              <ul className="text-secondary text-sm space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  macOS 11 Big Sur or later
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Apple Silicon (M1/M2/M3) — native ARM build
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Intel x64 — universal binary
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Download as <code className="text-primary">.dmg</code>
+                </li>
+              </ul>
+            </div>
+
+            {/* Windows */}
+            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">window</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-lg">Windows</h3>
+                  <span className="text-primary text-xs font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">✓ Supported</span>
+                </div>
+              </div>
+              <ul className="text-secondary text-sm space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Windows 10 (64-bit) or later
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Windows 11 — fully tested
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  x64 architecture required
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>
+                  Download as <code className="text-primary">.exe</code> installer
+                </li>
+              </ul>
+            </div>
+
+            {/* Linux */}
+            <div className="glass-panel p-8 rounded-3xl hover:border-primary/40 transition-all group opacity-70">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">terminal</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-lg">Linux</h3>
+                  <span className="text-orange-400 text-xs font-bold bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">Coming Soon</span>
+                </div>
+              </div>
+              <ul className="text-secondary text-sm space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  Ubuntu 20.04+ / Debian 11+
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  Fedora 38+, Arch Linux
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  x64 and ARM64 planned
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0 mt-1.5"></span>
+                  AppImage / .deb packages planned
+                </li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* System requirements note */}
+          <div className="mt-8 p-5 bg-white/3 border border-white/5 rounded-2xl flex items-start gap-4">
+            <span className="material-symbols-outlined text-primary text-xl flex-shrink-0 mt-0.5">info</span>
+            <p className="text-secondary text-sm leading-relaxed">
+              Sky Movie is built on <strong className="text-white">Electron + libmpv</strong> for native hardware-accelerated playback.
+              Minimum <strong className="text-white">4 GB RAM</strong> and <strong className="text-white">200 MB</strong> of disk space required.
+              GPU acceleration recommended for 4K / HDR content.
+            </p>
           </div>
         </section>
 
