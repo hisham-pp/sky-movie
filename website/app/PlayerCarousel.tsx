@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { ImageModal } from './ExpandableImage';
 
 interface Slide {
@@ -83,10 +84,13 @@ export function PlayerCarousel() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={slide.src}
           alt={slide.alt}
+          width={1456}
+          height={816}
+          quality={90}
+          priority={active === 0}
           className="w-full h-auto block cursor-zoom-in"
           onClick={() => setModal(true)}
           draggable={false}

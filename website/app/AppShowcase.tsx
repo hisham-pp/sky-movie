@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { ImageModal } from './ExpandableImage';
 
 const TABS = [
@@ -73,11 +74,14 @@ export function AppShowcase() {
 
       {/* Screenshot frame */}
       <div className="glass-panel p-2 rounded-[28px] shadow-2xl overflow-hidden border-white/10 relative">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           key={current.src}
           src={current.src}
           alt={current.alt}
+          width={1456}
+          height={816}
+          quality={90}
+          priority={tab === 'movies' && safeSlide === 0}
           className="w-full h-auto block rounded-[20px] cursor-zoom-in"
           style={{ animation: 'showcaseFadeIn 0.35s ease' }}
           onClick={() => setModal(true)}

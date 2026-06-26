@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 export function ExpandableImage({
   src,
@@ -34,7 +35,15 @@ export function ExpandableImage({
         className={`relative group cursor-zoom-in ${wrapperClassName ?? ''}`}
         onClick={() => setOpen(true)}
       >
-        <img src={src} alt={alt} className={className} />
+        <Image
+          src={src}
+          alt={alt}
+          width={1920}
+          height={1080}
+          className={className}
+          quality={90}
+          priority
+        />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-inherit">
           <div className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center border border-white/20">
             <span className="material-symbols-outlined text-white text-xl">zoom_in</span>
@@ -54,7 +63,6 @@ export function ImageModal({ src, alt, onClose }: { src: string; alt: string; on
       style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
-      {/* Close button */}
       <button
         className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
         style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}
@@ -64,14 +72,17 @@ export function ImageModal({ src, alt, onClose }: { src: string; alt: string; on
         <span className="material-symbols-outlined text-xl">close</span>
       </button>
 
-      {/* Image — stop propagation so clicking image doesn't close */}
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={1920}
+        height={1080}
+        quality={95}
         className="max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
-        style={{ maxHeight: 'calc(100vh - 80px)' }}
+        style={{ maxHeight: 'calc(100vh - 80px)', width: 'auto', height: 'auto' }}
         onClick={e => e.stopPropagation()}
         draggable={false}
+        priority
       />
     </div>
   );
