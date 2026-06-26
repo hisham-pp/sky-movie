@@ -134,6 +134,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   h(ipcChannels.updateWatchProgress, (_e, update: WatchProgressUpdate) =>
     safe(ipcChannels.updateWatchProgress, () => services.player.updateWatchProgress(update))
   );
+  h(ipcChannels.getLastWatched, (_e) =>
+    safe(ipcChannels.getLastWatched, () => services.player.getLastWatched())
+  );
 
   h(ipcChannels.exportLibrary, async (_e, request?: SyncRequest) =>
     safe(ipcChannels.exportLibrary, async () => {

@@ -17,6 +17,7 @@ import './styles/responsive.css';
 import './styles/search-modal.css';
 import './styles/unrecognized-drawer.css';
 import './styles/playlist.css';
+import './styles/last-watched.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

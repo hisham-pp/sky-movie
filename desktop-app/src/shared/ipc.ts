@@ -257,6 +257,15 @@ export interface WatchProgressUpdate {
   completed?: boolean;
 }
 
+export interface LastWatchedInfo {
+  mediaFileId: number;
+  title: string;
+  positionSeconds: number;
+  durationSeconds: number;
+  completed: boolean;
+  updatedAt: string;
+}
+
 export interface SyncFilter {
   addedAfter?: string;
   watchedState?: 'watched' | 'unwatched' | 'any';
@@ -429,6 +438,7 @@ export interface SkyMovieApi {
   playMedia(mediaFileId: number): Promise<PlayMediaResult>;
   openMediaExternally(mediaFileId: number): Promise<void>;
   updateWatchProgress(update: WatchProgressUpdate): Promise<void>;
+  getLastWatched(): Promise<LastWatchedInfo | null>;
   exportLibrary(request?: SyncRequest): Promise<SyncResult | null>;
   importLibrary(path?: string): Promise<SyncResult | null>;
   syncLibrary(request: SyncRequest): Promise<SyncResult | null>;
@@ -478,6 +488,7 @@ export const ipcChannels = {
   playMedia: 'player:play-media',
   openMediaExternally: 'player:open-external',
   updateWatchProgress: 'watch:update-progress',
+  getLastWatched: 'watch:get-last-watched',
   exportLibrary: 'sync:export-library',
   importLibrary: 'sync:import-library',
   syncLibrary: 'sync:sync-library',

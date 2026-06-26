@@ -4,7 +4,7 @@ import { stat } from 'node:fs/promises';
 import { dirname, extname, basename, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
+import type { LastWatchedInfo, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
 import { extractMediaMetadata, isMKVFile, needsSpecialHandling } from './mediaMetadataService';
@@ -203,6 +203,46 @@ export class PlayerService {
         .prepare('INSERT INTO watch_history (media_file_id, watched_at, position_seconds) VALUES (?, ?, ?)')
         .run(update.mediaFileId, now, update.positionSeconds);
     }
+  }
+
+  getLastWatched(): LastWatchedInfo | null {
+    const row = this.db
+      .prepare(
+        `SELECT
+           wp.media_file_id,
+           wp.position_seconds,
+           wp.duration_seconds,
+           wp.completed,
+           wp.updated_at,
+           COALESCE(m.title, s.title, mf.file_name) AS title
+         FROM watch_progress wp
+         JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN movies m ON m.id = mf.matched_movie_id
+         LEFT JOIN tv_shows s ON s.id = mf.matched_show_id
+         ORDER BY wp.updated_at DESC
+         LIMIT 1`
+      )
+      .get() as
+      | {
+          media_file_id: number;
+          position_seconds: number;
+          duration_seconds: number;
+          completed: number;
+          updated_at: string;
+          title: string;
+        }
+      | undefined;
+
+    if (!row) return null;
+
+    return {
+      mediaFileId: row.media_file_id,
+      title: row.title,
+      positionSeconds: row.position_seconds,
+      durationSeconds: row.duration_seconds,
+      completed: Boolean(row.completed),
+      updatedAt: row.updated_at
+    };
   }
 
   private getWatchProgress(mediaFileId: number): WatchProgressSnapshot | null {

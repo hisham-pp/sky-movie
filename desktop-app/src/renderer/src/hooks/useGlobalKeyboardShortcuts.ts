@@ -11,6 +11,7 @@ interface KeyboardShortcutHandlers {
   onScan: () => void;
   onPlaylists: () => void;
   onShows?: () => void;
+  onPlayLastWatched?: () => void;
 }
 
 interface NavigationState {
@@ -109,6 +110,15 @@ export function useGlobalKeyboardShortcuts(
         e.preventDefault();
         if (currentHandlers.onShows) {
           currentHandlers.onShows();
+        }
+        return;
+      }
+
+      // Play last watched: Ctrl/Cmd + L
+      if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
+        e.preventDefault();
+        if (currentHandlers.onPlayLastWatched) {
+          currentHandlers.onPlayLastWatched();
         }
         return;
       }

@@ -288,6 +288,12 @@ export function useLibraryController() {
     setStatus(`Playing ${result.title}`);
   }
 
+  async function playById(mediaFileId: number) {
+    const result = await getSkyMovieApi().playMedia(mediaFileId);
+    setPlayer(result);
+    setStatus(`Playing ${result.title}`);
+  }
+
   async function openExternal(mediaFileId: number) {
     try {
       await getSkyMovieApi().openMediaExternally(mediaFileId);
@@ -880,6 +886,7 @@ export function useLibraryController() {
     viewShowDetails,
     backToLibrary,
     play,
+    playById,
     openExternal,
     saveSettings,
     clearLocalData,

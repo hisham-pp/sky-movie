@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
 import { SearchModal } from './components/SearchModal';
@@ -10,6 +10,7 @@ import { LibraryControllerProvider, useLibraryControllerContext } from './hooks/
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/LoadingScreen';
 import { WindowControls } from './components/WindowControls';
+import { LastWatchedButton } from './components/LastWatchedButton';
 import type { ViewMode } from './types';
 
 export function AppLayout() {
@@ -76,6 +77,11 @@ function AppLayoutInner() {
       },
       onShows: () => {
         navigate('/shows');
+      },
+      onPlayLastWatched: async () => {
+        const result = await window.skyMovie?.getLastWatched();
+        if (!result) return;
+        window.dispatchEvent(new CustomEvent('sky-movie:play-last-watched', { detail: result.mediaFileId }));
       }
     },
     {
@@ -149,6 +155,11 @@ function AppLayoutInner() {
           onApplyMetadata={library.applyUnmatchedFileMetadata}
           onMarkAsIgnored={library.markFileAsIgnored}
           onUnmarkAsIgnored={library.unmarkFileAsIgnored}
+        />
+
+        <LastWatchedButton
+          activeMediaFileId={library.player?.mediaFileId ?? null}
+          onPlay={(mediaFileId) => library.playById(mediaFileId)}
         />
 
         <SearchModal

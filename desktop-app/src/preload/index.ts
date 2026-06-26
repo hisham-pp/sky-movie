@@ -43,6 +43,7 @@ const api: SkyMovieApi = {
   playMedia: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.playMedia, mediaFileId),
   openMediaExternally: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.openMediaExternally, mediaFileId),
   updateWatchProgress: (update: WatchProgressUpdate) => ipcRenderer.invoke(ipcChannels.updateWatchProgress, update),
+  getLastWatched: () => ipcRenderer.invoke(ipcChannels.getLastWatched),
   exportLibrary: (request?: SyncRequest) => ipcRenderer.invoke(ipcChannels.exportLibrary, request),
   importLibrary: (path?: string) => ipcRenderer.invoke(ipcChannels.importLibrary, path),
   syncLibrary: (request: SyncRequest) => ipcRenderer.invoke(ipcChannels.syncLibrary, request),
