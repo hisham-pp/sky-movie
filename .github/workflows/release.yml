@@ -22,27 +22,27 @@ jobs:
           - os: windows-latest
             platform: windows
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --x64
           - os: windows-latest
             platform: windows
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --arm64
           - os: macos-latest
             platform: macos
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --x64
           - os: macos-latest
             platform: macos
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --arm64
           - os: ubuntu-latest
             platform: linux
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --x64
           - os: ubuntu-latest
             platform: linux
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --arm64
 
     steps:
       - name: Checkout
@@ -60,18 +60,48 @@ jobs:
           cache: pnpm
 
       # ── Platform deps ────────────────────────────────────────────────────────
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.arch }}-libmpv-${{ hashFiles('.github/workflows/release.yml') }}
+          restore-keys: apt-${{ runner.arch }}-libmpv-
+
       - name: Install Linux system deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libarchive-tools rpm libmpv-dev
 
+      - name: Cache Homebrew Cellar
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/mpv
+            /opt/homebrew/Cellar/ffmpeg
+            /opt/homebrew/Cellar/libass
+            /opt/homebrew/Cellar/libplacebo
+          key: brew-mpv-${{ runner.arch }}-${{ hashFiles('.github/workflows/release.yml') }}
+          restore-keys: brew-mpv-${{ runner.arch }}-
+
       - name: Install macOS system deps
         if: runner.os == 'macOS'
-        run: brew install mpv
+        run: brew install mpv || true
+
+      - name: Check VS C++ workload (Windows)
+        if: runner.os == 'Windows'
+        id: vs-check
+        shell: powershell
+        run: |
+          $vsWhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+          $has = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
+          echo "has_vc=$( if ($has) { 'true' } else { 'false' } )" >> $env:GITHUB_OUTPUT
 
       - name: Add VS C++ workload (Windows)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.vs-check.outputs.has_vc == 'false'
         shell: powershell
         run: |
           $vsWhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -83,6 +113,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Cache libmpv artifacts
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            desktop-app/resources/mpv
+            desktop-app/native/mpv-player/lib
+            desktop-app/native/mpv-player/include
+          key: libmpv-${{ runner.arch }}-${{ hashFiles('scripts/download-libmpv.mjs') }}
+
       - name: Prepare FFmpeg bundle
         run: pnpm --filter @sky-movie/desktop-app run prepare:ffmpeg
 
@@ -92,11 +132,8 @@ jobs:
       - name: Build mpv native addon
         run: pnpm --filter @sky-movie/desktop-app run build:native
 
-      - name: Rebuild native modules for Electron
-        run: pnpm --filter @sky-movie/desktop-app run rebuild:electron
-
       - name: Build app bundles
-        run: pnpm --filter @sky-movie/desktop-app run build
+        run: pnpm --filter @sky-movie/desktop-app run build:ci
 
       - name: Package app
         run: ${{ matrix.packageCommand }}
