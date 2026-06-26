@@ -5,6 +5,12 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.6] - 2026-06-26
+
+### Other
+
+- fix last watch styling (Hisham)
+
 ## [0.6.5] - 2026-06-26
 
 ### Other
@@ -365,3 +371,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.3
 [0.6.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.4
 [0.6.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.5
+[0.6.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.6
