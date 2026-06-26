@@ -22,14 +22,14 @@ type ResultItem =
 
 type NavItem = { kind: 'nav'; path: string; label: string; icon: React.ReactNode };
 
-type AnyItem = ResultItem | NavItem;
+type AnyItem = NavItem | ResultItem;
 
-const NAV_ITEMS: NavItem[] = [
-  { kind: 'nav', label: 'Movies', path: '/movies', icon: <Film size={15} /> },
-  { kind: 'nav', label: 'TV Shows', path: '/shows', icon: <Tv size={15} /> },
-  { kind: 'nav', label: 'Playlists', path: '/playlists', icon: <ListVideo size={15} /> },
-  { kind: 'nav', label: 'Scan', path: '/scan', icon: <ScanSearch size={15} /> },
-  { kind: 'nav', label: 'Settings', path: '/settings', icon: <Settings size={15} /> },
+const ALL_NAV_ITEMS: NavItem[] = [
+  { kind: 'nav', label: 'Movies', path: '/movies', icon: <Film size={18} /> },
+  { kind: 'nav', label: 'TV Shows', path: '/shows', icon: <Tv size={18} /> },
+  { kind: 'nav', label: 'Playlists', path: '/playlists', icon: <ListVideo size={18} /> },
+  { kind: 'nav', label: 'Scan', path: '/scan', icon: <ScanSearch size={18} /> },
+  { kind: 'nav', label: 'Settings', path: '/settings', icon: <Settings size={18} /> },
 ];
 
 export function SearchModal({
@@ -54,26 +54,31 @@ export function SearchModal({
     }
   }, [isOpen]);
 
+  const q = query.toLowerCase();
+
+  const filteredNav = query
+    ? ALL_NAV_ITEMS.filter((n) => n.label.toLowerCase().includes(q))
+    : ALL_NAV_ITEMS;
+
   const filteredMovies = query
-    ? movies.filter((m) => m.title.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    ? movies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 6)
     : [];
 
   const filteredShows = query
-    ? shows.filter((s) => s.title.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+    ? shows.filter((s) => s.title.toLowerCase().includes(q)).slice(0, 6)
     : [];
 
   const filteredPlaylists = query
-    ? playlists.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 4)
+    ? playlists.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 4)
     : [];
 
-  const resultItems: ResultItem[] = [
+  // Nav first (prioritized), then content results
+  const allItems: AnyItem[] = [
+    ...filteredNav,
     ...filteredMovies.map((data): ResultItem => ({ kind: 'movie', data })),
     ...filteredShows.map((data): ResultItem => ({ kind: 'show', data })),
     ...filteredPlaylists.map((data): ResultItem => ({ kind: 'playlist', data })),
   ];
-
-  // Nav items always included; results come first so arrow-down hits results before nav
-  const allItems: AnyItem[] = [...resultItems, ...NAV_ITEMS];
 
   const selectItem = (item: AnyItem) => {
     if (item.kind === 'nav') { onNavigate(item.path); onClose(); return; }
@@ -118,10 +123,26 @@ export function SearchModal({
     activeItemRef.current?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
 
-  // Nav items start after all result items
-  const navStartIndex = resultItems.length;
-
   let globalIndex = -1;
+
+  const renderNavItem = (item: NavItem) => {
+    globalIndex++;
+    const idx = globalIndex;
+    const isActive = idx === activeIndex;
+    return (
+      <button
+        key={item.path}
+        ref={isActive ? activeItemRef : null}
+        className={`search-modal-item search-modal-item--nav${isActive ? ' search-modal-item--active' : ''}`}
+        onClick={() => { onNavigate(item.path); onClose(); }}
+      >
+        <div className="search-modal-item-nav-icon">{item.icon}</div>
+        <div className="search-modal-item-info">
+          <div className="search-modal-item-title">{item.label}</div>
+        </div>
+      </button>
+    );
+  };
 
   const renderResultItem = (item: ResultItem) => {
     globalIndex++;
@@ -194,7 +215,7 @@ export function SearchModal({
     );
   };
 
-  const hasResults = resultItems.length > 0;
+  const hasContentResults = filteredMovies.length > 0 || filteredShows.length > 0 || filteredPlaylists.length > 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
@@ -215,7 +236,18 @@ export function SearchModal({
         </div>
 
         <div className="search-modal-results">
-          {query && hasResults ? (
+          {/* Nav section — always shown, filtered by query */}
+          {filteredNav.length > 0 && (
+            <div className="search-modal-section">
+              <h3 className="search-modal-section-title">Navigate to</h3>
+              <div className="search-modal-items">
+                {filteredNav.map((item) => renderNavItem(item))}
+              </div>
+            </div>
+          )}
+
+          {/* Content results */}
+          {query && hasContentResults && (
             <>
               {filteredMovies.length > 0 && (
                 <div className="search-modal-section">
@@ -242,31 +274,11 @@ export function SearchModal({
                 </div>
               )}
             </>
-          ) : query ? (
-            <div className="search-modal-empty">No results found for "{query}"</div>
-          ) : null}
+          )}
 
-          {/* Nav section — always visible */}
-          <div className="search-modal-nav">
-            <p className="search-modal-nav-label">Navigate to</p>
-            <div className="search-modal-nav-items">
-              {NAV_ITEMS.map((item, i) => {
-                const idx = navStartIndex + i;
-                const isActive = idx === activeIndex;
-                return (
-                  <button
-                    key={item.path}
-                    ref={isActive ? activeItemRef : null}
-                    className={`search-modal-nav-item${isActive ? ' search-modal-nav-item--active' : ''}`}
-                    onClick={() => { onNavigate(item.path); onClose(); }}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {query && !hasContentResults && filteredNav.length === 0 && (
+            <div className="search-modal-empty">No results found for "{query}"</div>
+          )}
         </div>
 
         <div className="search-modal-footer">

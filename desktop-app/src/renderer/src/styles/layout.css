@@ -1,3 +1,51 @@
+/* ── Custom hover-only window controls (replaces native titleBarOverlay) ── */
+.window-controls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  -webkit-app-region: no-drag;
+}
+
+/* opacity:0 still receives pointer-events, so hovering the top-right corner reveals the controls */
+.window-controls:hover {
+  opacity: 1;
+}
+
+.window-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--muted, #888);
+  cursor: pointer;
+  border-radius: 0;
+  padding: 0;
+  transition: background 0.1s ease, color 0.1s ease;
+  box-shadow: none;
+  -webkit-app-region: no-drag;
+}
+
+.window-control:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink, #fff);
+  box-shadow: none;
+  transform: none;
+}
+
+.window-control--close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

@@ -450,6 +450,9 @@ export interface SkyMovieApi {
   addToPlaylist(request: AddToPlaylistRequest): Promise<void>;
   removeFromPlaylist(request: RemoveFromPlaylistRequest): Promise<void>;
   reorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): Promise<void>;
+  windowMinimize(): Promise<void>;
+  windowMaximize(): Promise<void>;
+  windowClose(): Promise<void>;
 }
 
 export const ipcChannels = {
@@ -515,5 +518,9 @@ export const ipcChannels = {
   mpvEvent:          'mpv:event',
   mpvTracks:         'mpv:tracks',
   // Synchronous close sent from beforeunload — kills mpv before the page unloads
-  mpvForceClose:     'mpv:force-close'
+  mpvForceClose:     'mpv:force-close',
+  // Window controls
+  windowMinimize:    'window:minimize',
+  windowMaximize:    'window:maximize',
+  windowClose:       'window:close'
 } as const;

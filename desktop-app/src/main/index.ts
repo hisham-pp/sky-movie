@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, protocol } from 'electron';
+import { app, BrowserWindow, Menu, protocol, ipcMain } from 'electron';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,11 +53,6 @@ function createWindow(): BrowserWindow {
     title: 'Sky Movie',
     backgroundColor: '#111317',
     titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#111317',
-      symbolColor: '#c4c6ce',
-      height: 30
-    },
     webPreferences: {
       preload: resolvePreloadPath(),
       contextIsolation: true,
@@ -168,6 +163,15 @@ app.whenReady().then(async () => {
   });
 
   mainWindow = createWindow();
+
+  // Window control IPC (custom title bar buttons)
+  ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+  ipcMain.handle('window:maximize', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
+  });
+  ipcMain.handle('window:close', () => mainWindow?.close());
 
   // Forward renderer console messages to the main-process log file so they
   // appear alongside the streaming/player logs for debugging.

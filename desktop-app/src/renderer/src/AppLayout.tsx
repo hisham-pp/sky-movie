@@ -9,6 +9,7 @@ import { Toolbar } from './components/Toolbar';
 import { LibraryControllerProvider, useLibraryControllerContext } from './hooks/LibraryControllerContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/LoadingScreen';
+import { WindowControls } from './components/WindowControls';
 import type { ViewMode } from './types';
 
 export function AppLayout() {
@@ -110,6 +111,7 @@ function AppLayoutInner() {
   return (
     <>
     <LoadingScreen visible={library.settings === null} />
+    <WindowControls />
     <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}${hideSidebar ? ' sidebar-hidden' : ''}`} data-theme={theme}>
       {!hideSidebar && (
         <Sidebar

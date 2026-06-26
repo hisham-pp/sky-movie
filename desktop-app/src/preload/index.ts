@@ -97,7 +97,10 @@ const api: SkyMovieApi = {
     const listener = (_: Electron.IpcRendererEvent, tracks: MpvTrack[]) => callback(tracks);
     ipcRenderer.on(ipcChannels.mpvTracks, listener);
     return () => ipcRenderer.off(ipcChannels.mpvTracks, listener);
-  }
+  },
+  windowMinimize: () => ipcRenderer.invoke(ipcChannels.windowMinimize),
+  windowMaximize: () => ipcRenderer.invoke(ipcChannels.windowMaximize),
+  windowClose:    () => ipcRenderer.invoke(ipcChannels.windowClose),
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);
