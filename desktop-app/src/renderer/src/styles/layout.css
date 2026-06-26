@@ -53,6 +53,14 @@
   left: 210px;
 }
 
+.app-shell.sidebar-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.sidebar-hidden .toolbar {
+  left: 0;
+}
+
 .toolbar-spacer {
   flex: 1;
 }

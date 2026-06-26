@@ -1,4 +1,4 @@
-import { Search, Film, Tv, ListMusic, X } from 'lucide-react';
+import { Search, Film, Tv, ListMusic, X, ScanSearch, Settings, ListVideo } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 import { Modal } from './common';
@@ -12,12 +12,25 @@ interface SearchModalProps {
   onSelectMovie: (movie: Movie) => void;
   onSelectShow: (show: TvShow) => void;
   onSelectPlaylist: (playlist: Playlist) => void;
+  onNavigate: (path: string) => void;
 }
 
 type ResultItem =
   | { kind: 'movie'; data: Movie }
   | { kind: 'show'; data: TvShow }
   | { kind: 'playlist'; data: Playlist };
+
+type NavItem = { kind: 'nav'; path: string; label: string; icon: React.ReactNode };
+
+type AnyItem = ResultItem | NavItem;
+
+const NAV_ITEMS: NavItem[] = [
+  { kind: 'nav', label: 'Movies', path: '/movies', icon: <Film size={15} /> },
+  { kind: 'nav', label: 'TV Shows', path: '/shows', icon: <Tv size={15} /> },
+  { kind: 'nav', label: 'Playlists', path: '/playlists', icon: <ListVideo size={15} /> },
+  { kind: 'nav', label: 'Scan', path: '/scan', icon: <ScanSearch size={15} /> },
+  { kind: 'nav', label: 'Settings', path: '/settings', icon: <Settings size={15} /> },
+];
 
 export function SearchModal({
   isOpen,
@@ -27,7 +40,8 @@ export function SearchModal({
   playlists,
   onSelectMovie,
   onSelectShow,
-  onSelectPlaylist
+  onSelectPlaylist,
+  onNavigate
 }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -52,13 +66,17 @@ export function SearchModal({
     ? playlists.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 4)
     : [];
 
-  const allResults: ResultItem[] = [
+  const resultItems: ResultItem[] = [
     ...filteredMovies.map((data): ResultItem => ({ kind: 'movie', data })),
     ...filteredShows.map((data): ResultItem => ({ kind: 'show', data })),
     ...filteredPlaylists.map((data): ResultItem => ({ kind: 'playlist', data })),
   ];
 
-  const selectResult = (item: ResultItem) => {
+  // Nav items always included; results come first so arrow-down hits results before nav
+  const allItems: AnyItem[] = [...resultItems, ...NAV_ITEMS];
+
+  const selectItem = (item: AnyItem) => {
+    if (item.kind === 'nav') { onNavigate(item.path); onClose(); return; }
     if (item.kind === 'movie') onSelectMovie(item.data);
     else if (item.kind === 'show') onSelectShow(item.data);
     else onSelectPlaylist(item.data);
@@ -78,19 +96,19 @@ export function SearchModal({
         onClose();
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, allResults.length - 1));
+        setActiveIndex((i) => Math.min(i + 1, allItems.length - 1));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setActiveIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === 'Enter' && activeIndex >= 0 && allResults[activeIndex]) {
+      } else if (e.key === 'Enter' && activeIndex >= 0 && allItems[activeIndex]) {
         e.preventDefault();
-        selectResult(allResults[activeIndex]);
+        selectItem(allItems[activeIndex]);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, allResults, activeIndex]);
+  }, [isOpen, onClose, allItems, activeIndex]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -100,9 +118,12 @@ export function SearchModal({
     activeItemRef.current?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
 
+  // Nav items start after all result items
+  const navStartIndex = resultItems.length;
+
   let globalIndex = -1;
 
-  const renderItem = (item: ResultItem) => {
+  const renderResultItem = (item: ResultItem) => {
     globalIndex++;
     const idx = globalIndex;
     const isActive = idx === activeIndex;
@@ -173,7 +194,7 @@ export function SearchModal({
     );
   };
 
-  const hasResults = allResults.length > 0;
+  const hasResults = resultItems.length > 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
@@ -200,7 +221,7 @@ export function SearchModal({
                 <div className="search-modal-section">
                   <h3 className="search-modal-section-title"><Film size={16} /> Movies</h3>
                   <div className="search-modal-items">
-                    {filteredMovies.map((movie) => renderItem({ kind: 'movie', data: movie }))}
+                    {filteredMovies.map((movie) => renderResultItem({ kind: 'movie', data: movie }))}
                   </div>
                 </div>
               )}
@@ -208,7 +229,7 @@ export function SearchModal({
                 <div className="search-modal-section">
                   <h3 className="search-modal-section-title"><Tv size={16} /> TV Shows</h3>
                   <div className="search-modal-items">
-                    {filteredShows.map((show) => renderItem({ kind: 'show', data: show }))}
+                    {filteredShows.map((show) => renderResultItem({ kind: 'show', data: show }))}
                   </div>
                 </div>
               )}
@@ -216,16 +237,36 @@ export function SearchModal({
                 <div className="search-modal-section">
                   <h3 className="search-modal-section-title"><ListMusic size={16} /> Playlists</h3>
                   <div className="search-modal-items">
-                    {filteredPlaylists.map((playlist) => renderItem({ kind: 'playlist', data: playlist }))}
+                    {filteredPlaylists.map((playlist) => renderResultItem({ kind: 'playlist', data: playlist }))}
                   </div>
                 </div>
               )}
             </>
           ) : query ? (
             <div className="search-modal-empty">No results found for "{query}"</div>
-          ) : (
-            <div className="search-modal-empty">Start typing to search your library...</div>
-          )}
+          ) : null}
+
+          {/* Nav section — always visible */}
+          <div className="search-modal-nav">
+            <p className="search-modal-nav-label">Navigate to</p>
+            <div className="search-modal-nav-items">
+              {NAV_ITEMS.map((item, i) => {
+                const idx = navStartIndex + i;
+                const isActive = idx === activeIndex;
+                return (
+                  <button
+                    key={item.path}
+                    ref={isActive ? activeItemRef : null}
+                    className={`search-modal-nav-item${isActive ? ' search-modal-nav-item--active' : ''}`}
+                    onClick={() => { onNavigate(item.path); onClose(); }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="search-modal-footer">

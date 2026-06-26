@@ -313,6 +313,7 @@ export interface AppSettings {
   libraryFolders: string[];
   deviceId: string;
   autoDownloadUpdates: boolean;
+  hideSidebar: boolean;
 }
 
 export interface ClearLocalDataResult {

@@ -24,6 +24,7 @@ function AppLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = library.settings?.theme ?? 'cinema';
+  const hideSidebar = library.settings?.hideSidebar ?? false;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
@@ -109,14 +110,16 @@ function AppLayoutInner() {
   return (
     <>
     <LoadingScreen visible={library.settings === null} />
-    <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}`} data-theme={theme}>
-      <Sidebar
-        view={currentView}
-        summary={library.summary}
-        onViewChange={handleViewChange}
-        expanded={sidebarExpanded}
-        onToggleExpand={() => setSidebarExpanded((p) => !p)}
-      />
+    <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}${hideSidebar ? ' sidebar-hidden' : ''}`} data-theme={theme}>
+      {!hideSidebar && (
+        <Sidebar
+          view={currentView}
+          summary={library.summary}
+          onViewChange={handleViewChange}
+          expanded={sidebarExpanded}
+          onToggleExpand={() => setSidebarExpanded((p) => !p)}
+        />
+      )}
 
       <section className="workspace">
         <Toolbar
@@ -164,6 +167,7 @@ function AppLayoutInner() {
             await library.selectPlaylist(playlist);
             navigate(`/playlists/${playlist.id}`);
           }}
+          onNavigate={(path) => navigate(path)}
         />
 
       </section>

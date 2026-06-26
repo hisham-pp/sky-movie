@@ -23,6 +23,7 @@ function sanitize(update: Partial<AppSettings>): Partial<AppSettings> {
   if (out.watchFolders    !== undefined) out.watchFolders    = Boolean(out.watchFolders);
   if (out.extractFileMetadata !== undefined) out.extractFileMetadata = Boolean(out.extractFileMetadata);
   if (out.autoDownloadUpdates !== undefined) out.autoDownloadUpdates = Boolean(out.autoDownloadUpdates);
+  if (out.hideSidebar         !== undefined) out.hideSidebar         = Boolean(out.hideSidebar);
   if (out.defaultSyncIncludesFiles !== undefined) out.defaultSyncIncludesFiles = Boolean(out.defaultSyncIncludesFiles);
   // libraryFolders must be a string array
   if (out.libraryFolders !== undefined) {

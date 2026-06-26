@@ -250,6 +250,23 @@ export function SettingsPanel({
 
             <div className="settings-section-heading" style={{ marginTop: '2rem' }}>
               <div>
+                <h3>Layout</h3>
+                <p>Control which UI elements are visible.</p>
+              </div>
+            </div>
+            <div className="settings-form-grid">
+              <label className="toggle wide">
+                <input
+                  type="checkbox"
+                  checked={settings?.hideSidebar ?? false}
+                  onChange={(event) => onSave({ hideSidebar: event.target.checked })}
+                />
+                Hide sidebar
+              </label>
+            </div>
+
+            <div className="settings-section-heading" style={{ marginTop: '2rem' }}>
+              <div>
                 <h3>Player</h3>
                 <p>Choose which player engine to use for local media.</p>
               </div>

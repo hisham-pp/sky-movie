@@ -126,6 +126,7 @@ export function defaultSettings(deviceId: string): AppSettings {
     extractFileMetadata: true,
     libraryFolders: [],
     deviceId,
-    autoDownloadUpdates: false
+    autoDownloadUpdates: false,
+    hideSidebar: false
   };
 }
