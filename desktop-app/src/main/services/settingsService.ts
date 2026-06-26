@@ -3,7 +3,7 @@ import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerSty
 import type { SqliteDatabase } from '../database/client';
 import { defaultSettings } from './rowMappers';
 
-const VALID_PLAYER_STYLES = new Set<PlayerStyle>(['default']);
+const VALID_PLAYER_STYLES = new Set<PlayerStyle>(['default', 'youtube']);
 const VALID_THEMES = new Set<AppTheme>([
   'cinema', 'midnight', 'daylight', 'ember', 'ocean', 'forest', 'sunset', 'noir', 'lavender', 'crimson'
 ]);

@@ -1,12 +1,14 @@
 import type { PlayerStyle } from '@shared/ipc';
 import type { PlayerSkin } from './PlayerSkin';
 import { DefaultSkin } from './default/DefaultSkin';
+import { YouTubeSkin } from './youtube/YouTubeSkin';
 
 // ── Skin registry ─────────────────────────────────────────────────────────────
 // To register a new skin: import it and add an entry below.
 
 const registry: Record<PlayerStyle, PlayerSkin> = {
-  default: new DefaultSkin()
+  default: new DefaultSkin(),
+  youtube: new YouTubeSkin(),
 };
 
 export function getSkin(style: PlayerStyle): PlayerSkin {

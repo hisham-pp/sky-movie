@@ -103,8 +103,12 @@ const playerStylePresets: Array<{
     id: 'default',
     name: 'Default',
     description: 'Standard controls with seek bar, volume, track selection and fullscreen toggle.'
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube',
+    description: 'Familiar YouTube-style red progress bar with nested settings panel.'
   }
-  // More styles will be added here in future updates
 ];
 
 export function SettingsPanel({

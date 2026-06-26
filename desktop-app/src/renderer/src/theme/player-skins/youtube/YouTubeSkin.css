@@ -1,0 +1,439 @@
+/* ── YouTube skin ─────────────────────────────────────────────────────────────
+   Uses only theme CSS variables so the skin inherits every theme automatically.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Controls overlay */
+.yt-controls {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  padding-top: 48px;
+  background: linear-gradient(to top,
+    rgba(0,0,0,0.65) 0%,
+    rgba(0,0,0,0.2)  60%,
+    transparent      100%
+  );
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.yt-controls.visible { opacity: 1; pointer-events: auto; }
+
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+
+.yt-progress-wrap {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0 16px;
+  margin-bottom: 2px;
+}
+.yt-progress-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 9999px;
+  overflow: visible;
+}
+.yt-progress-filled {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--primary);
+  border-radius: 9999px;
+}
+.yt-progress-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 13px; height: 13px;
+  background: var(--primary);
+  border-radius: 50%;
+  transition: transform 0.1s ease;
+  pointer-events: none;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+}
+.yt-progress-wrap:hover .yt-progress-thumb { transform: translate(-50%, -50%) scale(1); }
+
+/* ── Bottom row ──────────────────────────────────────────────────────────── */
+
+.yt-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 20px;
+}
+.yt-left  { display: flex; align-items: center; gap: 8px; }
+.yt-right { display: flex; align-items: center; }
+
+/* ── Glass pill groups ────────────────────────────────────────────────────── */
+
+.yt-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  padding: 4px;
+}
+
+/* ── Icon buttons ─────────────────────────────────────────────────────────── */
+
+.yt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.yt-btn:hover  { background: rgba(255,255,255,0.1); opacity: 1; }
+.yt-btn.active { color: var(--primary); opacity: 1; }
+
+/* ── Volume group ─────────────────────────────────────────────────────────── */
+
+.yt-vol-group { display: flex; align-items: center; }
+.yt-vol-expand {
+  display: flex; align-items: center;
+  width: 0; overflow: hidden; opacity: 0;
+  transition: width 0.22s ease, opacity 0.18s ease, padding 0.22s ease;
+  padding: 0;
+}
+.yt-vol-expand.open { width: 88px; opacity: 1; padding: 0 6px 0 2px; }
+
+.yt-volume-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 76px;
+  height: 4px;
+  border-radius: 9999px;
+  cursor: pointer; outline: none; flex-shrink: 0;
+  background: linear-gradient(to right,
+    var(--primary) 0%, var(--primary) var(--vol, 100%),
+    rgba(255,255,255,0.22) var(--vol, 100%), rgba(255,255,255,0.22) 100%
+  );
+}
+.yt-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.yt-volume-slider::-moz-range-thumb {
+  width: 13px; height: 13px; border: none; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+}
+.yt-volume-slider::-moz-range-track    { height: 4px; background: rgba(255,255,255,0.22); }
+.yt-volume-slider::-moz-range-progress { height: 4px; background: var(--primary); }
+
+/* ── Time display ─────────────────────────────────────────────────────────── */
+
+.yt-time {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 12px;
+  height: 40px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  font-size: 14px; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; user-select: none; line-height: 1;
+}
+.yt-time .sep { color: var(--muted); }
+
+/* ── Settings panel ──────────────────────────────────────────────────────── */
+
+.yt-settings-panel {
+  position: absolute;
+  bottom: 76px;
+  right: 24px;
+  z-index: 20;
+  width: 320px;
+  background: var(--panel);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+.yt-settings-title {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.yt-settings-title h4 {
+  font-size: 16px; font-weight: 600; color: var(--ink);
+  letter-spacing: 0.01em; line-height: 1.5;
+}
+.yt-settings-title p {
+  font-size: 12px; color: var(--muted); margin-top: 2px;
+}
+
+.yt-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 8px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.yt-settings-back {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: transparent; border: none;
+  color: var(--soft); cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.yt-settings-back:hover { background: rgba(255,255,255,0.08); color: var(--ink); }
+
+.yt-settings-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.yt-settings-body::-webkit-scrollbar { width: 4px; }
+.yt-settings-body::-webkit-scrollbar-thumb {
+  background: var(--line); border-radius: 4px;
+}
+
+.yt-settings-item {
+  display: flex; align-items: center;
+  width: 100%; padding: 10px 16px;
+  min-height: 44px;
+  background: transparent; border: none;
+  color: var(--ink); cursor: pointer;
+  transition: background 0.1s;
+  text-align: left; gap: 12px;
+}
+.yt-settings-item:hover { background: rgba(255,255,255,0.06); }
+.yt-settings-item.active-item {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  margin: 0 8px;
+  width: calc(100% - 16px);
+}
+
+.yt-settings-item-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; flex-shrink: 0;
+  color: var(--muted);
+}
+.yt-settings-item-label {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ink);
+}
+.yt-settings-item-value {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Toggle switch */
+.yt-toggle {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--surface-highest);
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+.yt-toggle.on { background: var(--primary); }
+.yt-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  background: var(--ink);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.yt-toggle.on::after { transform: translateX(16px); }
+
+/* Check icon in list */
+.yt-settings-check {
+  display: flex; align-items: center;
+  width: 22px; flex-shrink: 0;
+  color: var(--primary);
+}
+
+/* Settings note */
+.yt-settings-note {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 6px 16px 12px;
+  line-height: 1.5;
+}
+
+/* ── Speed submenu ────────────────────────────────────────────────────────── */
+
+.yt-speed-display {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  padding: 20px 16px 4px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.yt-speed-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px 12px;
+}
+
+.yt-speed-adj {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none; color: var(--ink); cursor: pointer;
+  font-size: 22px; font-weight: 300; line-height: 1;
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+.yt-speed-adj:hover   { background: rgba(255,255,255,0.14); }
+.yt-speed-adj:disabled { opacity: 0.28; cursor: default; }
+
+.yt-speed-range {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 4px; border-radius: 9999px;
+  cursor: pointer; outline: none;
+  background: linear-gradient(to right,
+    var(--primary) 0%, var(--primary) var(--spd, 50%),
+    rgba(255,255,255,0.2) var(--spd, 50%), rgba(255,255,255,0.2) 100%
+  );
+}
+.yt-speed-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.yt-speed-range::-moz-range-thumb {
+  width: 16px; height: 16px; border: none; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+}
+
+.yt-speed-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 16px 16px;
+}
+
+.yt-speed-chip {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.07);
+  border: none; color: var(--soft);
+  font-size: 13px; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.yt-speed-chip:hover  { background: rgba(255,255,255,0.13); color: var(--ink); }
+.yt-speed-chip.active { background: var(--primary); color: var(--on-primary); }
+
+.yt-speed-normal-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding-bottom: 8px;
+}
+
+/* ── OSD overlays ──────────────────────────────────────────────────────────── */
+
+/* Volume OSD — top-center pill */
+.yt-vol-osd-pill {
+  position: absolute;
+  top: 16px;
+  left: 50%; transform: translateX(-50%);
+  z-index: 15;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 12px;
+  background: rgba(0,0,0,0.72);
+  border-radius: 9999px;
+  color: var(--ink); font-size: 13px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  opacity: 0; transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+.yt-vol-osd-pill.visible { opacity: 1; }
+
+/* Volume OSD — big centered icon */
+.yt-vol-osd-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  z-index: 15;
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.55);
+  border-radius: 50%;
+  color: var(--ink);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.yt-vol-osd-icon.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Seek OSD — left / right indicators (no background) */
+.yt-seek-osd {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  z-index: 15;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink); font-size: 15px; font-weight: 700;
+  pointer-events: none;
+  opacity: 0; transition: opacity 0.15s ease;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+}
+.yt-seek-osd.visible { opacity: 1; }
+.yt-seek-osd-left  { left: 32px; }
+.yt-seek-osd-right { right: 32px; }
+
+.yt-seek-osd-arrows {
+  font-size: 18px; letter-spacing: -4px;
+  color: var(--primary);
+}
+.yt-seek-osd-label {
+  font-size: 14px; font-variant-numeric: tabular-nums;
+}
+
+/* Thin seek bar shown when controls are hidden */
+.yt-seek-osd-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  z-index: 15; height: 3px;
+  background: rgba(255,255,255,0.2);
+  pointer-events: none;
+}
+.yt-seek-osd-fill {
+  height: 100%; background: var(--primary);
+  transition: width 0.1s linear;
+}
