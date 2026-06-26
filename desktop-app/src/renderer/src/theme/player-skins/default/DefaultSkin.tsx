@@ -4,7 +4,7 @@ import {
   Pause, Play,
   Volume2, VolumeX,
   Maximize, Minimize,
-  Settings, ChevronDown,
+  Settings,
   RotateCcw, RotateCw
 } from 'lucide-react';
 import { PlayerSkin } from '../PlayerSkin';
@@ -41,8 +41,25 @@ function DefaultControls({
 
   const [volOsd,      setVolOsd]     = useState(false);
   const [volExpanded, setVolExpand]  = useState(false);
+  // Enhancement state
+  const [brightness,  setBrightness] = useState(100);
+  const [contrast,    setContrast]   = useState(100);
+  const [saturation,  setSaturation] = useState(100);
+  const [bassBoost,   setBassBoost]  = useState(false);
+  const [trebleBoost, setTrebleBoost] = useState(false);
+  const [voiceBoost,  setVoiceBoost] = useState(false);
+  const [stableVol,   setStableVol]  = useState(false);
+
   const volOsdTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMount     = useRef(false);
+
+  const audioRef = useRef<{
+    ctx: AudioContext;
+    bass: BiquadFilterNode;
+    treble: BiquadFilterNode;
+    voice: BiquadFilterNode;
+    compressor: DynamicsCompressorNode;
+  } | null>(null);
 
   // Show top-left volume OSD whenever volume changes (keyboard / scroll wheel)
   useEffect(() => {
@@ -52,6 +69,46 @@ function DefaultControls({
     if (volOsdTimer.current) clearTimeout(volOsdTimer.current);
     volOsdTimer.current = setTimeout(() => setVolOsd(false), 1800);
   }, [state.volume, state.muted]);
+
+  // CSS video filter
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
+    const f = `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100})`;
+    els.forEach(el => { el.style.filter = f; });
+    return () => { els.forEach(el => { el.style.filter = ''; }); };
+  }, [brightness, contrast, saturation]);
+
+  // Web Audio setup
+  useEffect(() => {
+    const videoEl = document.querySelector<HTMLVideoElement>('.player video');
+    if (!videoEl) return;
+    try {
+      const ctx = new AudioContext();
+      const source = ctx.createMediaElementSource(videoEl);
+      const bass = ctx.createBiquadFilter();
+      bass.type = 'lowshelf'; bass.frequency.value = 120; bass.gain.value = 0;
+      const treble = ctx.createBiquadFilter();
+      treble.type = 'highshelf'; treble.frequency.value = 3000; treble.gain.value = 0;
+      const voice = ctx.createBiquadFilter();
+      voice.type = 'peaking'; voice.frequency.value = 2000; voice.Q.value = 1.5; voice.gain.value = 0;
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = 0; compressor.ratio.value = 1;
+      source.connect(bass).connect(treble).connect(voice).connect(compressor).connect(ctx.destination);
+      audioRef.current = { ctx, bass, treble, voice, compressor };
+    } catch { /* MPV path */ }
+    return () => { if (audioRef.current) { audioRef.current.ctx.close(); audioRef.current = null; } };
+  }, []);
+
+  useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.bass.gain.value = bassBoost ? 8 : 0; } }, [bassBoost]);
+  useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.treble.gain.value = trebleBoost ? 6 : 0; } }, [trebleBoost]);
+  useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.voice.gain.value = voiceBoost ? 6 : 0; } }, [voiceBoost]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.ctx.resume();
+    const { compressor } = audioRef.current;
+    if (stableVol) { compressor.threshold.value = -24; compressor.knee.value = 30; compressor.ratio.value = 4; }
+    else { compressor.threshold.value = 0; compressor.ratio.value = 1; }
+  }, [stableVol]);
 
   const totalMax   = volumeMax + volumeBoostMax;
   const progress   = state.duration > 0 ? state.position / state.duration : 0;
@@ -255,6 +312,52 @@ function DefaultControls({
                         }}
                       >
                         {s.label} (external)
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Enhancement */}
+                  <div className="default-settings-section">
+                    <span className="default-settings-label">Video</span>
+                    {([
+                      { label: 'Brightness', val: brightness, set: setBrightness, min: 50, max: 150 },
+                      { label: 'Contrast',   val: contrast,   set: setContrast,   min: 50, max: 150 },
+                      { label: 'Saturation', val: saturation, set: setSaturation, min: 0,  max: 200 },
+                    ] as const).map(({ label, val, set, min, max }) => (
+                      <div key={label} className="default-enhance-row">
+                        <span className="default-enhance-name">{label}</span>
+                        <input
+                          type="range" min={min} max={max} step={1} value={val}
+                          className="default-enhance-range"
+                          style={{ '--pct': `${((val - min) / (max - min)) * 100}%` } as React.CSSProperties}
+                          onChange={e => set(Number(e.target.value))}
+                        />
+                        <span className="default-enhance-val">{val}%</span>
+                      </div>
+                    ))}
+                    <button
+                      className="default-enhance-reset"
+                      onClick={() => { setBrightness(100); setContrast(100); setSaturation(100); }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+
+                  <div className="default-settings-section">
+                    <span className="default-settings-label">Audio</span>
+                    {([
+                      { label: 'Bass boost',    val: bassBoost,   set: setBassBoost },
+                      { label: 'Treble boost',  val: trebleBoost, set: setTrebleBoost },
+                      { label: 'Voice boost',   val: voiceBoost,  set: setVoiceBoost },
+                      { label: 'Stable volume', val: stableVol,   set: setStableVol },
+                    ] as const).map(({ label, val, set }) => (
+                      <button
+                        key={label}
+                        className={`default-menu-item default-enhance-toggle${val ? ' active' : ''}`}
+                        onClick={() => set(v => !v)}
+                      >
+                        <span>{label}</span>
+                        <span className={`default-toggle${val ? ' on' : ''}`} />
                       </button>
                     ))}
                   </div>

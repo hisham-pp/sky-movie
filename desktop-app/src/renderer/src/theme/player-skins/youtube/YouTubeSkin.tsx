@@ -6,7 +6,7 @@ import {
   Maximize, Minimize,
   Settings, Captions,
   ChevronRight, ChevronLeft,
-  Check, Moon, Gauge, AudioWaveform, Mic2,
+  Check, Moon, Gauge, SlidersHorizontal,
 } from 'lucide-react';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
@@ -26,7 +26,7 @@ const SPEED_STEP    = 0.25;
 const SPEED_PRESETS = [1, 1.25, 1.5, 2, 3] as const;
 const SLEEP_OPTIONS = [10, 15, 20, 30, 45, 60] as const;
 
-type SettingsPage = 'main' | 'speed' | 'sub' | 'sleep' | 'audio';
+type SettingsPage = 'main' | 'speed' | 'sub' | 'sleep' | 'audio' | 'enhance';
 
 function YouTubeControls({
   props,
@@ -55,12 +55,27 @@ function YouTubeControls({
   const [showRemaining,  setShowRemaining] = useState(false);
   const [seekOsdDir,     setSeekOsdDir]   = useState<'back' | 'forward' | null>(null);
   const [seekOsdAmt,     setSeekOsdAmt]   = useState(0);
+  // Enhancement state
+  const [brightness,     setBrightness]   = useState(100);
+  const [contrast,       setContrast]     = useState(100);
+  const [saturation,     setSaturation]   = useState(100);
+  const [bassBoost,      setBassBoost]    = useState(false);
+  const [trebleBoost,    setTrebleBoost]  = useState(false);
 
   const volOsdTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seekOsdTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sleepTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestPlaying = useRef(state.playing);
   const didMount      = useRef(false);
+
+  // Web Audio chain for audio enhancement (ArtPlayer HTML5 path only)
+  const audioRef = useRef<{
+    ctx: AudioContext;
+    bass: BiquadFilterNode;
+    treble: BiquadFilterNode;
+    voice: BiquadFilterNode;
+    compressor: DynamicsCompressorNode;
+  } | null>(null);
 
   useEffect(() => { latestPlaying.current = state.playing; }, [state.playing]);
 
@@ -92,6 +107,65 @@ function YouTubeControls({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [keyMap]);
+
+  // CSS video filter
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('.player canvas, .player video');
+    const f = `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100})`;
+    els.forEach(el => { el.style.filter = f; });
+    return () => { els.forEach(el => { el.style.filter = ''; }); };
+  }, [brightness, contrast, saturation]);
+
+  // Web Audio setup — runs once, only when a <video> element is present (ArtPlayer path)
+  useEffect(() => {
+    const videoEl = document.querySelector<HTMLVideoElement>('.player video');
+    if (!videoEl) return;
+    let ctx: AudioContext;
+    try {
+      ctx = new AudioContext();
+      const source = ctx.createMediaElementSource(videoEl);
+      const bass = ctx.createBiquadFilter();
+      bass.type = 'lowshelf'; bass.frequency.value = 120; bass.gain.value = 0;
+      const treble = ctx.createBiquadFilter();
+      treble.type = 'highshelf'; treble.frequency.value = 3000; treble.gain.value = 0;
+      const voice = ctx.createBiquadFilter();
+      voice.type = 'peaking'; voice.frequency.value = 2000; voice.Q.value = 1.5; voice.gain.value = 0;
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = 0; compressor.ratio.value = 1;
+      source.connect(bass).connect(treble).connect(voice).connect(compressor).connect(ctx.destination);
+      audioRef.current = { ctx, bass, treble, voice, compressor };
+    } catch {
+      // MPV native canvas path — audio not routable via Web Audio API
+    }
+    return () => { if (audioRef.current) { audioRef.current.ctx.close(); audioRef.current = null; } };
+  }, []);
+
+  // Sync audio enhancement params
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.ctx.resume();
+    audioRef.current.bass.gain.value = bassBoost ? 8 : 0;
+  }, [bassBoost]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.ctx.resume();
+    audioRef.current.treble.gain.value = trebleBoost ? 6 : 0;
+  }, [trebleBoost]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.ctx.resume();
+    audioRef.current.voice.gain.value = voiceBoost ? 6 : 0;
+  }, [voiceBoost]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.ctx.resume();
+    const { compressor } = audioRef.current;
+    if (stableVol) {
+      compressor.threshold.value = -24; compressor.knee.value = 30; compressor.ratio.value = 4;
+    } else {
+      compressor.threshold.value = 0; compressor.ratio.value = 1;
+    }
+  }, [stableVol]);
 
   const openMenu = (page: SettingsPage = 'main') => {
     setPage(page);
@@ -182,22 +256,14 @@ function YouTubeControls({
                 <p>Adjust your viewing experience</p>
               </div>
               <div className="yt-settings-body">
-                <button className="yt-settings-item" onClick={() => setStableVol(v => !v)}>
-                  <span className="yt-settings-item-icon"><AudioWaveform size={17} /></span>
-                  <span className="yt-settings-item-label">Stable volume</span>
-                  <button
-                    className={`yt-toggle${stableVol ? ' on' : ''}`}
-                    onClick={e => { e.stopPropagation(); setStableVol(v => !v); }}
-                  />
-                </button>
-
-                <button className="yt-settings-item" onClick={() => setVoiceBoost(v => !v)}>
-                  <span className="yt-settings-item-icon"><Mic2 size={17} /></span>
-                  <span className="yt-settings-item-label">Voice boost</span>
-                  <button
-                    className={`yt-toggle${voiceBoost ? ' on' : ''}`}
-                    onClick={e => { e.stopPropagation(); setVoiceBoost(v => !v); }}
-                  />
+                <button className="yt-settings-item" onClick={() => setPage('enhance')}>
+                  <span className="yt-settings-item-icon"><SlidersHorizontal size={17} /></span>
+                  <span className="yt-settings-item-label">Enhancement</span>
+                  <span className="yt-settings-item-value">
+                    {[bassBoost, trebleBoost, voiceBoost, stableVol, brightness !== 100, contrast !== 100, saturation !== 100].some(Boolean)
+                      ? 'On' : 'Off'}
+                    <ChevronRight size={14} />
+                  </span>
                 </button>
 
                 <button className="yt-settings-item" onClick={() => setPage('speed')}>
@@ -398,6 +464,89 @@ function YouTubeControls({
                     {t.id === selectedAid && <span className="yt-settings-check"><Check size={16} /></span>}
                   </button>
                 ))}
+              </div>
+            </>
+          )}
+
+          {/* Enhancement submenu */}
+          {settingsPage === 'enhance' && (
+            <>
+              <div className="yt-settings-header">
+                <button className="yt-settings-back" onClick={() => setPage('main')}>
+                  <ChevronLeft size={18} />
+                </button>
+                <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>Enhancement</span>
+              </div>
+              <div className="yt-settings-body">
+
+                {/* Video section */}
+                <p className="yt-enhance-section-label">Video</p>
+
+                <div className="yt-enhance-slider-row">
+                  <span className="yt-enhance-slider-name">Brightness</span>
+                  <input
+                    type="range" min={50} max={150} step={1} value={brightness}
+                    className="yt-enhance-range"
+                    style={{ '--pct': `${((brightness - 50) / 100) * 100}%` } as React.CSSProperties}
+                    onChange={e => setBrightness(Number(e.target.value))}
+                  />
+                  <span className="yt-enhance-slider-val">{brightness}%</span>
+                </div>
+
+                <div className="yt-enhance-slider-row">
+                  <span className="yt-enhance-slider-name">Contrast</span>
+                  <input
+                    type="range" min={50} max={150} step={1} value={contrast}
+                    className="yt-enhance-range"
+                    style={{ '--pct': `${((contrast - 50) / 100) * 100}%` } as React.CSSProperties}
+                    onChange={e => setContrast(Number(e.target.value))}
+                  />
+                  <span className="yt-enhance-slider-val">{contrast}%</span>
+                </div>
+
+                <div className="yt-enhance-slider-row">
+                  <span className="yt-enhance-slider-name">Saturation</span>
+                  <input
+                    type="range" min={0} max={200} step={1} value={saturation}
+                    className="yt-enhance-range"
+                    style={{ '--pct': `${(saturation / 200) * 100}%` } as React.CSSProperties}
+                    onChange={e => setSaturation(Number(e.target.value))}
+                  />
+                  <span className="yt-enhance-slider-val">{saturation}%</span>
+                </div>
+
+                <button
+                  className="yt-enhance-reset"
+                  onClick={() => { setBrightness(100); setContrast(100); setSaturation(100); }}
+                >
+                  Reset video
+                </button>
+
+                {/* Audio section */}
+                <p className="yt-enhance-section-label" style={{ marginTop: 8 }}>Audio</p>
+
+                {[
+                  { label: 'Bass boost',     value: bassBoost,   set: setBassBoost },
+                  { label: 'Treble boost',   value: trebleBoost, set: setTrebleBoost },
+                  { label: 'Voice boost',    value: voiceBoost,  set: setVoiceBoost },
+                  { label: 'Stable volume',  value: stableVol,   set: setStableVol },
+                ].map(({ label, value, set }) => (
+                  <button
+                    key={label}
+                    className="yt-settings-item"
+                    onClick={() => set(v => !v)}
+                  >
+                    <span className="yt-settings-item-label">{label}</span>
+                    <button
+                      className={`yt-toggle${value ? ' on' : ''}`}
+                      onClick={e => { e.stopPropagation(); set(v => !v); }}
+                    />
+                  </button>
+                ))}
+
+                <p className="yt-settings-note">
+                  Audio effects require HTML5 playback mode. Video filters apply to all modes.
+                </p>
               </div>
             </>
           )}

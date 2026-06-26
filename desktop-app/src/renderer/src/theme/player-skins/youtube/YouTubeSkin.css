@@ -426,6 +426,72 @@
   font-size: 14px; font-variant-numeric: tabular-nums;
 }
 
+/* ── Enhancement submenu ──────────────────────────────────────────────────── */
+
+.yt-enhance-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 16px 4px;
+}
+
+.yt-enhance-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+}
+
+.yt-enhance-slider-name {
+  font-size: 13px;
+  color: var(--ink);
+  width: 76px;
+  flex-shrink: 0;
+}
+
+.yt-enhance-range {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 4px; border-radius: 9999px;
+  cursor: pointer; outline: none;
+  background: linear-gradient(to right,
+    var(--primary) 0%, var(--primary) var(--pct, 50%),
+    rgba(255,255,255,0.2) var(--pct, 50%), rgba(255,255,255,0.2) 100%
+  );
+}
+.yt-enhance-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.yt-enhance-range::-moz-range-thumb {
+  width: 14px; height: 14px; border: none; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+}
+
+.yt-enhance-slider-val {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.yt-enhance-reset {
+  display: block;
+  margin: 6px 16px 4px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.07);
+  border: none; color: var(--soft);
+  font-size: 12px; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.yt-enhance-reset:hover { background: rgba(255,255,255,0.13); color: var(--ink); }
+
 /* Thin seek bar shown when controls are hidden */
 .yt-seek-osd-bar {
   position: absolute; bottom: 0; left: 0; right: 0;
