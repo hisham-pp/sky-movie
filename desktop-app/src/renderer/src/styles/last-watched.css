@@ -6,49 +6,46 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
-  animation: last-watched-slide-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  gap: 6px;
+  animation: last-watched-in 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
-@keyframes last-watched-slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes last-watched-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
 }
 
+/* ── main card ──────────────────────────────────────────────── */
 .last-watched-body {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(20, 22, 28, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  background: var(--panel-solid);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
   cursor: pointer;
-  color: #fff;
+  color: var(--ink);
   text-align: left;
-  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
   max-width: 260px;
 }
 
 .last-watched-body:hover {
-  background: rgba(30, 33, 42, 0.97);
+  background: var(--surface-low);
+  border-color: var(--line-strong);
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
+/* ── play icon circle ───────────────────────────────────────── */
 .last-watched-icon {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--color-primary, #5c6bc0);
+  background: var(--primary);
+  color: var(--on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,6 +53,7 @@
   flex-shrink: 0;
 }
 
+/* ── text block ─────────────────────────────────────────────── */
 .last-watched-text {
   display: flex;
   flex-direction: column;
@@ -64,65 +62,70 @@
 }
 
 .last-watched-action {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-primary, #7986cb);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .last-watched-title {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 186px;
 }
 
+/* ── progress bar ───────────────────────────────────────────── */
 .last-watched-bar {
   height: 3px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--surface-high);
   border-radius: 2px;
-  margin-top: 4px;
+  margin-top: 5px;
   overflow: hidden;
 }
 
 .last-watched-fill {
   height: 100%;
-  background: var(--color-primary, #7986cb);
+  background: var(--primary);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
+/* ── dismiss × ──────────────────────────────────────────────── */
 .last-watched-dismiss {
   align-self: flex-end;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-high);
+  border: 1px solid var(--line);
   border-radius: 50%;
   width: 20px;
   height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  transition: background 0.12s, color 0.12s;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .last-watched-dismiss:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--surface-highest);
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
+/* ── shortcut hint ──────────────────────────────────────────── */
 .last-watched-hint {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--muted);
   text-align: right;
-  padding-right: 4px;
+  padding-right: 2px;
   letter-spacing: 0.3px;
 }
