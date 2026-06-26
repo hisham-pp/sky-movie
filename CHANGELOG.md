@@ -5,6 +5,17 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-06-26
+
+### Added
+
+- add player style selection to settings panel (Hisham)
+
+### Other
+
+- update document (Hisham)
+- chore(release): publish Sky Movie 0.6.0 downloads from GitHub (Hisham)
+
 ## [0.6.0] - 2026-06-25
 
 ### Added
@@ -297,3 +308,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.5.0
 [0.5.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.5.1
 [0.6.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.0
+[0.6.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.1
