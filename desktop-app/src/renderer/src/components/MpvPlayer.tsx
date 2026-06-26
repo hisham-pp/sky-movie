@@ -5,35 +5,12 @@ import React, {
   useState,
   type PointerEvent as ReactPointerEvent
 } from 'react';
-import {
-  Pause,
-  Play,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  Settings,
-  ChevronDown,
-  RotateCcw,
-  RotateCw
-} from 'lucide-react';
-
-const VOLUME_MAX = 200;
-import type { MpvTrack } from '@shared/ipc';
+import { RotateCcw, RotateCw } from 'lucide-react';
+import type { MpvTrack, PlayerStyle } from '@shared/ipc';
 import type { PlayMediaResult } from '@shared/ipc';
+import { getSkin } from '../theme/player-skins';
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-function formatTime(secs: number): string {
-  if (!Number.isFinite(secs) || secs < 0) return '0:00';
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = Math.floor(secs % 60);
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-// ── types ────────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 interface PlayerState {
   playing:   boolean;
@@ -59,36 +36,38 @@ const DEFAULT_STATE: PlayerState = {
 
 export function MpvPlayer({
   player,
+  playerStyle = 'default',
   onOpenExternal
 }: {
   player: PlayMediaResult;
+  playerStyle?: PlayerStyle;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const canvasRef      = useRef<HTMLCanvasElement>(null);
-  const containerRef   = useRef<HTMLDivElement>(null);
-  const stateRef       = useRef<PlayerState>(DEFAULT_STATE);
-  const drawingRef     = useRef(false);  // prevent overlapping draws
+  const skin = getSkin(playerStyle);
+  const { keyMap } = skin;
 
-  const [state,      setState]      = useState<PlayerState>(DEFAULT_STATE);
-  const [tracks,     setTracks]     = useState<MpvTrack[]>([]);
-  const [showControls, setShowCtrl] = useState(true);
-  const [isFullscreen, setFullscr]  = useState(false);
-  const [showMenu,   setShowMenu]   = useState<'audio' | 'sub' | 'speed' | null>(null);
-  const [error,      setError]      = useState<string | null>(null);
-  const [volOsd,     setVolOsd]     = useState(false);   // top-left volume OSD
-  const [volExpanded, setVolExpand] = useState(false);   // hover-expand in controls bar
-  const volOsdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Gesture ripple: null | 'left' | 'right'
-  const [ripple, setRipple] = useState<'left' | 'right' | null>(null);
-  const rippleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Double-click detection
-  const clickTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clickCount  = useRef(0);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const stateRef     = useRef<PlayerState>(DEFAULT_STATE);
+  const drawingRef   = useRef(false);
+  const hideTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seeking      = useRef(false);
+  const clickTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickCount   = useRef(0);
+  const rippleTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preMuteVolume   = useRef(DEFAULT_STATE.volume);
+  const showControlsRef = useRef(true);
+  const seekOsdTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const seeking   = useRef(false);
+  const [state,        setState]     = useState<PlayerState>(DEFAULT_STATE);
+  const [tracks,       setTracks]    = useState<MpvTrack[]>([]);
+  const [showControls, setShowCtrl]  = useState(true);
+  const [seekOsd,      setSeekOsd]   = useState(false);
+  const [isFullscreen, setFullscr]   = useState(false);
+  const [showMenu,     setShowMenu]  = useState<'settings' | null>(null);
+  const [error,        setError]     = useState<string | null>(null);
+  const [ripple,       setRipple]    = useState<'left' | 'right' | null>(null);
 
-  // Sync ref for use inside closures
   const updateState = useCallback((patch: Partial<PlayerState>) => {
     stateRef.current = { ...stateRef.current, ...patch };
     setState(s => ({ ...s, ...patch }));
@@ -102,7 +81,6 @@ export function MpvPlayer({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear buffering spinner on the first frame we actually receive
     if (stateRef.current.buffering) {
       stateRef.current = { ...stateRef.current, buffering: false };
       setState(s => ({ ...s, buffering: false }));
@@ -128,9 +106,7 @@ export function MpvPlayer({
       const { width, height } = entries[0].contentRect;
       const w = Math.round(width);
       const h = Math.round(height);
-      if (w > 0 && h > 0) {
-        window.skyMovie.mpvSetRenderSize(w, h).catch(() => {});
-      }
+      if (w > 0 && h > 0) window.skyMovie.mpvSetRenderSize(w, h).catch(() => {});
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -149,15 +125,14 @@ export function MpvPlayer({
     const { width, height } = container.getBoundingClientRect();
 
     window.skyMovie.mpvOpen({
-      filePath:      player.absolutePath ?? (player as any).mediaUrl,
-      mediaFileId:   player.mediaFileId,
-      renderWidth:   Math.round(width)  || 1280,
-      renderHeight:  Math.round(height) || 720
+      filePath:     player.absolutePath ?? (player as any).mediaUrl,
+      mediaFileId:  player.mediaFileId,
+      renderWidth:  Math.round(width)  || 1280,
+      renderHeight: Math.round(height) || 720
     }).catch(err => setError(String(err)));
 
     window.skyMovie.mpvSetVolume(stateRef.current.volume).catch(() => {});
 
-    // Restore watch position after file-loaded
     const savedPos = player.watchProgress?.positionSeconds ?? 0;
     const savedDur = player.watchProgress?.durationSeconds ?? 0;
     let posRestored = false;
@@ -165,34 +140,24 @@ export function MpvPlayer({
     const unsubFrame  = window.skyMovie.onMpvFrame(drawFrame);
     const unsubEvent  = window.skyMovie.onMpvEvent(ev => {
       if (ev.type === 'property') {
-        if (ev.name === 'time-pos' && typeof ev.value === 'number') {
+        if (ev.name === 'time-pos'  && typeof ev.value === 'number') {
           if (!seeking.current) updateState({ position: ev.value });
         }
-        if (ev.name === 'duration' && typeof ev.value === 'number') {
-          updateState({ duration: ev.value });
-        }
-        if (ev.name === 'pause' && typeof ev.value === 'boolean') {
-          updateState({ playing: !ev.value });
-        }
-        if (ev.name === 'volume' && typeof ev.value === 'number') {
-          updateState({ volume: ev.value });
-        }
+        if (ev.name === 'duration'  && typeof ev.value === 'number') updateState({ duration: ev.value });
+        if (ev.name === 'pause'     && typeof ev.value === 'boolean') updateState({ playing: !ev.value });
+        if (ev.name === 'volume'    && typeof ev.value === 'number') updateState({ volume: ev.value });
       }
       if (ev.type === 'file-loaded') {
         updateState({ buffering: false });
-        // Restore position
         if (!posRestored && savedPos > 5 && !player.watchProgress?.completed) {
           const dur = stateRef.current.duration || savedDur;
-          if (dur - savedPos > 10) {
-            window.skyMovie.mpvSeek(savedPos).catch(() => {});
-          }
+          if (dur - savedPos > 10) window.skyMovie.mpvSeek(savedPos).catch(() => {});
         }
         posRestored = true;
       }
     });
     const unsubTracks = window.skyMovie.onMpvTracks(setTracks);
 
-    // Save progress every 10s
     const progressTimer = setInterval(() => {
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
@@ -210,7 +175,6 @@ export function MpvPlayer({
       unsubFrame();
       unsubEvent();
       unsubTracks();
-      // Save final position
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
         window.skyMovie.updateWatchProgress({
@@ -225,59 +189,49 @@ export function MpvPlayer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player.mediaFileId]);
 
-  // ── keyboard shortcuts ─────────────────────────────────────────────────────
+  // ── keyboard shortcuts (driven by skin keyMap) ─────────────────────────────
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      // Skip any modifier-key combos — those belong to global shortcuts (e.g. Alt+Left = navigate back)
       if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const k = e.key;
 
-      switch (e.key) {
-        case ' ':
-        case 'k':
-          e.preventDefault();
-          resetHideTimer();
-          togglePlay();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          resetHideTimer();
-          window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - 5)).catch(() => {});
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          resetHideTimer();
-          window.skyMovie.mpvSeek(stateRef.current.position + 5).catch(() => {});
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          resetHideTimer();
-          changeVolume(Math.min(VOLUME_MAX, stateRef.current.volume + 5));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          resetHideTimer();
-          changeVolume(Math.max(0, stateRef.current.volume - 5));
-          break;
-        case 'f':
-        case 'F':
-          e.preventDefault();
-          resetHideTimer();
-          toggleFullscreen();
-          break;
-        case 'm':
-          e.preventDefault();
-          resetHideTimer();
-          toggleMute();
-          break;
+      if (keyMap.togglePlay.includes(k)) {
+        e.preventDefault(); resetHideTimer(); togglePlay();
+      } else if (keyMap.seekBackLarge.includes(k)) {
+        e.preventDefault();
+        showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
+        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
+      } else if (keyMap.seekForwardLarge.includes(k)) {
+        e.preventDefault();
+        showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
+        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
+      } else if (keyMap.seekBack.includes(k)) {
+        e.preventDefault();
+        showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
+        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackSeconds)).catch(() => {});
+      } else if (keyMap.seekForward.includes(k)) {
+        e.preventDefault();
+        showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
+        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardSeconds).catch(() => {});
+      } else if (keyMap.volumeUp.includes(k)) {
+        e.preventDefault(); resetHideTimer();
+        changeVolume(Math.min(skin.volumeMax + skin.volumeBoostMax, stateRef.current.volume + 5));
+      } else if (keyMap.volumeDown.includes(k)) {
+        e.preventDefault(); resetHideTimer();
+        changeVolume(Math.max(0, stateRef.current.volume - 5));
+      } else if (keyMap.toggleFullscreen.includes(k)) {
+        e.preventDefault(); resetHideTimer(); toggleFullscreen();
+      } else if (keyMap.toggleMute.includes(k)) {
+        e.preventDefault(); resetHideTimer(); toggleMute();
       }
     };
     document.addEventListener('keydown', onKey, true);
     return () => document.removeEventListener('keydown', onKey, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [keyMap]);
 
   // ── fullscreen sync ────────────────────────────────────────────────────────
 
@@ -290,31 +244,50 @@ export function MpvPlayer({
   // ── controls auto-hide ─────────────────────────────────────────────────────
 
   const resetHideTimer = useCallback(() => {
+    showControlsRef.current = true;
     setShowCtrl(true);
     if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setShowCtrl(false), 3000);
+    hideTimer.current = setTimeout(() => { showControlsRef.current = false; setShowCtrl(false); }, 3000);
+  }, []);
+
+  const triggerSeekOsd = useCallback(() => {
+    setSeekOsd(true);
+    if (seekOsdTimer.current) clearTimeout(seekOsdTimer.current);
+    seekOsdTimer.current = setTimeout(() => setSeekOsd(false), 1500);
   }, []);
 
   // ── actions ────────────────────────────────────────────────────────────────
 
   const togglePlay = () => {
-    if (stateRef.current.playing) {
-      window.skyMovie.mpvPause().catch(() => {});
-    } else {
-      window.skyMovie.mpvPlay().catch(() => {});
-    }
+    stateRef.current.playing
+      ? window.skyMovie.mpvPause().catch(() => {})
+      : window.skyMovie.mpvPlay().catch(() => {});
   };
 
   const toggleMute = () => {
     const muted = !stateRef.current.muted;
-    updateState({ muted });
-    window.skyMovie.mpvSetVolume(muted ? 0 : stateRef.current.volume).catch(() => {});
+    if (muted) {
+      preMuteVolume.current = stateRef.current.volume || skin.volumeMax;
+      updateState({ muted });
+      window.skyMovie.mpvSetVolume(0).catch(() => {});
+    } else {
+      const restoreVol = preMuteVolume.current || skin.volumeMax;
+      updateState({ muted, volume: restoreVol });
+      window.skyMovie.mpvSetVolume(restoreVol).catch(() => {});
+    }
   };
 
-  const showVolOsd = () => {
-    setVolOsd(true);
-    if (volOsdTimer.current) clearTimeout(volOsdTimer.current);
-    volOsdTimer.current = setTimeout(() => setVolOsd(false), 1800);
+  const changeVolume = (v: number) => {
+    updateState({ volume: v, muted: v === 0 });
+    window.skyMovie.mpvSetVolume(v).catch(() => {});
+  };
+
+  const toggleFullscreen = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    document.fullscreenElement
+      ? document.exitFullscreen().catch(() => {})
+      : el.requestFullscreen().catch(() => {});
   };
 
   const showRipple = (side: 'left' | 'right') => {
@@ -323,10 +296,33 @@ export function MpvPlayer({
     rippleTimer.current = setTimeout(() => setRipple(null), 600);
   };
 
-  // YouTube-style: single click = play/pause, double-click left/right = ±10s
+  // ── seek bar ───────────────────────────────────────────────────────────────
+
+  const onSeekBarDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    seeking.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    doSeek(e);
+  };
+  const onSeekBarMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!seeking.current) return;
+    doSeek(e);
+  };
+  const onSeekBarUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!seeking.current) return;
+    seeking.current = false;
+    doSeek(e);
+    window.skyMovie.mpvSeek(stateRef.current.position).catch(() => {});
+  };
+  const doSeek = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    updateState({ position: pct * stateRef.current.duration });
+  };
+
+  // ── click / wheel on video area ────────────────────────────────────────────
+
   const onVideoClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Ignore clicks that originated inside the controls bar
-    if ((e.target as HTMLElement).closest('.mpv-controls')) return;
+    if ((e.target as HTMLElement).closest('.default-controls')) return;
     resetHideTimer();
     clickCount.current += 1;
     if (clickCount.current === 1) {
@@ -340,73 +336,22 @@ export function MpvPlayer({
       const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
       const isLeft = e.clientX - rect.left < rect.width / 2;
       if (isLeft) {
-        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - 10)).catch(() => {});
+        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
         showRipple('left');
       } else {
-        window.skyMovie.mpvSeek(stateRef.current.position + 10).catch(() => {});
+        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
         showRipple('right');
       }
     }
   };
 
-  // Scroll wheel = volume
   const onVideoWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('.mpv-controls')) return;
+    if ((e.target as HTMLElement).closest('.default-controls')) return;
     e.preventDefault();
-    const delta = e.deltaY < 0 ? 5 : -5;
-    changeVolume(Math.min(VOLUME_MAX, Math.max(0, stateRef.current.volume + delta)));
+    changeVolume(Math.min(skin.volumeMax + skin.volumeBoostMax, Math.max(0, stateRef.current.volume + (e.deltaY < 0 ? 5 : -5))));
   };
-
-  const changeVolume = (v: number) => {
-    updateState({ volume: v, muted: v === 0 });
-    window.skyMovie.mpvSetVolume(v).catch(() => {});
-    showVolOsd();
-  };
-
-  const toggleFullscreen = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      el.requestFullscreen().catch(() => {});
-    }
-  };
-
-  // ── seek bar ───────────────────────────────────────────────────────────────
-
-  const onSeekDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    seeking.current = true;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    doSeek(e);
-  };
-  const onSeekMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!seeking.current) return;
-    doSeek(e);
-  };
-  const onSeekUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!seeking.current) return;
-    seeking.current = false;
-    doSeek(e);
-    window.skyMovie.mpvSeek(stateRef.current.position).catch(() => {});
-  };
-
-  const doSeek = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    updateState({ position: pct * stateRef.current.duration });
-  };
-
-  // ── track selectors ────────────────────────────────────────────────────────
-
-  const audioTracks = tracks.filter(t => t.type === 'audio');
-  const subTracks   = tracks.filter(t => t.type === 'sub');
-  const selectedAid = tracks.find(t => t.type === 'audio' && t.selected)?.id ?? null;
-  const selectedSid = tracks.find(t => t.type === 'sub'   && t.selected)?.id ?? null;
 
   // ── render ─────────────────────────────────────────────────────────────────
-
-  const progress = state.duration > 0 ? state.position / state.duration : 0;
 
   return (
     <div
@@ -417,29 +362,16 @@ export function MpvPlayer({
       onClick={onVideoClick}
       onWheel={onVideoWheel}
     >
-      {/* Video canvas */}
       <canvas ref={canvasRef} className="mpv-canvas" />
 
-      {/* Double-click skip ripples (YouTube style) */}
+      {/* Double-click skip ripples */}
       <div className={`mpv-ripple mpv-ripple-left${ripple === 'left' ? ' active' : ''}`}>
         <RotateCcw size={28} />
-        <span>10 seconds</span>
+        <span>{keyMap.seekBackLargeSeconds} seconds</span>
       </div>
       <div className={`mpv-ripple mpv-ripple-right${ripple === 'right' ? ' active' : ''}`}>
         <RotateCw size={28} />
-        <span>10 seconds</span>
-      </div>
-
-      {/* Top-left volume OSD — appears on keyboard volume change */}
-      <div className={`mpv-vol-osd${volOsd ? ' visible' : ''}`}>
-        {state.muted || state.volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        <div className="mpv-vol-osd-bar">
-          <div
-            className="mpv-vol-osd-fill"
-            style={{ width: `${((state.muted ? 0 : state.volume) / VOLUME_MAX) * 100}%` }}
-          />
-        </div>
-        <span>{state.muted ? 0 : Math.round(state.volume)}%</span>
+        <span>{keyMap.seekForwardLargeSeconds} seconds</span>
       </div>
 
       {/* Buffering spinner */}
@@ -453,210 +385,33 @@ export function MpvPlayer({
       {error && (
         <div className="mpv-error">
           <p>{error}</p>
-          <button onClick={() => onOpenExternal(player.mediaFileId)}>
-            Open in system player
-          </button>
+          <button onClick={() => onOpenExternal(player.mediaFileId)}>Open in system player</button>
         </div>
       )}
 
-      {/* Controls overlay */}
-      <div className={`mpv-controls${showControls ? ' visible' : ''}`}>
-
-        {/* Seek bar */}
-        <div
-          className="mpv-seek"
-          onPointerDown={onSeekDown}
-          onPointerMove={onSeekMove}
-          onPointerUp={onSeekUp}
-        >
-          <div className="mpv-seek-track">
-            <div className="mpv-seek-fill" style={{ width: `${progress * 100}%` }} />
-            <div className="mpv-seek-thumb" style={{ left: `${progress * 100}%` }} />
-          </div>
-        </div>
-
-        {/* Bottom row — left / center / right */}
-        <div className="mpv-bottom">
-          {/* Left: volume (collapsed, expands on hover) + time */}
-          <div className="mpv-left">
-            <div
-              className={`mpv-volume-group${volExpanded ? ' expanded' : ''}`}
-              onMouseEnter={() => setVolExpand(true)}
-              onMouseLeave={() => setVolExpand(false)}
-            >
-              <button className="mpv-btn" onClick={toggleMute} title="Mute (M)">
-                {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
-              </button>
-              <div className="mpv-volume-expand">
-                <input
-                  className="mpv-volume-slider"
-                  type="range"
-                  min={0} max={VOLUME_MAX} step={1}
-                  value={state.muted ? 0 : state.volume}
-                  style={{ '--vol': `${((state.muted ? 0 : state.volume) / VOLUME_MAX) * 100}%` } as React.CSSProperties}
-                  onChange={e => changeVolume(Number(e.target.value))}
-                />
-                <span className="mpv-vol-label">{state.muted ? 0 : Math.round(state.volume)}%</span>
-              </div>
-            </div>
-
-            <span className="mpv-time">
-              {formatTime(state.position)} / {formatTime(state.duration)}
-            </span>
-          </div>
-
-          {/* Center: −10s · play/pause · +10s */}
-          <div className="mpv-center">
-            <button
-              className="mpv-btn mpv-skip-btn"
-              onClick={() => window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - 10)).catch(() => {})}
-              title="Rewind 10s"
-            >
-              <span className="mpv-skip-inner">
-                <RotateCcw size={18} />
-                <span className="mpv-skip-label">10</span>
-              </span>
-            </button>
-
-            <button
-              className="mpv-btn mpv-play-btn"
-              onClick={togglePlay}
-              title={state.playing ? 'Pause (Space)' : 'Play (Space)'}
-            >
-              {state.playing ? <Pause size={22} /> : <Play size={22} />}
-            </button>
-
-            <button
-              className="mpv-btn mpv-skip-btn"
-              onClick={() => window.skyMovie.mpvSeek(stateRef.current.position + 10).catch(() => {})}
-              title="Forward 10s"
-            >
-              <span className="mpv-skip-inner">
-                <RotateCw size={18} />
-                <span className="mpv-skip-label">10</span>
-              </span>
-            </button>
-          </div>
-
-          {/* Right group */}
-          <div className="mpv-right">
-            {/* Speed */}
-            <div className="mpv-menu-wrap">
-              <button
-                className="mpv-btn mpv-btn-text"
-                onClick={e => { e.stopPropagation(); setShowMenu(showMenu === 'speed' ? null : 'speed'); }}
-                title="Playback speed"
-              >
-                {state.speed}× <ChevronDown size={12} />
-              </button>
-              {showMenu === 'speed' && (
-                <div className="mpv-menu">
-                  {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(s => (
-                    <button
-                      key={s}
-                      className={`mpv-menu-item${state.speed === s ? ' active' : ''}`}
-                      onClick={() => {
-                        updateState({ speed: s });
-                        window.skyMovie.mpvSetSpeed(s).catch(() => {});
-                        setShowMenu(null);
-                      }}
-                    >
-                      {s}×
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Audio tracks */}
-            {audioTracks.length > 0 && (
-              <div className="mpv-menu-wrap">
-                <button
-                  className="mpv-btn mpv-btn-text"
-                  onClick={e => { e.stopPropagation(); setShowMenu(showMenu === 'audio' ? null : 'audio'); }}
-                  title="Audio track"
-                >
-                  Audio <ChevronDown size={12} />
-                </button>
-                {showMenu === 'audio' && (
-                  <div className="mpv-menu">
-                    {audioTracks.map(t => (
-                      <button
-                        key={t.id}
-                        className={`mpv-menu-item${t.id === selectedAid ? ' active' : ''}`}
-                        onClick={() => {
-                          window.skyMovie.mpvSetAudioTrack(t.id).catch(() => {});
-                          setShowMenu(null);
-                        }}
-                      >
-                        {t.title || t.lang || `Track ${t.id}`}
-                        {t.codec ? ` (${t.codec})` : ''}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Subtitles */}
-            <div className="mpv-menu-wrap">
-              <button
-                className="mpv-btn mpv-btn-text"
-                onClick={e => { e.stopPropagation(); setShowMenu(showMenu === 'sub' ? null : 'sub'); }}
-                title="Subtitles"
-              >
-                <Settings size={16} /> <ChevronDown size={12} />
-              </button>
-              {showMenu === 'sub' && (
-                <div className="mpv-menu">
-                  <button
-                    className={`mpv-menu-item${selectedSid === null ? ' active' : ''}`}
-                    onClick={() => {
-                      window.skyMovie.mpvSetSubTrack(0).catch(() => {});
-                      setShowMenu(null);
-                    }}
-                  >
-                    Off
-                  </button>
-                  {subTracks.map(t => (
-                    <button
-                      key={t.id}
-                      className={`mpv-menu-item${t.id === selectedSid ? ' active' : ''}`}
-                      onClick={() => {
-                        window.skyMovie.mpvSetSubTrack(t.id).catch(() => {});
-                        setShowMenu(null);
-                      }}
-                    >
-                      {t.title || t.lang || `Sub ${t.id}`}
-                    </button>
-                  ))}
-                  {/* Sidecar subtitles — loaded via mpv sub-add */}
-                  {(player.sidecarSubtitles ?? []).map((s, i) => (
-                    <button
-                      key={`sc-${i}`}
-                      className="mpv-menu-item"
-                      onClick={async () => {
-                        // Convert file:// URL to path for mpv
-                        const path = s.url.startsWith('file:///')
-                          ? decodeURIComponent(s.url.slice(8).replace(/\//g, '\\'))
-                          : s.url;
-                        await window.skyMovie.mpvSetSubFile(path).catch(() => {});
-                        setShowMenu(null);
-                      }}
-                    >
-                      {s.label} (external)
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button className="mpv-btn" onClick={toggleFullscreen} title="Fullscreen (F)">
-              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Controls — rendered by the active skin */}
+      {skin.renderControls({
+        state,
+        tracks: tracks as any,
+        isVisible: showControls,
+        seekOsdVisible: seekOsd && !showControls,
+        isFullscreen,
+        showMenu,
+        sidecarSubtitles: player.sidecarSubtitles ?? [],
+        onTogglePlay:     togglePlay,
+        onToggleMute:     toggleMute,
+        onChangeVolume:   changeVolume,
+        onToggleFullscreen: toggleFullscreen,
+        onSeekTo:         (s) => window.skyMovie.mpvSeek(s).catch(() => {}),
+        onSetSpeed:       (s) => { updateState({ speed: s }); window.skyMovie.mpvSetSpeed(s).catch(() => {}); },
+        onSetAudioTrack:  (id) => window.skyMovie.mpvSetAudioTrack(id).catch(() => {}),
+        onSetSubTrack:    (id) => window.skyMovie.mpvSetSubTrack(id).catch(() => {}),
+        onSetSubFile:     (path) => window.skyMovie.mpvSetSubFile(path).catch(() => {}),
+        onSetShowMenu:    setShowMenu,
+        onSeekBarDown,
+        onSeekBarMove,
+        onSeekBarUp
+      })}
     </div>
   );
 }

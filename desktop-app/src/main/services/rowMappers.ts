@@ -114,6 +114,7 @@ export function mapMediaFile(row: Row): MediaFile {
 export function defaultSettings(deviceId: string): AppSettings {
   return {
     theme: 'cinema',
+    playerStyle: 'default',
     metadataProvider: 'local',
     tmdbApiKey: '',
     tmdbLanguage: 'en-US',

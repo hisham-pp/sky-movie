@@ -1,7 +1,6 @@
-'use client';
-
 import releaseManifestJson from "../public/releases.json";
 import Link from "next/link";
+import { ExpandableImage } from "./ExpandableImage";
 
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
@@ -97,39 +96,13 @@ export default function Home() {
 
         {/* App Screenshot */}
         <section className="px-container-padding pb-stack-lg max-w-7xl mx-auto">
-          <div className="relative group">
-            <div className="glass-panel p-2 rounded-[32px] shadow-2xl overflow-hidden group-hover:border-primary/30 transition-colors duration-500">
-              <div className="rounded-[24px] overflow-hidden relative aspect-[16/10] bg-surface-container-lowest">
-                <div className="flex h-full">
-                  <div className="w-[200px] border-r border-white/5 h-full bg-surface-dim/80 p-6 flex-col gap-6 hidden lg:flex">
-                    <div className="w-8 h-8 bg-primary rounded-lg mb-4"></div>
-                    <div className="space-y-4">
-                      <div className="h-2 w-24 bg-primary/20 rounded"></div>
-                      <div className="h-2 w-20 bg-white/5 rounded"></div>
-                      <div className="h-2 w-28 bg-white/5 rounded"></div>
-                      <div className="h-2 w-16 bg-white/5 rounded"></div>
-                    </div>
-                  </div>
-                  <div className="flex-1 p-8">
-                    <div className="flex justify-between items-center mb-8">
-                      <div className="h-8 w-48 bg-white/10 rounded-lg"></div>
-                      <div className="flex gap-2">
-                        <div className="w-8 h-8 bg-white/5 rounded-full"></div>
-                        <div className="w-8 h-8 bg-white/5 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      <div className="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
-                      <div className="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
-                      <div className="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
-                      <div className="aspect-[2/3] bg-white/5 rounded-xl animate-pulse"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute inset-0 z-20 pointer-events-none">
-                  <img className="w-full h-full object-cover" alt="Sky Movie Desktop App Screenshot" src="/screen-shots/movies-list.png" />
-                </div>
-              </div>
+          <div className="relative">
+            <div className="glass-panel p-2 rounded-[32px] shadow-2xl overflow-hidden">
+              <ExpandableImage
+                src="/screen-shots/movies-list.png"
+                alt="Sky Movie Desktop App Screenshot"
+                className="w-full h-auto block rounded-[24px]"
+              />
             </div>
             <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-primary/10 blur-[100px] -z-10"></div>
             <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 blur-[100px] -z-10"></div>
@@ -196,75 +169,35 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Player mockup */}
-            <div className="relative max-w-4xl mx-auto mb-24">
-              <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl border-white/10">
-                {/* Fake player chrome */}
-                <div className="relative bg-black aspect-video flex items-end">
-                  {/* Placeholder video frame */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-950 flex items-center justify-center">
-                    <div className="text-center opacity-20">
-                      <span className="material-symbols-outlined text-8xl text-white">movie</span>
-                    </div>
-                  </div>
+            {/* Player screenshots */}
+            <div className="relative max-w-5xl mx-auto mb-24 space-y-6">
 
-                  {/* Skip ripple indicator — left */}
-                  <div className="absolute left-[10%] top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 border border-white/20">
-                    <span className="material-symbols-outlined text-white text-2xl">replay_10</span>
-                    <span className="text-white text-[10px] font-bold">10 sec</span>
-                  </div>
-
-                  {/* Skip ripple indicator — right */}
-                  <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 border border-white/20 opacity-40">
-                    <span className="material-symbols-outlined text-white text-2xl">forward_10</span>
-                    <span className="text-white text-[10px] font-bold">10 sec</span>
-                  </div>
-
-                  {/* Volume OSD badge */}
-                  <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-xl px-3 py-2 border border-white/10">
-                    <span className="material-symbols-outlined text-white text-base">volume_up</span>
-                    <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
-                      <div className="h-full w-3/4 bg-primary rounded-full"></div>
-                    </div>
-                    <span className="text-white text-xs font-bold tabular-nums">150%</span>
-                  </div>
-
-                  {/* Controls bar */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-4 pb-3 pt-8">
-                    {/* Seek bar */}
-                    <div className="relative h-1 bg-white/20 rounded-full mb-3">
-                      <div className="absolute inset-y-0 left-0 w-[42%] bg-primary rounded-full"></div>
-                      <div className="absolute top-1/2 left-[42%] -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"></div>
-                    </div>
-                    {/* Bottom row: left / center / right */}
-                    <div className="grid grid-cols-3 items-center">
-                      {/* Left: volume + time */}
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-white text-lg opacity-80">volume_up</span>
-                        <span className="text-white/60 text-xs tabular-nums">1:23:44 / 2:11:30</span>
-                      </div>
-                      {/* Center: −10 · play · +10 */}
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="material-symbols-outlined text-white text-xl opacity-70">replay_10</span>
-                        <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-white text-xl">pause</span>
-                        </div>
-                        <span className="material-symbols-outlined text-white text-xl opacity-70">forward_10</span>
-                      </div>
-                      {/* Right: speed / audio / sub / fullscreen */}
-                      <div className="flex items-center justify-end gap-3">
-                        <span className="text-white/60 text-xs">1×</span>
-                        <span className="text-white/60 text-xs">Audio</span>
-                        <span className="material-symbols-outlined text-white text-base opacity-70">settings</span>
-                        <span className="material-symbols-outlined text-white text-base opacity-70">fullscreen</span>
-                      </div>
-                    </div>
-                  </div>
+              {/* Full controls */}
+              <div className="relative">
+                <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl border-white/10">
+                  <ExpandableImage
+                    src="/screen-shots/player-default.png"
+                    alt="Sky Movie player with controls visible"
+                    className="w-full h-auto block"
+                  />
                 </div>
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 bg-primary/15 blur-[60px] -z-10"></div>
               </div>
 
-              {/* Glow */}
-              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-1/2 h-24 bg-primary/20 blur-[60px] -z-10"></div>
+              {/* Minimal seek OSD */}
+              <div className="relative max-w-3xl mx-auto">
+                <div className="glass-panel rounded-2xl overflow-hidden shadow-xl border-white/8">
+                  <ExpandableImage
+                    src="/screen-shots/default-player-minimized.png"
+                    alt="Sky Movie player minimal seek bar"
+                    className="w-full h-auto block"
+                  />
+                </div>
+                <p className="text-center text-secondary text-xs mt-3 opacity-70">
+                  Seek without showing controls — minimal progress bar + time OSD
+                </p>
+              </div>
+
             </div>
 
             {/* Player feature cards */}

@@ -294,3 +294,40 @@
   color: var(--ink-dim);
 }
 
+.player-style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.player-style-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  min-height: 80px;
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+  align-content: start;
+}
+
+.player-style-card:hover,
+.player-style-card.active {
+  border-color: var(--line-strong);
+  background: rgba(137, 206, 255, 0.08);
+}
+
+.player-style-card.active {
+  box-shadow: var(--glow);
+}
+
+.player-style-card strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.player-style-card small {
+  color: var(--soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+

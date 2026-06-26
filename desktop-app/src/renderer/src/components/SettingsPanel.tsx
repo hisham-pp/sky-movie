@@ -10,7 +10,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, UpdateCheckResult, UpdateDownloadProgress } from '@shared/ipc';
+import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress } from '@shared/ipc';
 import { Select } from './ui/Select';
 import { formatBytes } from '../utils/format';
 
@@ -94,6 +94,19 @@ const themePresets: Array<{
   }
 ];
 
+const playerStylePresets: Array<{
+  id: PlayerStyle;
+  name: string;
+  description: string;
+}> = [
+  {
+    id: 'default',
+    name: 'Default',
+    description: 'Standard controls with seek bar, volume, track selection and fullscreen toggle.'
+  }
+  // More styles will be added here in future updates
+];
+
 export function SettingsPanel({
   settings,
   scanMode,
@@ -131,6 +144,7 @@ export function SettingsPanel({
   const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const activeTheme = settings?.theme ?? 'cinema';
+  const activePlayerStyle = settings?.playerStyle ?? 'auto';
 
   useEffect(() => {
     setTmdbApiKey(settings?.tmdbApiKey ?? '');
@@ -226,6 +240,26 @@ export function SettingsPanel({
                     </strong>
                     <small>{theme.description}</small>
                   </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="settings-section-heading" style={{ marginTop: '2rem' }}>
+              <div>
+                <h3>Player</h3>
+                <p>Choose which player engine to use for local media.</p>
+              </div>
+            </div>
+            <div className="player-style-grid">
+              {playerStylePresets.map((style) => (
+                <button
+                  key={style.id}
+                  className={activePlayerStyle === style.id ? 'player-style-card active' : 'player-style-card'}
+                  onClick={() => onSave({ playerStyle: style.id })}
+                  aria-pressed={activePlayerStyle === style.id}
+                >
+                  <strong>{style.name}</strong>
+                  <small>{style.description}</small>
                 </button>
               ))}
             </div>

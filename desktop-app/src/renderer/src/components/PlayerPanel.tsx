@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 import { MpvPlayer } from './MpvPlayer';
+import { useLibraryControllerContext } from '../hooks/LibraryControllerContext';
 
 const RESUME_START_THRESHOLD = 5;
 const RESUME_END_BUFFER = 10;
@@ -15,9 +16,10 @@ export function PlayerPanel({
   player: PlayMediaResult | null;
   onOpenExternal(mediaFileId: number): void;
 }) {
+  const { settings } = useLibraryControllerContext();
+  const playerStyle = settings?.playerStyle ?? 'default';
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
 
-  // Probe once whether the native addon is loaded
   useEffect(() => {
     window.skyMovie.mpvIsAvailable()
       .then(v => setMpvAvailable(v))
@@ -34,13 +36,13 @@ export function PlayerPanel({
     );
   }
 
-  // Wait until we know which player to use
+  // Wait until we know which engine is available
   if (mpvAvailable === null) return null;
 
   if (mpvAvailable) {
     return (
       <div className="player">
-        <MpvPlayer player={player} onOpenExternal={onOpenExternal} />
+        <MpvPlayer player={player} playerStyle={playerStyle} onOpenExternal={onOpenExternal} />
         <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
           <ExternalLink size={15} />
           Open in system player
@@ -49,7 +51,6 @@ export function PlayerPanel({
     );
   }
 
-  // ── Artplayer fallback (unchanged from previous implementation) ─────────────
   return <ArtplayerFallback player={player} onOpenExternal={onOpenExternal} />;
 }
 

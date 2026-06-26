@@ -1,3 +1,9 @@
+/* ── Player shell ────────────────────────────────────────────────────────────
+   Shared styles for the outer .player container, the Artplayer fallback,
+   and the mpv engine canvas/overlay layer.
+   Skin-specific control styles live in theme/player-skins/<SkinName>.css
+   ────────────────────────────────────────────────────────────────────────── */
+
 .player {
   position: relative;
   display: grid;
@@ -26,18 +32,16 @@
   --art-control-icon-scale: 1.1;
 }
 
-/* Enhanced video quality */
 .player video {
   object-fit: contain;
   image-rendering: high-quality;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Better subtitle styling */
 .player .artplayer-app .artplayer-subtitle {
   font-size: 18px;
   font-weight: 600;
-  text-shadow: 
+  text-shadow:
     2px 2px 4px rgba(0, 0, 0, 0.9),
     -1px -1px 2px rgba(0, 0, 0, 0.7);
   line-height: 1.5;
@@ -47,7 +51,6 @@
   backdrop-filter: blur(4px);
 }
 
-/* Enhanced controls */
 .player .artplayer-app .artplayer-controls {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
   padding: 12px 16px;
@@ -61,7 +64,6 @@
   transform: scale(1.15);
 }
 
-/* Settings panel enhancement */
 .player .artplayer-app .artplayer-setting-panel {
   background: rgba(20, 20, 20, 0.96);
   backdrop-filter: blur(12px);
@@ -83,7 +85,6 @@
   opacity: 0.7;
 }
 
-/* Progress bar — always show full timeline, not just buffered portion */
 .player .artplayer-app .artplayer-progress {
   height: 5px;
   transition: height 0.2s ease;
@@ -94,7 +95,6 @@
   height: 8px;
 }
 
-/* Make buffered/loaded indicator invisible — full bar is always seekable */
 .player .artplayer-app .artplayer-progress-loaded {
   background: rgba(255, 255, 255, 0.2) !important;
 }
@@ -105,13 +105,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Loading spinner enhancement */
 .player .artplayer-app .artplayer-loading {
   width: 60px;
   height: 60px;
 }
 
-/* Info panel enhancement */
 .player .artplayer-app .artplayer-info-panel {
   background: rgba(20, 20, 20, 0.92);
   backdrop-filter: blur(10px);
@@ -120,7 +118,7 @@
   font-size: 12px;
 }
 
-/* ── mpv player ─────────────────────────────────────────────────────────── */
+/* ── mpv engine layer ─────────────────────────────────────────────────────── */
 
 .mpv-player {
   position: relative;
@@ -196,205 +194,7 @@
   font-size: 13px;
 }
 
-/* Controls overlay */
-.mpv-controls {
-  position: absolute;
-  inset: auto 0 0;
-  z-index: 8;
-  padding: 0 14px 12px;
-  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
-}
-
-.mpv-controls.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Seek bar */
-.mpv-seek {
-  padding: 10px 0 6px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.mpv-seek-track {
-  position: relative;
-  height: 4px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 2px;
-  transition: height 0.15s;
-}
-
-.mpv-seek:hover .mpv-seek-track {
-  height: 6px;
-}
-
-.mpv-seek-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--primary, #89ceff);
-  border-radius: 2px;
-}
-
-.mpv-seek-thumb {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  width: 14px;
-  height: 14px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.15s;
-}
-
-.mpv-seek:hover .mpv-seek-thumb {
-  transform: translate(-50%, -50%) scale(1);
-}
-
-/* Bottom row */
-.mpv-bottom {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-}
-
-.mpv-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: flex-start;
-}
-
-.mpv-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: flex-end;
-}
-
-/* Center play controls */
-.mpv-center {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-}
-
-.mpv-play-btn {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  background: rgba(255,255,255,0.15) !important;
-}
-
-.mpv-play-btn:hover {
-  background: rgba(255,255,255,0.26) !important;
-}
-
-.mpv-skip-btn {
-  /* Large transparent hit area */
-  width: 64px !important;
-  height: 48px !important;
-  background: transparent !important;
-  border-radius: 8px !important;
-}
-
-.mpv-skip-btn:hover {
-  background: transparent !important;
-}
-
-.mpv-skip-btn:hover .mpv-skip-inner {
-  color: #fff;
-  opacity: 1;
-}
-
-/* The small visible icon+label inside the large hit area */
-.mpv-skip-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  opacity: 0.78;
-  transition: opacity 0.15s;
-  pointer-events: none;
-}
-
-.mpv-skip-label {
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.mpv-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: rgba(255,255,255,0.88);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.mpv-btn:hover {
-  background: rgba(255,255,255,0.12);
-  color: #fff;
-}
-
-.mpv-btn-text {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  padding: 0 8px;
-}
-
-.mpv-volume-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Volume group — collapsed by default, reveals slider on hover */
-.mpv-volume-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mpv-volume-expand {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-width 0.25s ease, opacity 0.2s ease;
-}
-
-.mpv-volume-group.expanded .mpv-volume-expand {
-  max-width: 160px;
-  opacity: 1;
-}
-
-.mpv-vol-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.65);
-  min-width: 32px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-/* Double-click skip ripple (YouTube-style) */
+/* Double-click skip ripple (engine-level, rendered in MpvPlayer.tsx) */
 .mpv-ripple {
   position: absolute;
   top: 50%;
@@ -433,158 +233,7 @@
   100% { opacity: 0; transform: translateY(-50%) scale(1.1); }
 }
 
-/* Top-left volume OSD */
-.mpv-vol-osd {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(-6px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.mpv-vol-osd.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.mpv-vol-osd-bar {
-  width: 100px;
-  height: 4px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.mpv-vol-osd-fill {
-  height: 100%;
-  background: var(--primary, #89ceff);
-  border-radius: 2px;
-  transition: width 0.1s ease;
-}
-
-.mpv-volume-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 90px;
-  height: 4px;
-  border-radius: 2px;
-  cursor: pointer;
-  outline: none;
-  /* Fill is faked via a background gradient driven by a CSS custom property
-     set inline on the element (--vol). Falls back to 80% if not set. */
-  background: linear-gradient(
-    to right,
-    var(--primary, #89ceff) 0%,
-    var(--primary, #89ceff) var(--vol, 80%),
-    rgba(255,255,255,0.28) var(--vol, 80%),
-    rgba(255,255,255,0.28) 100%
-  );
-}
-
-.mpv-volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  transition: transform 0.12s;
-}
-
-.mpv-volume-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-.mpv-volume-slider::-moz-range-thumb {
-  width: 13px;
-  height: 13px;
-  border: none;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-}
-
-.mpv-volume-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.28);
-}
-
-.mpv-volume-slider::-moz-range-progress {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--primary, #89ceff);
-}
-
-.mpv-time {
-  font-size: 12px;
-  color: rgba(255,255,255,0.75);
-  white-space: nowrap;
-  padding: 0 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Dropdown menus */
-.mpv-menu-wrap {
-  position: relative;
-}
-
-.mpv-menu {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  right: 0;
-  min-width: 140px;
-  background: rgba(18,20,26,0.96);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  padding: 4px;
-  backdrop-filter: blur(16px);
-  z-index: 20;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-
-.mpv-menu-item {
-  display: block;
-  width: 100%;
-  padding: 7px 10px;
-  text-align: left;
-  background: transparent;
-  border: none;
-  border-radius: 5px;
-  color: rgba(255,255,255,0.8);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.12s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mpv-menu-item:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
-
-.mpv-menu-item.active {
-  color: var(--primary, #89ceff);
-}
+/* ── Player shell chrome ──────────────────────────────────────────────────── */
 
 .player-empty {
   display: grid;
@@ -646,4 +295,3 @@
   background: rgba(0, 0, 0, 0.56);
   backdrop-filter: blur(10px);
 }
-

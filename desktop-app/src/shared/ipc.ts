@@ -4,6 +4,8 @@ export type SyncType = 'full' | 'partial' | 'metadata-only' | 'files' | 'watch-p
 export type LibraryScanMode = MediaKind | 'mixed';
 export type MatcherStrategy = 'auto' | 'movie-title-year' | 'show-season-episode' | 'folder-name';
 export type AppTheme = 'cinema' | 'midnight' | 'daylight' | 'ember' | 'ocean' | 'forest' | 'sunset' | 'noir' | 'lavender' | 'crimson';
+// Extensible — new visual styles/control layouts can be added here over time
+export type PlayerStyle = 'default';
 
 export interface LibraryFolder {
   id: number;
@@ -298,6 +300,7 @@ export interface SyncResult {
 
 export interface AppSettings {
   theme: AppTheme;
+  playerStyle: PlayerStyle;
   metadataProvider: 'local' | 'tmdb';
   tmdbApiKey: string;
   tmdbLanguage: string;

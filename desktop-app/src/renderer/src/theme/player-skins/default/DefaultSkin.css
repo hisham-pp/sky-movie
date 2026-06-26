@@ -1,0 +1,427 @@
+/* ── Default skin controls ───────────────────────────────────────────────────
+   Scoped to the default-controls subtree rendered by DefaultSkin.
+   Import this file only in DefaultSkin.tsx — not in main.tsx.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Controls overlay */
+.default-controls {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 8;
+  padding: 0 14px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.default-controls.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Seek bar */
+.default-seek {
+  padding: 10px 0 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.default-seek-track {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+  transition: height 0.15s;
+}
+
+.default-seek:hover .default-seek-track {
+  height: 6px;
+}
+
+.default-seek-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--primary, #89ceff);
+  border-radius: 2px;
+}
+
+.default-seek-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+
+.default-seek:hover .default-seek-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Bottom row layout */
+.default-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.default-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+.default-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.default-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* Buttons */
+.default-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.88);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.default-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.default-btn-text {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 8px;
+}
+
+.default-play-btn {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,0.15) !important;
+}
+
+.default-play-btn:hover {
+  background: rgba(255,255,255,0.26) !important;
+}
+
+.default-skip-btn {
+  width: 64px !important;
+  height: 48px !important;
+  background: transparent !important;
+  border-radius: 8px !important;
+}
+
+.default-skip-btn:hover {
+  background: transparent !important;
+}
+
+.default-skip-btn:hover .default-skip-inner {
+  color: #fff;
+  opacity: 1;
+}
+
+.default-skip-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  opacity: 0.78;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.default-skip-label {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Volume group — collapsed by default, reveals slider on hover */
+.default-volume-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.default-volume-expand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
+}
+
+.default-volume-group.expanded .default-volume-expand {
+  max-width: 160px;
+  opacity: 1;
+}
+
+.default-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  background: linear-gradient(
+    to right,
+    var(--primary, #89ceff) 0%,
+    var(--primary, #89ceff) var(--vol, 80%),
+    rgba(255,255,255,0.28) var(--vol, 80%),
+    rgba(255,255,255,0.28) 100%
+  );
+}
+
+.default-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.12s;
+}
+
+.default-volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.default-volume-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.default-volume-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.28);
+}
+
+.default-volume-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--primary, #89ceff);
+}
+
+.default-vol-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.default-boost-label {
+  font-size: 11px;
+  color: var(--primary, #89ceff);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Time display */
+.default-time {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  padding: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Top-left volume OSD */
+.default-vol-osd {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.default-vol-osd.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Seek OSD — thin progress bar + time shown when seeking without controls */
+.default-seek-osd-time {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 15;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.default-seek-osd-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  pointer-events: none;
+}
+
+.default-seek-osd-fill {
+  height: 100%;
+  background: var(--accent, #89ceff);
+  transition: width 0.1s linear;
+}
+
+/* Dropdown menus */
+.default-menu-wrap {
+  position: relative;
+}
+
+.default-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  min-width: 140px;
+  background: rgba(18,20,26,0.96);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 4px;
+  backdrop-filter: blur(16px);
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.default-menu-item {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.default-menu-item:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.default-menu-item.active {
+  color: var(--primary, #89ceff);
+}
+
+/* Combined settings panel */
+.default-settings-panel {
+  min-width: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.default-settings-section {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.default-settings-section:last-child {
+  border-bottom: none;
+}
+
+.default-settings-label {
+  display: block;
+  padding: 5px 10px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+
+.default-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px 6px;
+}
+
+.default-settings-chip {
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  color: rgba(255,255,255,0.75);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.default-settings-chip:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+.default-settings-chip.active {
+  background: rgba(137,206,255,0.2);
+  border-color: var(--primary, #89ceff);
+  color: var(--primary, #89ceff);
+}
