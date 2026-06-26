@@ -426,6 +426,104 @@
   font-size: 14px; font-variant-numeric: tabular-nums;
 }
 
+/* ── AI Enhance panel ────────────────────────────────────────────────────── */
+
+.yt-ai-panel {
+  position: absolute;
+  bottom: 76px;
+  right: 116px; /* sits to the left of the settings panel */
+  z-index: 20;
+  width: 260px;
+  background: var(--panel);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+.yt-ai-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.yt-ai-header svg { color: var(--primary); }
+
+.yt-ai-section {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.yt-ai-section:last-child { border-bottom: none; }
+
+.yt-ai-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.yt-ai-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.yt-ai-sliders {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.yt-ai-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yt-ai-slider-label {
+  font-size: 12px;
+  color: var(--soft);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.yt-ai-range {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 3px; border-radius: 9999px;
+  cursor: pointer; outline: none;
+  background: linear-gradient(to right,
+    var(--primary) 0%, var(--primary) var(--pct, 50%),
+    rgba(255,255,255,0.18) var(--pct, 50%), rgba(255,255,255,0.18) 100%
+  );
+}
+.yt-ai-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.yt-ai-range::-moz-range-thumb {
+  width: 13px; height: 13px; border: none; border-radius: 50%;
+  background: var(--ink); cursor: pointer;
+}
+
+.yt-ai-slider-val {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 /* ── Enhancement submenu ──────────────────────────────────────────────────── */
 
 .yt-enhance-section-label {

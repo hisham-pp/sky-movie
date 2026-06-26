@@ -426,6 +426,55 @@
   color: var(--primary, #89ceff);
 }
 
+/* ── AI Enhance panel ─────────────────────────────────────────────────────── */
+
+.default-btn-active {
+  color: var(--primary, #89ceff) !important;
+}
+
+.default-ai-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 230px;
+  background: rgba(14,16,22,0.97);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+  backdrop-filter: blur(16px);
+  z-index: 30;
+  overflow: hidden;
+}
+
+.default-ai-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+.default-ai-header svg { color: var(--primary, #89ceff); }
+
+.default-ai-body {
+  padding: 8px 12px 10px;
+}
+
+.default-ai-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.default-ai-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+}
+
 /* ── Enhancement controls ─────────────────────────────────────────────────── */
 
 .default-enhance-row {

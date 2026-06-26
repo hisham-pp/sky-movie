@@ -4,9 +4,11 @@ import {
   Pause, Play,
   Volume2, VolumeX,
   Maximize, Minimize,
-  Settings,
+  Settings, Sparkles,
   RotateCcw, RotateCw
 } from 'lucide-react';
+import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
+import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
 
@@ -60,6 +62,14 @@ function DefaultControls({
     voice: BiquadFilterNode;
     compressor: DynamicsCompressorNode;
   } | null>(null);
+  // AI enhance state
+  const [showAiPanel,    setShowAiPanel]  = useState(false);
+  const [aiVideoOn,      setAiVideoOn]    = useState(false);
+  const [aiAudioOn,      setAiAudioOn]    = useState(false);
+  const [aiSharpness,    setAiSharpness]  = useState(55);
+  const [aiDenoise,      setAiDenoise]    = useState(35);
+  const [aiColorBoost,   setAiColorBoost] = useState(30);
+  const videoEnhancerRef = useRef<VideoEnhancer | null>(null);
 
   // Show top-left volume OSD whenever volume changes (keyboard / scroll wheel)
   useEffect(() => {
@@ -109,6 +119,50 @@ function DefaultControls({
     if (stableVol) { compressor.threshold.value = -24; compressor.knee.value = 30; compressor.ratio.value = 4; }
     else { compressor.threshold.value = 0; compressor.ratio.value = 1; }
   }, [stableVol]);
+
+  // AI Video enhancer
+  useEffect(() => {
+    if (!videoEnhancerRef.current) videoEnhancerRef.current = new VideoEnhancer();
+    return () => { videoEnhancerRef.current?.disable(); videoEnhancerRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    const e = videoEnhancerRef.current;
+    if (!e) return;
+    if (aiVideoOn) {
+      const src = document.querySelector<HTMLCanvasElement | HTMLVideoElement>('.player canvas, .player video');
+      if (src) e.enable(src);
+    } else {
+      e.disable();
+    }
+  }, [aiVideoOn]);
+
+  useEffect(() => {
+    videoEnhancerRef.current?.setParams({
+      sharpness:  aiSharpness  / 100,
+      denoise:    aiDenoise    / 100,
+      colorBoost: aiColorBoost / 100,
+    } satisfies VideoEnhancerParams);
+  }, [aiSharpness, aiDenoise, aiColorBoost]);
+
+  // AI Audio enhance preset
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const { ctx, bass, treble, voice, compressor } = audioRef.current;
+    ctx.resume();
+    if (aiAudioOn) {
+      bass.gain.value   = bassBoost   ? 8 : 5;
+      treble.gain.value = trebleBoost ? 6 : 4;
+      voice.gain.value  = voiceBoost  ? 6 : 3;
+      compressor.threshold.value = -20; compressor.knee.value = 25; compressor.ratio.value = 3.5;
+    } else {
+      bass.gain.value   = bassBoost   ? 8 : 0;
+      treble.gain.value = trebleBoost ? 6 : 0;
+      voice.gain.value  = voiceBoost  ? 6 : 0;
+      if (!stableVol) { compressor.threshold.value = 0; compressor.ratio.value = 1; }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiAudioOn]);
 
   const totalMax   = volumeMax + volumeBoostMax;
   const progress   = state.duration > 0 ? state.position / state.duration : 0;
@@ -233,8 +287,65 @@ function DefaultControls({
             </button>
           </div>
 
-          {/* Right: settings (speed + audio + subtitles) · fullscreen */}
+          {/* Right: settings (speed + audio + subtitles) · AI enhance · fullscreen */}
           <div className="default-right">
+
+            {/* AI Enhance panel */}
+            {showAiPanel && (
+              <div
+                className="default-ai-panel"
+                onClick={e => e.stopPropagation()}
+                onPointerDown={e => e.stopPropagation()}
+              >
+                <div className="default-ai-header">
+                  <Sparkles size={13} />
+                  <span>AI Enhance</span>
+                </div>
+                <div className="default-ai-body">
+                  <div className="default-ai-row">
+                    <span className="default-ai-label">Video</span>
+                    <span
+                      className={`default-toggle${aiVideoOn ? ' on' : ''}`}
+                      onClick={() => setAiVideoOn(v => !v)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </div>
+                  {aiVideoOn && ([
+                    { label: 'Sharpness', val: aiSharpness,  set: setAiSharpness  },
+                    { label: 'Denoise',   val: aiDenoise,    set: setAiDenoise    },
+                    { label: 'Vivid',     val: aiColorBoost, set: setAiColorBoost },
+                  ] as const).map(({ label, val, set }) => (
+                    <div key={label} className="default-enhance-row" style={{ padding: '3px 0' }}>
+                      <span className="default-enhance-name" style={{ width: 60, fontSize: 11 }}>{label}</span>
+                      <input
+                        type="range" min={0} max={100} step={1} value={val}
+                        className="default-enhance-range"
+                        style={{ '--pct': `${val}%` } as React.CSSProperties}
+                        onChange={e => set(Number(e.target.value))}
+                      />
+                      <span className="default-enhance-val">{val}</span>
+                    </div>
+                  ))}
+                  <div className="default-ai-row" style={{ marginTop: 6 }}>
+                    <span className="default-ai-label">Audio</span>
+                    <span
+                      className={`default-toggle${aiAudioOn ? ' on' : ''}`}
+                      onClick={() => setAiAudioOn(v => !v)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI button */}
+            <button
+              className={`default-btn${aiVideoOn || aiAudioOn ? ' default-btn-active' : ''}`}
+              title="AI Enhance"
+              onClick={e => { e.stopPropagation(); setShowAiPanel(v => !v); }}
+            >
+              <Sparkles size={15} />
+            </button>
 
             {/* Combined settings panel */}
             <div className="default-menu-wrap">
