@@ -36,7 +36,8 @@ export function AppShowcase() {
   const [modal,  setModal] = useState(false);
 
   const screens = SCREENS[tab];
-  const current = screens.slides[slide];
+  const safeSlide = Math.min(slide, screens.slides.length - 1);
+  const current = screens.slides[safeSlide];
 
   // Reset slide when tab changes
   useEffect(() => { setSlide(0); }, [tab]);
@@ -102,7 +103,7 @@ export function AppShowcase() {
                   width: slide === i ? 20 : 6,
                   height: 6,
                   borderRadius: 9999,
-                  background: slide === i ? 'var(--primary, #89ceff)' : 'rgba(255,255,255,0.3)',
+                  background: safeSlide === i ? 'var(--primary, #89ceff)' : 'rgba(255,255,255,0.3)',
                   transition: 'all 0.2s ease',
                   border: 'none',
                   cursor: 'pointer',
