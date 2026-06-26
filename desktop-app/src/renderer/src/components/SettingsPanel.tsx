@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress } from '@shared/ipc';
 import { Select } from './ui/Select';
+import { Switch } from './ui/Switch';
 import { formatBytes } from '../utils/format';
 
 type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
@@ -255,14 +256,12 @@ export function SettingsPanel({
               </div>
             </div>
             <div className="settings-form-grid">
-              <label className="toggle wide">
-                <input
-                  type="checkbox"
-                  checked={settings?.hideSidebar ?? false}
-                  onChange={(event) => onSave({ hideSidebar: event.target.checked })}
-                />
-                Hide sidebar
-              </label>
+              <Switch
+                id="setting-hide-sidebar"
+                label="Hide sidebar"
+                checked={settings?.hideSidebar ?? false}
+                onChange={(checked) => onSave({ hideSidebar: checked })}
+              />
             </div>
 
             <div className="settings-section-heading" style={{ marginTop: '2rem' }}>
@@ -326,14 +325,12 @@ export function SettingsPanel({
                   <option value="folder-name">Folder name</option>
                 </Select>
               </label>
-              <label className="toggle wide">
-                <input
-                  type="checkbox"
-                  checked={settings?.extractFileMetadata ?? extractFileMetadata}
-                  onChange={(event) => onSave({ extractFileMetadata: event.target.checked })}
-                />
-                Store movie file metadata
-              </label>
+              <Switch
+                id="setting-extract-metadata"
+                label="Store movie file metadata"
+                checked={settings?.extractFileMetadata ?? extractFileMetadata}
+                onChange={(checked) => onSave({ extractFileMetadata: checked })}
+              />
             </div>
 
             <div className="folder-list">
@@ -455,14 +452,12 @@ export function SettingsPanel({
               </div>
             </div>
             <div className="settings-form-grid">
-              <label className="toggle wide">
-                <input
-                  type="checkbox"
-                  checked={settings?.autoDownloadUpdates ?? false}
-                  onChange={(event) => onSave({ autoDownloadUpdates: event.target.checked })}
-                />
-                Auto-download new versions
-              </label>
+              <Switch
+                id="setting-auto-download-updates"
+                label="Auto-download new versions"
+                checked={settings?.autoDownloadUpdates ?? false}
+                onChange={(checked) => onSave({ autoDownloadUpdates: checked })}
+              />
             </div>
             <div className="settings-actions left">
               <button disabled={isCheckingUpdates || busy} onClick={handleCheckForUpdates}>

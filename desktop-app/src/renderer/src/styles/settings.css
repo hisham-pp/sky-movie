@@ -176,8 +176,8 @@
   font-size: 13px;
 }
 
-.settings-section label select,
-.settings-section label input {
+.settings-section label:not(.switch-row) select,
+.settings-section label:not(.switch-row) input {
   width: 100%;
 }
 
@@ -195,6 +195,70 @@
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
+}
+
+/* Switch component */
+.switch-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  color: var(--soft);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.switch-track input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-thumb {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border, #333);
+  transition: background 0.2s;
+}
+
+.switch-thumb::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--soft, #aaa);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.switch-track input:checked ~ .switch-thumb {
+  background: var(--primary);
+}
+
+.switch-track input:checked ~ .switch-thumb::after {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.switch-track input:focus-visible ~ .switch-thumb {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .settings-section .wide {
