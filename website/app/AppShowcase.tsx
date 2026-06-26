@@ -5,48 +5,61 @@ import Image from 'next/image';
 import { ImageModal } from './ExpandableImage';
 
 const TABS = [
-  { id: 'movies',  label: 'Movies',   icon: 'movie'  },
-  { id: 'shows',   label: 'TV Shows', icon: 'live_tv' },
-  { id: 'search',  label: 'Search',   icon: 'search'  },
+  { id: 'movies',  label: 'Movies',      icon: 'movie'    },
+  { id: 'shows',   label: 'TV Shows',    icon: 'live_tv'  },
+  { id: 'detail',  label: 'Movie Detail',icon: 'info'     },
+  { id: 'tvdetail',label: 'Show Detail', icon: 'video_library' },
+  { id: 'search',  label: 'Search',      icon: 'search'   },
 ] as const;
 type TabId = typeof TABS[number]['id'];
 
 const SCREENS: Record<TabId, { slides: { src: string; alt: string; caption: string }[] }> = {
   movies: {
     slides: [
-      { src: '/screen-shots/library-movies-hero.png',   alt: 'Sky Movie — Movies library with hero carousel',         caption: 'Hero carousel auto-plays backdrops with metadata overlay' },
-      { src: '/screen-shots/library-movies-hero-2.png', alt: 'Sky Movie — Movies library with Madhuvidhu selected',    caption: 'Instant backdrop switch as you browse the carousel' },
+      { src: '/screen-shots/library-movies-hero.png',   alt: 'Sky Movie — Movies library hero carousel',        caption: 'Hero carousel auto-plays backdrops with metadata overlay' },
+      { src: '/screen-shots/library-movies-hero-2.png', alt: 'Sky Movie — Movies library with different hero',  caption: 'Instant backdrop switch as you browse the carousel' },
+      { src: '/screen-shots/library-movies-grid.png',   alt: 'Sky Movie — Full movies grid view',               caption: '157 movies displayed in a clean poster grid' },
     ],
   },
   shows: {
     slides: [
-      { src: '/screen-shots/library-shows-hero.png', alt: 'Sky Movie — TV Shows library with Farzi selected', caption: 'Full TV show support with season & episode management' },
+      { src: '/screen-shots/library-shows-hero.png',   alt: 'Sky Movie — TV Shows library',                     caption: 'Full TV show support with season & episode management' },
+      { src: '/screen-shots/library-shows-player.png', alt: 'Sky Movie — TV Shows with embedded player',        caption: 'Watch directly from the library with the built-in player' },
+    ],
+  },
+  detail: {
+    slides: [
+      { src: '/screen-shots/movie-detail-player.png',   alt: 'Sky Movie — Movie detail with player',            caption: 'Movie detail view with embedded libmpv player' },
+      { src: '/screen-shots/movie-detail-metadata.png', alt: 'Sky Movie — Movie detail with metadata sidebar',  caption: 'TMDB metadata sidebar with related titles' },
+    ],
+  },
+  tvdetail: {
+    slides: [
+      { src: '/screen-shots/show-detail-episodes.png', alt: 'Sky Movie — Show detail with episode guide',       caption: 'Episode guide with season browser and series player' },
     ],
   },
   search: {
     slides: [
-      { src: '/screen-shots/search-nav.png',     alt: 'Sky Movie search — navigation shortcuts',   caption: 'One keystroke (Ctrl+K) to navigate anywhere in the app' },
-      { src: '/screen-shots/search-results.png', alt: 'Sky Movie search — movie results for super', caption: 'Instant fuzzy search across your entire library' },
+      { src: '/screen-shots/search-nav.png',     alt: 'Sky Movie search — navigation shortcuts',                caption: 'One keystroke (Ctrl+K) to navigate anywhere in the app' },
+      { src: '/screen-shots/search-results.png', alt: 'Sky Movie search — movie results',                       caption: 'Instant fuzzy search across your entire library' },
     ],
   },
 };
 
 export function AppShowcase() {
-  const [tab,    setTab]   = useState<TabId>('movies');
-  const [slide,  setSlide] = useState(0);
-  const [modal,  setModal] = useState(false);
+  const [tab,   setTab]   = useState<TabId>('movies');
+  const [slide, setSlide] = useState(0);
+  const [modal, setModal] = useState(false);
 
-  const screens = SCREENS[tab];
+  const screens   = SCREENS[tab];
   const safeSlide = Math.min(slide, screens.slides.length - 1);
-  const current = screens.slides[safeSlide];
+  const current   = screens.slides[safeSlide];
 
-  // Reset slide when tab changes
   useEffect(() => { setSlide(0); }, [tab]);
 
-  // Auto-advance slides
   useEffect(() => {
     if (screens.slides.length < 2) return;
-    const id = setInterval(() => setSlide(i => (i + 1) % screens.slides.length), 3200);
+    const id = setInterval(() => setSlide(i => (i + 1) % screens.slides.length), 3500);
     return () => clearInterval(id);
   }, [tab, screens.slides.length]);
 
@@ -54,13 +67,13 @@ export function AppShowcase() {
 
   return (
     <div className="relative max-w-5xl mx-auto">
-      {/* Tab switcher */}
-      <div className="flex items-center justify-center gap-2 mb-6">
+      {/* Tab switcher — scrollable on mobile */}
+      <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all border ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all border whitespace-nowrap ${
               tab === t.id
                 ? 'bg-primary/15 border-primary/40 text-primary'
                 : 'bg-white/5 border-white/10 text-secondary hover:text-white hover:bg-white/10'
@@ -96,7 +109,7 @@ export function AppShowcase() {
           </span>
         </div>
 
-        {/* Slide dots (only if >1 slide) */}
+        {/* Slide dots */}
         {screens.slides.length > 1 && (
           <div className="absolute top-4 right-4 flex gap-1.5 pointer-events-auto">
             {screens.slides.map((_, i) => (
@@ -104,7 +117,7 @@ export function AppShowcase() {
                 key={i}
                 onClick={e => { e.stopPropagation(); setSlide(i); }}
                 style={{
-                  width: slide === i ? 20 : 6,
+                  width: safeSlide === i ? 20 : 6,
                   height: 6,
                   borderRadius: 9999,
                   background: safeSlide === i ? 'var(--primary, #89ceff)' : 'rgba(255,255,255,0.3)',
@@ -119,14 +132,12 @@ export function AppShowcase() {
         )}
       </div>
 
-      {/* Search hint */}
       {tab === 'search' && (
         <p className="text-center text-white/30 text-xs mt-4">
           Press <kbd className="bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-white/40 text-xs">Ctrl+K</kbd> anywhere in the app to open search
         </p>
       )}
 
-      {/* Glow */}
       <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-2/3 h-20 bg-primary/10 blur-[80px] -z-10 pointer-events-none" />
 
       {modal && <ImageModal src={current.src} alt={current.alt} onClose={close} />}
