@@ -1,6 +1,7 @@
 import releaseManifestJson from "../public/releases.json";
 import Link from "next/link";
 import { ExpandableImage } from "./ExpandableImage";
+import { PlayerCarousel } from "./PlayerCarousel";
 
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
@@ -169,36 +170,8 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Player screenshots */}
-            <div className="relative max-w-5xl mx-auto mb-24 space-y-6">
-
-              {/* Full controls */}
-              <div className="relative">
-                <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl border-white/10">
-                  <ExpandableImage
-                    src="/screen-shots/player-default.png"
-                    alt="Sky Movie player with controls visible"
-                    className="w-full h-auto block"
-                  />
-                </div>
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 bg-primary/15 blur-[60px] -z-10"></div>
-              </div>
-
-              {/* Minimal seek OSD */}
-              <div className="relative max-w-3xl mx-auto">
-                <div className="glass-panel rounded-2xl overflow-hidden shadow-xl border-white/8">
-                  <ExpandableImage
-                    src="/screen-shots/default-player-minimized.png"
-                    alt="Sky Movie player minimal seek bar"
-                    className="w-full h-auto block"
-                  />
-                </div>
-                <p className="text-center text-secondary text-xs mt-3 opacity-70">
-                  Seek without showing controls — minimal progress bar + time OSD
-                </p>
-              </div>
-
-            </div>
+            {/* Player screenshots carousel */}
+            <PlayerCarousel />
 
             {/* Player feature cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
