@@ -287,6 +287,9 @@
 .filter-row,
 .inline-actions,
 .filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 28px;
 }
@@ -300,6 +303,124 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Search input */
+.filter-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--soft);
+  pointer-events: none;
+}
+
+.filter-search-input {
+  height: 38px;
+  padding: 0 12px 0 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 13px;
+  min-width: 180px;
+  outline: none;
+}
+
+.filter-search-input::placeholder {
+  color: var(--soft);
+}
+
+.filter-search-input:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Select dropdowns */
+.filter-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-select-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--soft);
+  pointer-events: none;
+}
+
+.filter-select {
+  height: 38px;
+  padding: 0 28px 0 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.filter-select option {
+  background: var(--surface, #1a1a2e);
+  color: var(--text);
+}
+
+/* Favorites toggle */
+.filter-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.filter-toggle-btn.active {
+  background: rgba(233, 69, 96, 0.15);
+  border-color: rgba(233, 69, 96, 0.4);
+  color: #e94560;
+}
+
+.filter-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-left: auto;
+}
+
+.filter-clear-btn:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .section-title {
