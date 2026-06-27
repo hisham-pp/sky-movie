@@ -7,6 +7,7 @@ export class TorrentService extends EventEmitter {
   private client: WebTorrent | null = null;
   private infoMap = new Map<string, TorrentInfo>();
   private progressTimers = new Map<string, ReturnType<typeof setInterval>>();
+  private pendingByHash = new Map<string, Promise<TorrentInfo>>();
   private settings: TorrentSettings;
 
   constructor(settings: TorrentSettings) {
@@ -43,17 +44,32 @@ export class TorrentService extends EventEmitter {
     const savePath = opts.savePath ?? this.settings.downloadPath;
     if (!existsSync(savePath)) mkdirSync(savePath, { recursive: true });
 
-    // Hash-based duplicate detection (magnet URIs can differ by tracker list)
     const incomingHash = this.hashFromMagnet(magnetUri);
-    const existingTorrent = this.client.torrents.find(
-      (t) => t.infoHash === incomingHash || (incomingHash && t.infoHash?.toLowerCase() === incomingHash.toLowerCase())
-    );
-    if (existingTorrent) {
-      const existing = this.infoMap.get(existingTorrent.infoHash);
-      if (existing) return existing;
+
+    // If already resolving this hash, return the same promise (handles boot-restore races)
+    const pending = this.pendingByHash.get(incomingHash);
+    if (pending) {
+      console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… already pending, awaiting existing promise`);
+      return pending;
     }
 
-    return new Promise<TorrentInfo>((resolve, reject) => {
+    // Already fully added — return immediately
+    if (incomingHash) {
+      const existingTorrent = this.client.torrents.find(
+        (t) => t.infoHash?.toLowerCase() === incomingHash
+      );
+      if (existingTorrent) {
+        const existing = this.infoMap.get(existingTorrent.infoHash);
+        if (existing) {
+          console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… already active, returning existing info`);
+          return existing;
+        }
+      }
+    }
+
+    console.log(`[TorrentService] adding magnet hash=${incomingHash.slice(0, 8)}… savePath=${savePath}`);
+
+    const promise = new Promise<TorrentInfo>((resolve, reject) => {
       // NOTE: do NOT pass `so` (select-only) — invalid in WebTorrent v3 and breaks the add
       const torrent: Torrent = this.client!.add(magnetUri, { path: savePath });
 
@@ -64,26 +80,31 @@ export class TorrentService extends EventEmitter {
         resolved = true;
         const info = this.buildInfo(torrent, opts.category ?? 'other', savePath, status, opts.addedAt);
         this.infoMap.set(torrent.infoHash, info);
+        this.pendingByHash.delete(incomingHash);
         this.startProgressPolling(torrent, torrent.infoHash);
+        console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… resolved with status=${status} name="${info.name}"`);
         resolve(info);
         this.emit('added', info);
       };
 
-      torrent.on('metadata', () => doResolve('metadata'));
+      torrent.on('metadata', () => {
+        console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… metadata received name="${torrent.name}" size=${torrent.length}`);
+        doResolve('metadata');
+      });
 
       torrent.on('ready', () => {
         const isPaused = opts.paused ?? false;
         const status: TorrentStatus = isPaused ? 'paused' : 'downloading';
+        console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… ready event paused=${isPaused} → status=${status}`);
 
         const info = this.infoMap.get(torrent.infoHash);
         if (info) {
-          // Update with real metadata now available
           info.name      = torrent.name || info.name;
           info.totalSize = torrent.length ?? info.totalSize;
           info.status    = status;
           info.files     = this.buildFiles(torrent);
+          this.emit('progress', { ...info });
         } else {
-          // metadata event didn't fire first — resolve here
           doResolve(status);
         }
 
@@ -92,6 +113,7 @@ export class TorrentService extends EventEmitter {
 
       torrent.on('done', () => {
         const info = this.infoMap.get(torrent.infoHash);
+        console.log(`[TorrentService] ${incomingHash.slice(0, 8)}… done name="${info?.name}"`);
         if (info) {
           info.status      = 'completed';
           info.completedAt = new Date().toISOString();
@@ -104,26 +126,43 @@ export class TorrentService extends EventEmitter {
 
       torrent.on('error', (err: Error | string) => {
         const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[TorrentService] ${incomingHash.slice(0, 8)}… torrent error: ${msg}`);
 
-        // WebTorrent itself detected a duplicate — return the existing torrent info
+        // WebTorrent detected a duplicate — return existing info if available
         if (msg.toLowerCase().includes('cannot add duplicate')) {
           const hash = torrent.infoHash ?? incomingHash;
           const existing = hash ? this.infoMap.get(hash) : undefined;
           if (!resolved) {
             resolved = true;
+            this.pendingByHash.delete(incomingHash);
             if (existing) { resolve(existing); return; }
+            // Still pending from restore — wait for it
+            const restorePending = this.pendingByHash.get(hash);
+            if (restorePending) { restorePending.then(resolve, reject); return; }
           }
         }
 
         const info = this.infoMap.get(torrent.infoHash);
         if (info) { info.status = 'error'; info.error = msg; }
         this.emit('torrent-error', torrent.infoHash ?? 'unknown', msg);
-        if (!resolved) { resolved = true; reject(new Error(msg)); }
+        if (!resolved) {
+          resolved = true;
+          this.pendingByHash.delete(incomingHash);
+          reject(new Error(msg));
+        }
       });
 
-      // Resolve with placeholder after 5s if metadata never fires (dead torrent)
-      setTimeout(() => doResolve('metadata'), 5_000);
+      // Resolve with placeholder after 10s if metadata never arrives (dead / no peers)
+      setTimeout(() => {
+        if (!resolved) {
+          console.warn(`[TorrentService] ${incomingHash.slice(0, 8)}… metadata timeout — no peers yet, staying in metadata state`);
+          doResolve('metadata');
+        }
+      }, 10_000);
     });
+
+    if (incomingHash) this.pendingByHash.set(incomingHash, promise);
+    return promise;
   }
 
   pause(id: string): void {
@@ -222,6 +261,8 @@ export class TorrentService extends EventEmitter {
   }
 
   private startProgressPolling(torrent: Torrent, id: string): void {
+    let lastStatus = '';
+    let lastPeers  = -1;
     const timer = setInterval(() => {
       const info = this.infoMap.get(id);
       if (!info) { clearInterval(timer); return; }
@@ -241,6 +282,13 @@ export class TorrentService extends EventEmitter {
         info.status = 'stalled';
       } else if (info.status === 'stalled' && (info.downloadSpeed > 0 || info.numPeers > 0)) {
         info.status = 'downloading';
+      }
+
+      // Log on status or peer-count change
+      if (info.status !== lastStatus || info.numPeers !== lastPeers) {
+        console.log(`[TorrentService] ${id.slice(0, 8)}… status=${info.status} peers=${info.numPeers} dl=${Math.round(info.downloadSpeed / 1024)}KB/s progress=${(info.progress * 100).toFixed(1)}%`);
+        lastStatus = info.status;
+        lastPeers  = info.numPeers;
       }
 
       this.emit('progress', { ...info });
