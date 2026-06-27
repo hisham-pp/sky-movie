@@ -410,7 +410,7 @@ export interface MpvOpenRequest {
   renderHeight: number;
 }
 
-export interface SkyMovieApi {
+export interface SkyMovieApi extends TorrentApi {
   onUpdateProgress(callback: (event: UpdateProgressEvent) => void): () => void;
   // mpv player
   mpvIsAvailable(): Promise<boolean>;
@@ -551,5 +551,161 @@ export const ipcChannels = {
   // Window controls
   windowMinimize:    'window:minimize',
   windowMaximize:    'window:maximize',
-  windowClose:       'window:close'
+  windowClose:       'window:close',
+  // Torrent
+  torrentSearch:          'torrent:search',
+  torrentAddMagnet:       'torrent:add-magnet',
+  torrentPause:           'torrent:pause',
+  torrentResume:          'torrent:resume',
+  torrentRemove:          'torrent:remove',
+  torrentDeleteFiles:     'torrent:delete-files',
+  torrentMove:            'torrent:move',
+  torrentList:            'torrent:list',
+  torrentStats:           'torrent:stats',
+  torrentGetSettings:     'torrent:get-settings',
+  torrentUpdateSettings:  'torrent:update-settings',
+  torrentOpenFolder:      'torrent:open-folder',
+  torrentRecheck:         'torrent:recheck',
+  torrentProgress:        'torrent:progress',   // push: main → renderer
 } as const;
+
+// ── Torrent Types ────────────────────────────────────────────────────────────
+
+export type TorrentStatus =
+  | 'metadata' | 'downloading' | 'paused' | 'queued'
+  | 'checking'  | 'stalled'    | 'completed' | 'error';
+
+export type TorrentCategory = 'movie' | 'tv' | 'anime' | 'other';
+
+export interface TorrentFileInfo {
+  name: string;
+  path: string;
+  size: number;
+  progress: number;
+}
+
+export interface TorrentInfo {
+  id: string;
+  name: string;
+  magnetUri: string;
+  infoHash: string;
+  status: TorrentStatus;
+  progress: number;
+  downloadSpeed: number;
+  uploadSpeed: number;
+  downloaded: number;
+  uploaded: number;
+  totalSize: number;
+  numPeers: number;
+  numSeeds: number;
+  ratio: number;
+  eta: number;
+  savePath: string;
+  category: TorrentCategory;
+  addedAt: string;
+  completedAt: string | null;
+  error: string | null;
+  files: TorrentFileInfo[];
+  posterPath: string | null;
+  tmdbId: number | null;
+}
+
+export interface TorrentSearchResult {
+  id: string;
+  title: string;
+  year: number | null;
+  size: number;
+  seeds: number;
+  leeches: number;
+  magnetUri: string;
+  torrentUrl: string | null;
+  quality: string | null;
+  source: string | null;
+  uploader: string | null;
+  category: TorrentCategory;
+  provider: string;
+  posterUrl: string | null;
+  imdbId: string | null;
+  runtimeMinutes: number | null;
+  addedAt: string | null;
+}
+
+export interface TorrentSearchRequest {
+  query: string;
+  category?: TorrentCategory | 'all';
+  quality?: string;
+  sortBy?: 'seeds' | 'peers' | 'size' | 'date';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AddMagnetRequest {
+  magnetUri: string;
+  savePath?: string;
+  category?: TorrentCategory;
+  sequential?: boolean;
+  paused?: boolean;
+}
+
+export interface TorrentSettings {
+  downloadPath: string;
+  maxSimultaneousDownloads: number;
+  maxActiveTorrents: number;
+  downloadSpeedLimit: number;
+  uploadSpeedLimit: number;
+  sequentialDownload: boolean;
+  enableDht: boolean;
+  enablePex: boolean;
+  enableLsd: boolean;
+  autoStart: boolean;
+  autoSeed: boolean;
+  seedRatio: number;
+  autoDelete: boolean;
+  moveCompleted: boolean;
+  completedPath: string;
+  diskCacheSizeMb: number;
+  port: number;
+  maxConnections: number;
+}
+
+export interface TorrentGlobalStats {
+  downloadSpeed: number;
+  uploadSpeed: number;
+  activeTorrents: number;
+  totalTorrents: number;
+}
+
+export interface TorrentProgressEvent {
+  id: string;
+  progress: number;
+  downloadSpeed: number;
+  uploadSpeed: number;
+  downloaded: number;
+  uploaded: number;
+  numPeers: number;
+  numSeeds: number;
+  eta: number;
+  ratio: number;
+  status: TorrentStatus;
+}
+
+export interface TorrentMoveRequest {
+  id: string;
+  newPath: string;
+}
+
+export interface TorrentApi {
+  torrentSearch(req: TorrentSearchRequest): Promise<TorrentSearchResult[]>;
+  torrentAddMagnet(req: AddMagnetRequest): Promise<TorrentInfo>;
+  torrentPause(id: string): Promise<void>;
+  torrentResume(id: string): Promise<void>;
+  torrentRemove(id: string): Promise<void>;
+  torrentDeleteFiles(id: string): Promise<void>;
+  torrentMove(req: TorrentMoveRequest): Promise<void>;
+  torrentList(): Promise<TorrentInfo[]>;
+  torrentStats(): Promise<TorrentGlobalStats>;
+  torrentGetSettings(): Promise<TorrentSettings>;
+  torrentUpdateSettings(settings: Partial<TorrentSettings>): Promise<TorrentSettings>;
+  torrentOpenFolder(id: string): Promise<void>;
+  torrentRecheck(id: string): Promise<void>;
+  onTorrentProgress(callback: (event: TorrentProgressEvent) => void): () => void;
+}

@@ -22,6 +22,7 @@ desktop-app/native/mpv-player/package-lock.json
 website/tsconfig.tsbuildinfo
 website/next-dev.log
 *.tsbuildinfo
+*.stackdump
 
 # Env / secrets
 envs/*

@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureAppDataLayout } from './appPaths';
+import { TorrentManager } from './torrent/TorrentManager';
+import { registerTorrentIpcHandlers } from './torrent/TorrentIpc';
 import { createDatabaseContext } from './database/client';
 import { registerIpcHandlers } from './ipc';
 import { BackupService } from './services/backupService';
@@ -20,6 +22,7 @@ import { initFileLogging } from './utils/logger';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 let mainWindow: BrowserWindow | null = null;
+let torrentManager: TorrentManager | null = null;
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -106,6 +109,10 @@ app.whenReady().then(async () => {
   const paths = ensureAppDataLayout();
   const { sqlite } = createDatabaseContext(paths);
 
+  // TorrentManager is created immediately but boots WebTorrent lazily on
+  // first use — player and other services stay on the critical startup path.
+  torrentManager = new TorrentManager(paths.root);
+
   const catalog = new CatalogService(sqlite);
   const backup = new BackupService(sqlite, paths);
   const scanner = new LibraryScanner(sqlite);
@@ -162,6 +169,8 @@ app.whenReady().then(async () => {
     getMainWindow: () => mainWindow
   });
 
+  registerTorrentIpcHandlers(torrentManager, () => mainWindow);
+
   mainWindow = createWindow();
 
   // Window control IPC (custom title bar buttons)
@@ -196,8 +205,8 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  // Stop streaming server
   streamingServer.stop();
+  torrentManager?.destroy().catch(console.error);
 
   if (process.platform !== 'darwin') {
     app.quit();

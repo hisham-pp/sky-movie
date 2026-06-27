@@ -38,6 +38,7 @@
     "artplayer": "^5.4.0",
     "node-addon-api": "^8.3.1",
     "better-sqlite3": "^12.2.0",
+    "webtorrent": "^3.0.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.0",
     "lucide-react": "^0.468.0",

@@ -40,6 +40,7 @@ function AppLayoutInner() {
     if (location.pathname.startsWith('/playlists')) return 'playlists';
     if (location.pathname.startsWith('/shows')) return 'shows';
     if (location.pathname.startsWith('/movies')) return 'movies';
+    if (location.pathname.startsWith('/downloads')) return 'downloads';
     return 'movies';
   }, [location.pathname]);
 

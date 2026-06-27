@@ -1,4 +1,4 @@
-import { Film, FolderSearch, History, ListMusic, ListVideo, ScanSearch, Settings, Tv } from 'lucide-react';
+import { Download, Film, FolderSearch, History, ListMusic, ListVideo, ScanSearch, Settings, Tv } from 'lucide-react';
 import type { ViewMode } from '../types';
 
 export interface NavItem {
@@ -16,6 +16,7 @@ export const NAV_MAIN: NavItem[] = [
   { view: 'shows',     label: 'TV Shows',      path: '/shows',     icon: <Tv size={18} />,          iconLg: <Tv size={18} /> },
   { view: 'playlists', label: 'Playlists',     path: '/playlists', icon: <ListMusic size={18} />,   iconLg: <ListVideo size={18} /> },
   { view: 'history',   label: 'Watch History', path: '/history',   icon: <History size={18} />,     iconLg: <History size={18} /> },
+  { view: 'downloads', label: 'Downloads',     path: '/downloads', icon: <Download size={18} />,    iconLg: <Download size={18} /> },
 ];
 
 export const NAV_BOTTOM: NavItem[] = [

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type {
+  AddMagnetRequest,
   AddToPlaylistRequest,
   ApplyMovieMetadataRequest,
   ApplyTvMetadataRequest,
@@ -12,6 +13,10 @@ import type {
   RemoveFromPlaylistRequest,
   SkyMovieApi,
   SyncRequest,
+  TorrentMoveRequest,
+  TorrentProgressEvent,
+  TorrentSearchRequest,
+  TorrentSettings,
   TvMetadataSearchRequest,
   UpdatePlaylistRequest,
   UpdateProgressEvent,
@@ -105,6 +110,26 @@ const api: SkyMovieApi = {
   windowMinimize: () => ipcRenderer.invoke(ipcChannels.windowMinimize),
   windowMaximize: () => ipcRenderer.invoke(ipcChannels.windowMaximize),
   windowClose:    () => ipcRenderer.invoke(ipcChannels.windowClose),
+
+  // ── Torrent ───────────────────────────────────────────────────────────────
+  torrentSearch:         (req: TorrentSearchRequest) => ipcRenderer.invoke(ipcChannels.torrentSearch, req),
+  torrentAddMagnet:      (req: AddMagnetRequest) => ipcRenderer.invoke(ipcChannels.torrentAddMagnet, req),
+  torrentPause:          (id: string) => ipcRenderer.invoke(ipcChannels.torrentPause, id),
+  torrentResume:         (id: string) => ipcRenderer.invoke(ipcChannels.torrentResume, id),
+  torrentRemove:         (id: string) => ipcRenderer.invoke(ipcChannels.torrentRemove, id),
+  torrentDeleteFiles:    (id: string) => ipcRenderer.invoke(ipcChannels.torrentDeleteFiles, id),
+  torrentMove:           (req: TorrentMoveRequest) => ipcRenderer.invoke(ipcChannels.torrentMove, req),
+  torrentList:           () => ipcRenderer.invoke(ipcChannels.torrentList),
+  torrentStats:          () => ipcRenderer.invoke(ipcChannels.torrentStats),
+  torrentGetSettings:    () => ipcRenderer.invoke(ipcChannels.torrentGetSettings),
+  torrentUpdateSettings: (s: Partial<TorrentSettings>) => ipcRenderer.invoke(ipcChannels.torrentUpdateSettings, s),
+  torrentOpenFolder:     (id: string) => ipcRenderer.invoke(ipcChannels.torrentOpenFolder, id),
+  torrentRecheck:        (id: string) => ipcRenderer.invoke(ipcChannels.torrentRecheck, id),
+  onTorrentProgress: (callback: (event: TorrentProgressEvent) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, event: TorrentProgressEvent) => callback(event);
+    ipcRenderer.on(ipcChannels.torrentProgress, listener);
+    return () => ipcRenderer.off(ipcChannels.torrentProgress, listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('skyMovie', api);

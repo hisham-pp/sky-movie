@@ -1,1 +1,1 @@
-export type ViewMode = 'movies' | 'shows' | 'playlists' | 'history' | 'scan' | 'settings';
+export type ViewMode = 'movies' | 'shows' | 'playlists' | 'history' | 'scan' | 'settings' | 'downloads';
