@@ -1,6 +1,6 @@
 import { app, BrowserWindow, net } from 'electron';
 import { createWriteStream, unlink } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ReleaseInfo, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus } from '../../shared/ipc';
 import { ipcChannels } from '../../shared/ipc';
@@ -41,6 +41,31 @@ export class UpdateService {
     this.getMainWindow = getMainWindow;
     this.settingsService = settingsService;
     this.loadLastNotifiedVersion();
+    this.restoreDownloadedState();
+  }
+
+  private async restoreDownloadedState(): Promise<void> {
+    try {
+      const updatesDir = join(app.getPath('userData'), 'updates');
+      const files = await readdir(updatesDir);
+      const installer = files.find((f) => f.endsWith('.exe') || f.endsWith('.dmg') || f.endsWith('.AppImage'));
+      if (installer) {
+        this.downloadedFilePath = join(updatesDir, installer);
+        this.status = 'downloaded';
+      }
+    } catch {
+      // No updates dir yet
+    }
+  }
+
+  private async cleanupUpdatesDir(): Promise<void> {
+    try {
+      const updatesDir = join(app.getPath('userData'), 'updates');
+      const files = await readdir(updatesDir);
+      await Promise.all(files.map((f) => rm(join(updatesDir, f), { force: true })));
+    } catch {
+      // Nothing to clean
+    }
   }
 
   startPeriodicChecks(): void {
@@ -130,6 +155,10 @@ export class UpdateService {
       throw new Error('No update available to download');
     }
     if (this.status === 'downloading' || this.status === 'downloaded') return;
+
+    // Clean up any previously downloaded installer before starting a fresh download
+    await this.cleanupUpdatesDir();
+    this.downloadedFilePath = null;
 
     this.status = 'downloading';
     this.sendStatus();
@@ -290,13 +319,12 @@ export class UpdateService {
     if (process.platform === 'win32') {
       const { shell } = await import('electron');
       const result = await shell.openPath(filePath);
-      // shell.openPath can return a string or string[] on some platforms
       if (result && typeof result === 'string' && result.length > 0) {
         console.error('Failed to open installer:', result);
       }
-      // Delete the downloaded file after launching the installer
-      this.deleteDownloadedFile(filePath);
-      app.quit();
+      // Quit after a short delay so the OS has time to hand off to the installer
+      // before the process exits. Do NOT delete the file — the installer needs it.
+      setTimeout(() => app.quit(), 1500);
     } else {
       const { shell } = await import('electron');
       shell.showItemInFolder(filePath);
