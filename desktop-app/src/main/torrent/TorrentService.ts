@@ -3,6 +3,29 @@ import { mkdirSync, existsSync } from 'node:fs';
 import WebTorrent, { type Torrent, type TorrentFile } from 'webtorrent';
 import type { TorrentFileInfo, TorrentInfo, TorrentSettings, TorrentStatus } from '../../shared/ipc';
 
+// High-quality public trackers injected into every magnet to maximise peer discovery
+const EXTRA_TRACKERS = [
+  'udp://tracker.opentrackr.org:1337/announce',
+  'udp://open.tracker.cl:1337/announce',
+  'udp://tracker.openbittorrent.com:6969/announce',
+  'udp://exodus.desync.com:6969/announce',
+  'udp://tracker.torrent.eu.org:451/announce',
+  'udp://tracker.tiny-vps.com:6969/announce',
+  'udp://tracker.moeking.me:6969/announce',
+  'udp://retracker.lanta-net.ru:2710/announce',
+  'udp://9.rarbg.com:2810/announce',
+  'udp://tracker.dler.org:6969/announce',
+  'https://tracker.nitrix.me:443/announce',
+  'https://tracker.tamersunion.org:443/announce',
+  'wss://tracker.openwebtorrent.com',
+  'wss://tracker.btorrent.xyz',
+].map((t) => `&tr=${encodeURIComponent(t)}`).join('');
+
+function injectTrackers(magnetUri: string): string {
+  // Avoid duplicating trackers already in the URI
+  return magnetUri + EXTRA_TRACKERS;
+}
+
 export class TorrentService extends EventEmitter {
   private client: WebTorrent | null = null;
   private infoMap = new Map<string, TorrentInfo>();
@@ -70,8 +93,10 @@ export class TorrentService extends EventEmitter {
     console.log(`[TorrentService] adding magnet hash=${incomingHash.slice(0, 8)}… savePath=${savePath}`);
 
     const promise = new Promise<TorrentInfo>((resolve, reject) => {
+      // Inject extra trackers for better peer discovery and speed
+      const enrichedMagnet = injectTrackers(magnetUri);
       // NOTE: do NOT pass `so` (select-only) — invalid in WebTorrent v3 and breaks the add
-      const torrent: Torrent = this.client!.add(magnetUri, { path: savePath });
+      const torrent: Torrent = this.client!.add(enrichedMagnet, { path: savePath });
 
       let resolved = false;
 
@@ -261,8 +286,10 @@ export class TorrentService extends EventEmitter {
   }
 
   private startProgressPolling(torrent: Torrent, id: string): void {
-    let lastStatus = '';
-    let lastPeers  = -1;
+    let lastStatus  = '';
+    let lastPeers   = -1;
+    let stalledSecs = 0;
+
     const timer = setInterval(() => {
       const info = this.infoMap.get(id);
       if (!info) { clearInterval(timer); return; }
@@ -277,11 +304,26 @@ export class TorrentService extends EventEmitter {
       info.eta           = torrent.timeRemaining ? torrent.timeRemaining / 1000 : Infinity;
       info.files         = this.buildFiles(torrent);
 
-      // Detect stall
-      if (info.status === 'downloading' && info.downloadSpeed === 0 && info.numPeers === 0) {
-        info.status = 'stalled';
-      } else if (info.status === 'stalled' && (info.downloadSpeed > 0 || info.numPeers > 0)) {
-        info.status = 'downloading';
+      // Stall detection
+      const isStalled = info.status !== 'paused' && info.status !== 'completed'
+        && info.downloadSpeed === 0 && info.numPeers === 0;
+
+      if (isStalled) {
+        stalledSecs++;
+        if (info.status !== 'stalled') info.status = 'stalled';
+      } else {
+        stalledSecs = 0;
+        if (info.status === 'stalled') info.status = 'downloading';
+      }
+
+      // Auto-retry: force a tracker reannounce every 60s of stall
+      if (stalledSecs > 0 && stalledSecs % 60 === 0) {
+        console.log(`[TorrentService] ${id.slice(0, 8)}… stalled ${stalledSecs}s — forcing reannounce`);
+        try {
+          // WebTorrent internal: trigger a fresh DHT/tracker announce
+          (torrent as unknown as { _discovery?: { tracker?: { update?(): void }; dht?: { lookup?(ih: string): void } } })
+            ._discovery?.tracker?.update?.();
+        } catch { /* ignore */ }
       }
 
       // Log on status or peer-count change
