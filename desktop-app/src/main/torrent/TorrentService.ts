@@ -2,28 +2,10 @@ import { EventEmitter } from 'node:events';
 import { mkdirSync, existsSync } from 'node:fs';
 import WebTorrent, { type Torrent, type TorrentFile } from 'webtorrent';
 import type { TorrentFileInfo, TorrentInfo, TorrentSettings, TorrentStatus } from '../../shared/ipc';
-
-// High-quality public trackers injected into every magnet to maximise peer discovery
-const EXTRA_TRACKERS = [
-  'udp://tracker.opentrackr.org:1337/announce',
-  'udp://open.tracker.cl:1337/announce',
-  'udp://tracker.openbittorrent.com:6969/announce',
-  'udp://exodus.desync.com:6969/announce',
-  'udp://tracker.torrent.eu.org:451/announce',
-  'udp://tracker.tiny-vps.com:6969/announce',
-  'udp://tracker.moeking.me:6969/announce',
-  'udp://retracker.lanta-net.ru:2710/announce',
-  'udp://9.rarbg.com:2810/announce',
-  'udp://tracker.dler.org:6969/announce',
-  'https://tracker.nitrix.me:443/announce',
-  'https://tracker.tamersunion.org:443/announce',
-  'wss://tracker.openwebtorrent.com',
-  'wss://tracker.btorrent.xyz',
-].map((t) => `&tr=${encodeURIComponent(t)}`).join('');
+import { EXTRA_TRACKERS_QUERY } from './trackers';
 
 function injectTrackers(magnetUri: string): string {
-  // Avoid duplicating trackers already in the URI
-  return magnetUri + EXTRA_TRACKERS;
+  return magnetUri + EXTRA_TRACKERS_QUERY;
 }
 
 export class TorrentService extends EventEmitter {
