@@ -1,4 +1,5 @@
 import { memo, useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ArchiveRestore,
   DatabaseBackup,
@@ -85,7 +86,25 @@ export const SettingsPanel = memo(function SettingsPanel({
   onRestore(): void;
   onDownloadLocal(): void;
 }) {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
+  const LS_KEY = 'sky-movie:settings-tab';
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
+    const paramTab = searchParams.get('tab') as SettingsTab | null;
+    if (paramTab && tabs.some(t => t.id === paramTab)) return paramTab;
+    const stored = localStorage.getItem(LS_KEY) as SettingsTab | null;
+    return stored && tabs.some(t => t.id === stored) ? stored : 'appearance';
+  });
+
+  // Respond to URL param changes (search modal deep-link)
+  useEffect(() => {
+    const paramTab = searchParams.get('tab') as SettingsTab | null;
+    if (paramTab && tabs.some(t => t.id === paramTab)) setActiveTab(paramTab);
+  }, [searchParams]);
+
+  const handleTabChange = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    localStorage.setItem(LS_KEY, tab);
+  };
   const [tmdbApiKey, setTmdbApiKey] = useState('');
   const [tmdbLanguage, setTmdbLanguage] = useState('en-US');
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
@@ -159,7 +178,7 @@ export const SettingsPanel = memo(function SettingsPanel({
             <button
               key={tab.id}
               className={`settings-nav-item${activeTab === tab.id ? ' active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               role="tab"
               aria-selected={activeTab === tab.id}
             >

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Download, CheckCircle2, Settings } from 'lucide-react';
 import { SearchTab }            from './SearchTab';
 import { DownloadsTab }         from './DownloadsTab';
@@ -6,6 +7,8 @@ import { DownloadedTab }        from './DownloadedTab';
 import { TorrentSettingsTab }   from './TorrentSettingsTab';
 
 type Tab = 'search' | 'downloads' | 'downloaded' | 'settings';
+const VALID_TABS: Tab[] = ['search', 'downloads', 'downloaded', 'settings'];
+const LS_KEY = 'sky-movie:torrent-tab';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'search',     label: 'Search',      icon: <Search size={14} /> },
@@ -15,7 +18,25 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function TorrentPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('search');
+  const [searchParams] = useSearchParams();
+  const paramTab = searchParams.get('tab') as Tab | null;
+  const initialTab: Tab = (paramTab && VALID_TABS.includes(paramTab))
+    ? paramTab
+    : ((localStorage.getItem(LS_KEY) as Tab | null) ?? 'search');
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
+  // Sync URL param changes (e.g. from search modal deep-link)
+  useEffect(() => {
+    if (paramTab && VALID_TABS.includes(paramTab) && paramTab !== activeTab) {
+      setActiveTab(paramTab);
+    }
+  }, [paramTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    localStorage.setItem(LS_KEY, tab);
+  };
 
   return (
     <div className="flex flex-col h-full bg-transparent">
@@ -24,7 +45,7 @@ export function TorrentPage() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all mr-1 ${
               activeTab === tab.id
                 ? 'border-[var(--color-primary)] text-white'

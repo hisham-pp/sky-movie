@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback, useEffect, useRef, useState } from 'react';
-import { Search, Film, Tv, ListMusic, X } from 'lucide-react';
+import { Search, Film, Tv, ListMusic, X, Download, Settings, ChevronRight } from 'lucide-react';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 import { Modal } from './common';
 import { ALL_NAV_ITEMS } from '../config/navItems';
@@ -21,16 +21,26 @@ type ResultItem =
   | { kind: 'show'; data: TvShow }
   | { kind: 'playlist'; data: Playlist };
 
-type NavResultItem = { kind: 'nav'; path: string; label: string; icon: React.ReactNode };
+type NavResultItem = { kind: 'nav'; path: string; label: string; sublabel?: string; icon: React.ReactNode };
 
 type AnyItem = NavResultItem | ResultItem;
 
-const ALL_NAV_RESULT_ITEMS: NavResultItem[] = ALL_NAV_ITEMS.map((n) => ({
-  kind: 'nav',
-  label: n.label,
-  path: n.path,
-  icon: n.iconLg,
-}));
+const ALL_NAV_RESULT_ITEMS: NavResultItem[] = [
+  ...ALL_NAV_ITEMS.map((n) => ({ kind: 'nav' as const, label: n.label, path: n.path, icon: n.iconLg })),
+  // Downloads sub-tabs
+  { kind: 'nav', label: 'Downloads', sublabel: 'Search', path: '/downloads?tab=search',     icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Active', path: '/downloads?tab=downloads',  icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Completed', path: '/downloads?tab=downloaded', icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Settings', path: '/downloads?tab=settings', icon: <Download size={18} /> },
+  // Settings sub-tabs
+  { kind: 'nav', label: 'Settings', sublabel: 'Appearance', path: '/settings?tab=appearance', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Library',    path: '/settings?tab=library',    icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Metadata',   path: '/settings?tab=metadata',   icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Backups',    path: '/settings?tab=backups',     icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Downloads',  path: '/settings?tab=downloads',   icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Local Data', path: '/settings?tab=local-data',  icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Updates',    path: '/settings?tab=updates',     icon: <Settings size={18} /> },
+];
 
 export const SearchModal = memo(function SearchModal({
   isOpen,
@@ -56,10 +66,15 @@ export const SearchModal = memo(function SearchModal({
 
   const q = query.toLowerCase();
 
-  const filteredNav = useMemo(
-    () => query ? ALL_NAV_RESULT_ITEMS.filter((n) => n.label.toLowerCase().includes(q)) : ALL_NAV_RESULT_ITEMS,
-    [q, query],
-  );
+  const filteredNav = useMemo(() => {
+    if (!query) {
+      // Show only top-level nav items when there's no query
+      return ALL_NAV_RESULT_ITEMS.filter((n) => !n.sublabel);
+    }
+    return ALL_NAV_RESULT_ITEMS.filter((n) =>
+      n.label.toLowerCase().includes(q) || n.sublabel?.toLowerCase().includes(q)
+    );
+  }, [q, query]);
 
   const filteredMovies = useMemo(
     () => query ? movies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 6) : [],
@@ -141,7 +156,15 @@ export const SearchModal = memo(function SearchModal({
       >
         <div className="search-modal-item-nav-icon">{item.icon}</div>
         <div className="search-modal-item-info">
-          <div className="search-modal-item-title">{item.label}</div>
+          {item.sublabel ? (
+            <div className="search-modal-item-title" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ opacity: 0.5 }}>{item.label}</span>
+              <ChevronRight size={12} style={{ opacity: 0.4 }} />
+              <span>{item.sublabel}</span>
+            </div>
+          ) : (
+            <div className="search-modal-item-title">{item.label}</div>
+          )}
         </div>
       </button>
     );
