@@ -60,6 +60,8 @@ export const BannerHero = memo(function BannerHero({
   );
 });
 
+const MAX_DOTS = 30;
+
 export const BannerIndicators = memo(function BannerIndicators({
   total,
   current,
@@ -71,16 +73,33 @@ export const BannerIndicators = memo(function BannerIndicators({
 }) {
   if (total <= 1) return null;
 
+  // When there are more items than MAX_DOTS, show a sliding window of dots
+  // centred around the current index.
+  let start = 0;
+  let end = total;
+  if (total > MAX_DOTS) {
+    const half = Math.floor(MAX_DOTS / 2);
+    start = Math.max(0, current - half);
+    end = start + MAX_DOTS;
+    if (end > total) {
+      end = total;
+      start = total - MAX_DOTS;
+    }
+  }
+
   return (
     <div className="banner-indicators">
-      {Array.from({ length: total }, (_, index) => (
-        <button
-          key={index}
-          className={`banner-dot ${index === current ? 'active' : ''}`}
-          onClick={() => onSelect(index)}
-          aria-label={`View item ${index + 1}`}
-        />
-      ))}
+      {Array.from({ length: end - start }, (_, i) => {
+        const index = start + i;
+        return (
+          <button
+            key={index}
+            className={`banner-dot ${index === current ? 'active' : ''}`}
+            onClick={() => onSelect(index)}
+            aria-label={`View item ${index + 1}`}
+          />
+        );
+      })}
     </div>
   );
 });

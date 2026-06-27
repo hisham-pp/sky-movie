@@ -10,7 +10,7 @@
 }
 
 .library-list {
-  padding: 0 40px 40px;
+  padding: 0 40px 80px;
   position: relative;
 }
 
@@ -864,5 +864,35 @@
 
 .file-delete-button:hover svg {
   color: #ef4444;
+}
+
+/* ── Load more ── */
+.load-more-row {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
+}
+
+.load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.load-more-btn:hover {
+  background: rgba(137, 206, 255, 0.08);
+  border-color: var(--line-strong);
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
 }
 

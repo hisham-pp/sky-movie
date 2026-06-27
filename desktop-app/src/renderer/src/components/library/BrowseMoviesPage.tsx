@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useMemo, useCallback } from 'react';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard, ChevronDown } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
 import { MovieTile } from '../LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
@@ -48,6 +48,12 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
     [bannerMovie, onSelectMovie],
   );
 
+  const PAGE_SIZE = 100;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [movies]);
+  const visibleMovies = useMemo(() => movies.slice(0, visibleCount), [movies, visibleCount]);
+  const handleLoadMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), []);
+
   const movieCount = movies.length;
 
   return (
@@ -94,17 +100,27 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
         <SectionTitle title="Current Movies" count={movieCount} />
 
         {movieCount > 0 ? (
-          <div className="poster-grid">
-            {movies.map((movie) => (
-              <MovieTile
-                key={movie.id}
-                movie={movie}
-                onClick={() => onSelectMovie(movie)}
-                onViewDetails={() => onViewMovieDetails(movie)}
-                isSelected={selectedMovie?.id === movie.id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="poster-grid">
+              {visibleMovies.map((movie) => (
+                <MovieTile
+                  key={movie.id}
+                  movie={movie}
+                  onClick={() => onSelectMovie(movie)}
+                  onViewDetails={() => onViewMovieDetails(movie)}
+                  isSelected={selectedMovie?.id === movie.id}
+                />
+              ))}
+            </div>
+            {visibleCount < movieCount && (
+              <div className="load-more-row">
+                <button className="load-more-btn" onClick={handleLoadMore}>
+                  <ChevronDown size={16} />
+                  Show more ({movieCount - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyLibraryState
             icon={<Clapperboard size={34} />}

@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useMemo, useCallback } from 'react';
-import { Tv2 } from 'lucide-react';
+import { Tv2, ChevronDown } from 'lucide-react';
 import type { TvShow, PlayMediaResult } from '@shared/ipc';
 import { ShowTile } from '../LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
@@ -48,6 +48,12 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
     [bannerShow, onSelectShow],
   );
 
+  const PAGE_SIZE = 100;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [shows]);
+  const visibleShows = useMemo(() => shows.slice(0, visibleCount), [shows, visibleCount]);
+  const handleLoadMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), []);
+
   const showCount = shows.length;
 
   return (
@@ -94,17 +100,27 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
         <SectionTitle title="Current TV Shows" count={showCount} />
 
         {showCount > 0 ? (
-          <div className="poster-grid">
-            {shows.map((show) => (
-              <ShowTile
-                key={show.id}
-                show={show}
-                onClick={() => onSelectShow(show)}
-                onViewDetails={() => onViewShowDetails(show)}
-                isSelected={selectedShow?.id === show.id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="poster-grid">
+              {visibleShows.map((show) => (
+                <ShowTile
+                  key={show.id}
+                  show={show}
+                  onClick={() => onSelectShow(show)}
+                  onViewDetails={() => onViewShowDetails(show)}
+                  isSelected={selectedShow?.id === show.id}
+                />
+              ))}
+            </div>
+            {visibleCount < showCount && (
+              <div className="load-more-row">
+                <button className="load-more-btn" onClick={handleLoadMore}>
+                  <ChevronDown size={16} />
+                  Show more ({showCount - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyLibraryState
             icon={<Tv2 size={34} />}
