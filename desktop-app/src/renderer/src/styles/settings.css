@@ -93,7 +93,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 900px;
+  width: 100%;
 }
 
 /* ── Section card ── */
@@ -610,6 +610,16 @@
 
 /* ── Torrent settings layout helpers ── */
 
+/* Path fields: side by side when both visible, full width otherwise */
+.ts-path-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.ts-path-grid:has(> *:nth-child(2)) {
+  grid-template-columns: 1fr 1fr;
+}
+
 /* Queue + Speed appear side-by-side */
 .ts-two-col {
   display: grid;
@@ -642,8 +652,11 @@
   padding-top: 8px;
 }
 
+@media (max-width: 860px) {
+  .ts-two-col    { grid-template-columns: 1fr; }
+  .ts-path-grid  { grid-template-columns: 1fr; }
+}
 @media (max-width: 700px) {
-  .ts-two-col { grid-template-columns: 1fr; }
   .ts-toggle-grid { grid-template-columns: 1fr; }
   .ts-number-grid { grid-template-columns: 1fr 1fr; }
 }

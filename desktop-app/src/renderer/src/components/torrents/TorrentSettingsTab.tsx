@@ -37,18 +37,13 @@ export function TorrentSettingsTab() {
           <div className="settings-section-heading">
             <div><h3>Paths</h3><p>Where torrent files are saved on disk.</p></div>
           </div>
-          <div className="settings-form-grid">
+          {/* Two-column path row: download dir | completed dir */}
+          <div className="ts-path-grid">
             <PathField
               label="Default download directory"
               value={local.downloadPath}
               onChange={(v) => patch('downloadPath', v)}
               onBrowse={() => chooseFolder('downloadPath')}
-            />
-            <Switch
-              id="ts-move"
-              label="Move completed downloads to a separate folder"
-              checked={local.moveCompleted}
-              onChange={(v) => patch('moveCompleted', v)}
             />
             {local.moveCompleted && (
               <PathField
@@ -59,6 +54,12 @@ export function TorrentSettingsTab() {
               />
             )}
           </div>
+          <Switch
+            id="ts-move"
+            label="Move completed downloads to a separate folder"
+            checked={local.moveCompleted}
+            onChange={(v) => patch('moveCompleted', v)}
+          />
         </div>
 
         {/* ── Queue + Speed side by side ────────────────────────── */}
