@@ -202,6 +202,19 @@ export class PlayerService {
       this.db
         .prepare('INSERT INTO watch_history (media_file_id, watched_at, position_seconds) VALUES (?, ?, ?)')
         .run(update.mediaFileId, now, update.positionSeconds);
+      // Keep only the 10 most-recent completion events per file to bound table growth.
+      this.db
+        .prepare(
+          `DELETE FROM watch_history
+           WHERE media_file_id = ?
+             AND id NOT IN (
+               SELECT id FROM watch_history
+               WHERE media_file_id = ?
+               ORDER BY watched_at DESC
+               LIMIT 10
+             )`
+        )
+        .run(update.mediaFileId, update.mediaFileId);
     }
   }
 

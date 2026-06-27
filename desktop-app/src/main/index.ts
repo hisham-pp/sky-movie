@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { ensureAppDataLayout } from './appPaths';
 import { TorrentManager } from './torrent/TorrentManager';
 import { registerTorrentIpcHandlers } from './torrent/TorrentIpc';
-import { createDatabaseContext } from './database/client';
+import { createDatabaseContext, closeDatabaseContext } from './database/client';
 import { registerIpcHandlers } from './ipc';
 import { BackupService } from './services/backupService';
 import { CatalogService } from './services/catalogService';
@@ -207,6 +207,7 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   streamingServer.stop();
   torrentManager?.destroy().catch(console.error);
+  closeDatabaseContext();
 
   if (process.platform !== 'darwin') {
     app.quit();

@@ -69,6 +69,7 @@ export class StreamingServer {
   private port = 0;
   private jobs = new Map<string, TranscodeJob>();
   private tempDir = join(tmpdir(), 'sky-movie-stream');
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   async start(port = 13337): Promise<number> {
     mkdirSync(this.tempDir, { recursive: true });
@@ -97,6 +98,7 @@ export class StreamingServer {
       this.server.listen(port, '127.0.0.1', () => {
         this.port = port;
         log.info(`Streaming server started on port ${port}`);
+        this.cleanupInterval = setInterval(() => this.cleanOldTempFiles(), 30 * 60 * 1000);
         resolve(port);
       });
     });
@@ -625,6 +627,10 @@ export class StreamingServer {
   }
 
   stop(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
     for (const [key, job] of this.jobs) {
       if (job.killTimer) clearTimeout(job.killTimer);
       if (!job.done) {

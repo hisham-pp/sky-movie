@@ -86,9 +86,10 @@ export class TorrentManager {
         info.name = renamed.newName.replace(/\.[^.]+$/, '');
       }
 
-      // Move from active → completed persistence
+      // Move from active → completed persistence (cap at 200 most-recent)
       this.activePersisted = this.activePersisted.filter((a) => !info.magnetUri.includes(a.magnetUri) && !a.magnetUri.includes(info.infoHash));
       this.completedTorrents.unshift(info);
+      if (this.completedTorrents.length > 200) this.completedTorrents = this.completedTorrents.slice(0, 200);
       this.saveState();
 
       new Notification({ title: 'Download Complete', body: info.name }).show();

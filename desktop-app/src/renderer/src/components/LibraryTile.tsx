@@ -16,7 +16,7 @@ export const MovieTile = memo(function MovieTile({
   return (
     <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
       <div className="poster">
-        {movie.posterPath ? <img src={movie.posterPath} alt="" /> : <Film size={34} />}
+        {movie.posterPath ? <img src={movie.posterPath} alt="" loading="lazy" decoding="async" /> : <Film size={34} />}
         <span className="tile-badge">LOCAL</span>
         <span className="tile-overlay">
           <strong>{movie.title}</strong>
@@ -54,7 +54,7 @@ export const ShowTile = memo(function ShowTile({
   return (
     <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
       <div className="poster show-poster">
-        {show.posterPath ? <img src={show.posterPath} alt="" /> : <Tv size={34} />}
+        {show.posterPath ? <img src={show.posterPath} alt="" loading="lazy" decoding="async" /> : <Tv size={34} />}
         <span className="tile-badge">TV</span>
         <span className="tile-overlay">
           <strong>{show.title}</strong>

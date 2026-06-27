@@ -12,6 +12,7 @@ export interface DatabaseContext {
 }
 
 let context: DatabaseContext | null = null;
+let walCheckpointInterval: ReturnType<typeof setInterval> | null = null;
 
 export function createDatabaseContext(paths: AppDataPaths): DatabaseContext {
   const sqlite = BetterSqlite3(paths.database);
@@ -20,7 +21,23 @@ export function createDatabaseContext(paths: AppDataPaths): DatabaseContext {
     sqlite,
     drizzle: drizzle(sqlite, { schema })
   };
+  // Periodically flush the WAL file so it doesn't accumulate during long sessions.
+  walCheckpointInterval = setInterval(() => {
+    try { sqlite.pragma('wal_checkpoint(PASSIVE)'); } catch {}
+  }, 15 * 60 * 1000);
   return context;
+}
+
+export function closeDatabaseContext(): void {
+  if (walCheckpointInterval) {
+    clearInterval(walCheckpointInterval);
+    walCheckpointInterval = null;
+  }
+  if (context) {
+    try { context.sqlite.pragma('wal_checkpoint(TRUNCATE)'); } catch {}
+    context.sqlite.close();
+    context = null;
+  }
 }
 
 export function getDatabaseContext(): DatabaseContext {
