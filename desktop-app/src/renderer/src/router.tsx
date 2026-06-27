@@ -1,4 +1,5 @@
 import { createMemoryRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { useState } from 'react';
 import { AppLayout } from './AppLayout';
 import { LibraryRoute } from './routes/LibraryRoute';
 import { SettingsRoute } from './routes/SettingsRoute';
@@ -160,6 +161,6 @@ export function createRouter() {
 }
 
 export function Router() {
-  const router = createRouter();
+  const [router] = useState(() => createRouter());
   return <RouterProvider router={router} />;
 }
