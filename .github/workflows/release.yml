@@ -239,6 +239,9 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git pull --rebase origin main
           git add website/public/releases.json
           git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
-          git push origin HEAD:main
+          git push origin main
