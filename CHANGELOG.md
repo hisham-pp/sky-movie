@@ -5,6 +5,23 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2026-06-27
+
+### Changed
+
+- extract trackers to constants file and expand tracker list (Hisham)
+
+### Fixed
+
+- torrent settings two-column layout, scrollable body, sticky save bar (Hisham)
+- persist active view across re-renders by stabilizing router instance (Hisham)
+- movies page Show More button clip and sparse last row layout (Hisham)
+- clamp formatBytes index to prevent undefined unit for sub-1-byte values (Hisham)
+
+### Other
+
+- ci: checkout main before release:github to avoid rebase-on-dirty-index error (Hisham)
+
 ## [0.7.5] - 2026-06-27
 
 ### Changed
@@ -526,3 +543,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.3
 [0.7.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.4
 [0.7.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.5
+[0.7.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.6
