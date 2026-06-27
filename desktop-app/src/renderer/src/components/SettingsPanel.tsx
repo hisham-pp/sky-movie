@@ -16,7 +16,7 @@ import {
   Database,
   Zap
 } from 'lucide-react';
-import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress } from '@shared/ipc';
+import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
 import { Select } from './ui/Select';
 import { Switch } from './ui/Switch';
 import { formatBytes } from '../utils/format';
@@ -89,8 +89,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const [tmdbApiKey, setTmdbApiKey] = useState('');
   const [tmdbLanguage, setTmdbLanguage] = useState('en-US');
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
-  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
-  const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const activeTheme = settings?.theme ?? 'cinema';
   const activePlayerStyle = settings?.playerStyle ?? 'auto';
@@ -100,39 +99,46 @@ export const SettingsPanel = memo(function SettingsPanel({
     setTmdbLanguage(settings?.tmdbLanguage ?? 'en-US');
   }, [settings?.tmdbApiKey, settings?.tmdbLanguage]);
 
+  // Sync initial status and listen for progress events
   useEffect(() => {
     const skyMovie = (window as any).skyMovie;
+    skyMovie?.getUpdateStatus?.().then((s: UpdateStatus) => setUpdateStatus(s)).catch(() => {});
+
     if (!skyMovie?.onUpdateProgress) return;
-    return skyMovie.onUpdateProgress((event: any) => {
-      if (event.type === 'download-progress') {
+    return skyMovie.onUpdateProgress((event: UpdateProgressEvent) => {
+      if (event.type === 'status') {
+        setUpdateStatus(event.status);
+        if (event.status !== 'downloading') setDownloadProgress(null);
+      } else if (event.type === 'download-progress') {
+        setUpdateStatus('downloading');
         setDownloadProgress({ bytesDownloaded: event.bytesDownloaded, totalBytes: event.totalBytes, percentage: event.percentage });
-      } else if (event.type === 'status' && (event.status === 'idle' || event.status === 'installing' || event.status === 'error')) {
-        setDownloadProgress(null);
       }
     });
   }, []);
 
   const handleCheckForUpdates = useCallback(async () => {
-    setIsCheckingUpdates(true);
+    setUpdateStatus('checking');
     try {
-      const result = await (window as any).skyMovie.checkForUpdates();
+      const result = await window.skyMovie.checkForUpdates();
       setUpdateCheckResult(result);
     } catch {
-      // silently ignore
-    } finally {
-      setIsCheckingUpdates(false);
+      setUpdateStatus('error');
     }
   }, []);
 
-  const handleDownloadAndInstallUpdate = useCallback(async () => {
-    setIsDownloadingUpdate(true);
-    setDownloadProgress(null);
+  const handleDownloadUpdate = useCallback(async () => {
     try {
-      await (window as any).skyMovie.downloadAndInstallUpdate();
+      await window.skyMovie.downloadUpdate();
     } catch {
-      setDownloadProgress(null);
-    } finally {
-      setIsDownloadingUpdate(false);
+      // status is set via IPC event
+    }
+  }, []);
+
+  const handleInstallUpdate = useCallback(async () => {
+    try {
+      await window.skyMovie.installUpdate();
+    } catch {
+      // status is set via IPC event
     }
   }, []);
 
@@ -407,11 +413,12 @@ export const SettingsPanel = memo(function SettingsPanel({
 
         {activeTab === 'updates' && (
           <div className="settings-sections">
+            {/* Auto-download preference */}
             <div className="settings-section">
               <div className="settings-section-heading">
                 <div>
-                  <h3>Updates</h3>
-                  <p>Check for new versions and manage auto-download settings.</p>
+                  <h3>Auto-Download</h3>
+                  <p>Automatically download new versions in the background. Installation always requires your confirmation.</p>
                 </div>
               </div>
               <div className="settings-form-grid">
@@ -422,36 +429,81 @@ export const SettingsPanel = memo(function SettingsPanel({
                   onChange={(checked) => onSave({ autoDownloadUpdates: checked })}
                 />
               </div>
+            </div>
+
+            {/* Check / download / install */}
+            <div className="settings-section">
+              <div className="settings-section-heading">
+                <div>
+                  <h3>Updates</h3>
+                  <p>Check for new versions of Sky Movie.</p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
               <div className="settings-actions left">
-                <button disabled={isCheckingUpdates || busy} onClick={handleCheckForUpdates}>
-                  <RefreshCw size={18} />
-                  {isCheckingUpdates ? 'Checking...' : 'Check for updates'}
+                <button
+                  disabled={updateStatus === 'checking' || updateStatus === 'downloading' || updateStatus === 'installing' || busy}
+                  onClick={handleCheckForUpdates}
+                >
+                  <RefreshCw size={18} className={updateStatus === 'checking' ? 'spin' : ''} />
+                  {updateStatus === 'checking' ? 'Checking…' : 'Check for updates'}
                 </button>
-                {updateCheckResult?.hasUpdate && updateCheckResult.releaseInfo && (
-                  <button disabled={isDownloadingUpdate || busy} onClick={handleDownloadAndInstallUpdate}>
+
+                {updateCheckResult?.hasUpdate && updateStatus !== 'downloading' && updateStatus !== 'downloaded' && updateStatus !== 'installing' && (
+                  <button disabled={busy} onClick={handleDownloadUpdate} className="update-download-btn">
                     <Download size={18} />
-                    {isDownloadingUpdate ? 'Downloading...' : `Download ${updateCheckResult.latestVersion}`}
+                    Download {updateCheckResult.latestVersion}
                   </button>
                 )}
+
+                {updateStatus === 'downloaded' && (
+                  <button disabled={busy} onClick={handleInstallUpdate} className="update-install-btn">
+                    <Zap size={18} />
+                    Install &amp; Restart
+                  </button>
+                )}
+
+                {updateStatus === 'installing' && (
+                  <span className="update-installing-label">
+                    <RefreshCw size={16} className="spin" />
+                    Installing…
+                  </span>
+                )}
               </div>
-              {downloadProgress && (
+
+              {/* Download progress bar */}
+              {updateStatus === 'downloading' && (
                 <div className="update-download-progress">
                   <div className="update-progress-label">
                     <span>Downloading update…</span>
-                    <span>{Math.round(downloadProgress.percentage)}%</span>
+                    {downloadProgress && <span>{Math.round(downloadProgress.percentage)}%</span>}
                   </div>
                   <div className="update-progress-bar">
-                    <div className="update-progress-fill" style={{ width: `${downloadProgress.percentage}%` }} />
+                    <div
+                      className="update-progress-fill"
+                      style={{ width: downloadProgress ? `${downloadProgress.percentage}%` : '0%' }}
+                    />
                   </div>
-                  {downloadProgress.totalBytes > 0 && (
+                  {downloadProgress && downloadProgress.totalBytes > 0 && (
                     <span className="update-progress-size">
                       {formatBytes(downloadProgress.bytesDownloaded)} / {formatBytes(downloadProgress.totalBytes)}
                     </span>
                   )}
                 </div>
               )}
+
+              {/* Ready-to-install banner */}
+              {updateStatus === 'downloaded' && (
+                <div className="update-ready-banner">
+                  <Zap size={15} />
+                  Update downloaded — click "Install &amp; Restart" to apply it.
+                </div>
+              )}
+
+              {/* Check result info */}
               {updateCheckResult && (
-                <div className="update-status">
+                <div className="update-check-result">
                   {updateCheckResult.hasUpdate ? (
                     <div className="update-available">
                       <strong>New version available: {updateCheckResult.latestVersion}</strong>
@@ -459,11 +511,13 @@ export const SettingsPanel = memo(function SettingsPanel({
                       {updateCheckResult.releaseInfo && (
                         <div className="release-notes">
                           <p>{updateCheckResult.releaseInfo.notes}</p>
-                          <ul>
-                            {updateCheckResult.releaseInfo.changes.map((change, index) => (
-                              <li key={index}>{change}</li>
-                            ))}
-                          </ul>
+                          {updateCheckResult.releaseInfo.changes.length > 0 && (
+                            <ul>
+                              {updateCheckResult.releaseInfo.changes.map((change, index) => (
+                                <li key={index}>{change}</li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       )}
                     </div>

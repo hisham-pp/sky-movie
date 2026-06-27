@@ -434,7 +434,7 @@
   color: var(--ink-dim);
 }
 
-.update-status {
+.update-check-result {
   padding-top: 4px;
 }
 
@@ -457,4 +457,54 @@
 .release-notes ul {
   margin: 6px 0 0;
   padding-left: 18px;
+}
+
+/* Download button */
+.update-download-btn {
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--primary);
+}
+
+.update-download-btn:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+/* Install button — highlighted call-to-action */
+.update-install-btn {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+}
+
+.update-install-btn:hover {
+  background: var(--primary-strong, color-mix(in srgb, var(--primary) 80%, #fff));
+  color: var(--on-primary);
+}
+
+/* Installing inline label */
+.update-installing-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* Ready-to-install green banner */
+.update-ready-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, #10b981 30%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, #10b981 10%, transparent);
+  color: #34d399;
+  font-size: 13px;
+  font-weight: 600;
 }

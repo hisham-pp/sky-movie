@@ -372,7 +372,7 @@ export interface UpdateDownloadProgress {
   percentage: number;
 }
 
-export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'installing' | 'error';
+export type UpdateStatus = 'idle' | 'checking' | 'downloading' | 'downloaded' | 'installing' | 'error';
 
 export type UpdateProgressEvent =
   | { type: 'status'; status: UpdateStatus }
@@ -463,7 +463,8 @@ export interface SkyMovieApi {
   createBackup(destinationPath?: string): Promise<BackupResult | null>;
   restoreBackup(path?: string): Promise<BackupResult | null>;
   checkForUpdates(): Promise<UpdateCheckResult>;
-  downloadAndInstallUpdate(): Promise<void>;
+  downloadUpdate(): Promise<void>;
+  installUpdate(): Promise<void>;
   getUpdateStatus(): Promise<UpdateStatus>;
   dismissUpdateNotification(): Promise<void>;
   getPlaylists(): Promise<Playlist[]>;
@@ -515,7 +516,8 @@ export const ipcChannels = {
   createBackup: 'backup:create',
   restoreBackup: 'backup:restore',
   checkForUpdates: 'update:check',
-  downloadAndInstallUpdate: 'update:download-install',
+  downloadUpdate: 'update:download',
+  installUpdate: 'update:install',
   getUpdateStatus: 'update:status',
   dismissUpdateNotification: 'update:dismiss-notification',
   updateProgress: 'update:progress',

@@ -190,7 +190,8 @@ export function registerIpcHandlers(services: IpcServices): void {
   );
 
   h(ipcChannels.checkForUpdates,           () => safe(ipcChannels.checkForUpdates,           () => services.update.checkForUpdates()));
-  h(ipcChannels.downloadAndInstallUpdate,  () => safe(ipcChannels.downloadAndInstallUpdate,  () => services.update.downloadAndInstallUpdate()));
+  h(ipcChannels.downloadUpdate,            () => safe(ipcChannels.downloadUpdate,            () => services.update.downloadUpdate()));
+  h(ipcChannels.installUpdate,             () => safe(ipcChannels.installUpdate,             () => services.update.installUpdate()));
   h(ipcChannels.getUpdateStatus,           () => safe(ipcChannels.getUpdateStatus,           () => services.update.getStatus()));
   h(ipcChannels.dismissUpdateNotification, () => safe(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification()));
 

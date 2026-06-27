@@ -34,6 +34,7 @@ export class UpdateService {
   private lastNotifiedVersion: string | null = null;
   private getMainWindow: () => BrowserWindow | null;
   private currentReleaseInfo: ReleaseInfo | null = null;
+  private downloadedFilePath: string | null = null;
   private settingsService: SettingsService;
 
   constructor(getMainWindow: () => BrowserWindow | null, settingsService: SettingsService) {
@@ -101,11 +102,10 @@ export class UpdateService {
         this.lastNotifiedVersion = releaseInfo.version;
         await this.saveLastNotifiedVersion();
 
-        // Auto-download if setting is enabled
+        // Auto-download (but NOT auto-install) if setting is enabled
         const settings = this.settingsService.getSettings();
         if (settings.autoDownloadUpdates) {
-          // Auto-download in the background without blocking
-          this.downloadAndInstallUpdate().catch((error) => {
+          this.downloadUpdate().catch((error) => {
             console.error('Auto-download failed:', error);
           });
         }
@@ -125,20 +125,36 @@ export class UpdateService {
     }
   }
 
-  async downloadAndInstallUpdate(): Promise<void> {
+  async downloadUpdate(): Promise<void> {
     if (!this.currentReleaseInfo) {
       throw new Error('No update available to download');
     }
+    if (this.status === 'downloading' || this.status === 'downloaded') return;
 
     this.status = 'downloading';
     this.sendStatus();
 
     try {
-      const downloadPath = await this.downloadUpdate(this.currentReleaseInfo);
-      this.status = 'installing';
+      this.downloadedFilePath = await this.fetchUpdateFile(this.currentReleaseInfo);
+      this.status = 'downloaded';
       this.sendStatus();
+    } catch (error) {
+      this.status = 'error';
+      this.sendStatus();
+      throw error;
+    }
+  }
 
-      await this.installUpdate(downloadPath);
+  async installUpdate(): Promise<void> {
+    if (!this.downloadedFilePath) {
+      throw new Error('No downloaded update to install');
+    }
+
+    this.status = 'installing';
+    this.sendStatus();
+
+    try {
+      await this.runInstaller(this.downloadedFilePath);
     } catch (error) {
       this.status = 'error';
       this.sendStatus();
@@ -214,7 +230,7 @@ export class UpdateService {
     });
   }
 
-  private async downloadUpdate(releaseInfo: ReleaseInfo): Promise<string> {
+  private async fetchUpdateFile(releaseInfo: ReleaseInfo): Promise<string> {
     const updatesDir = join(app.getPath('userData'), 'updates');
     await mkdir(updatesDir, { recursive: true });
 
@@ -263,7 +279,7 @@ export class UpdateService {
     });
   }
 
-  private async installUpdate(filePath: string): Promise<void> {
+  private async runInstaller(filePath: string): Promise<void> {
     const window = this.getMainWindow();
     if (!window) {
       throw new Error('Main window not available');
