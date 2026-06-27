@@ -12,6 +12,8 @@ export class TorrentService extends EventEmitter {
   constructor(settings: TorrentSettings) {
     super();
     this.settings = settings;
+    // Prevent Node from throwing on unhandled 'error' events from this emitter
+    this.on('error', (err) => console.error('[TorrentService] unhandled error event', err));
   }
 
   async init(): Promise<void> {
@@ -101,7 +103,7 @@ export class TorrentService extends EventEmitter {
         const msg = err instanceof Error ? err.message : String(err);
         const info = this.infoMap.get(torrent.infoHash);
         if (info) { info.status = 'error'; info.error = msg; }
-        this.emit('error', torrent.infoHash ?? 'unknown', msg);
+        this.emit('torrent-error', torrent.infoHash ?? 'unknown', msg);
         if (!resolved) { resolved = true; reject(new Error(msg)); }
       });
 
