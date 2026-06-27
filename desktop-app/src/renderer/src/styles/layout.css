@@ -242,7 +242,7 @@
   height: 100%;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .browse-grid {
