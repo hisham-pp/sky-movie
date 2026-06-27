@@ -231,17 +231,15 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Update website release manifest
-        run: pnpm release:github --skip-sha
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push manifest update
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git checkout main
-          git pull --rebase origin main
+          git pull --ff-only origin main
+          pnpm release:github --skip-sha --no-commit
           git add website/public/releases.json
           git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
           git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
