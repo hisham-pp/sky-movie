@@ -5,6 +5,12 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.10] - 2026-06-27
+
+### Added
+
+- limit banner dots and add load-more pagination to library pages (Hisham)
+
 ## [0.6.9] - 2026-06-27
 
 ### Added
@@ -419,3 +425,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.7
 [0.6.8]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.8
 [0.6.9]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.9
+[0.6.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.10
