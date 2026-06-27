@@ -610,6 +610,30 @@
 
 /* ── Torrent settings layout helpers ── */
 
+/* Outer wrapper — fills the tab content area and stacks body + save bar */
+.ts-settings-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Scrollable body */
+.ts-settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-content: start;
+}
+
+/* Full-width card (spans both columns) */
+.ts-full {
+  grid-column: 1 / -1;
+}
+
 /* Path fields: side by side when both visible, full width otherwise */
 .ts-path-grid {
   display: grid;
@@ -618,16 +642,6 @@
 }
 .ts-path-grid:has(> *:nth-child(2)) {
   grid-template-columns: 1fr 1fr;
-}
-
-/* Queue + Speed appear side-by-side */
-.ts-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.ts-two-col .settings-section {
-  margin: 0;
 }
 
 /* Protocol toggles: 2-per-row grid */
@@ -645,7 +659,19 @@
   margin-top: 8px;
 }
 
-/* Save button row */
+/* Sticky save bar pinned to the bottom */
+.ts-save-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 32px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-solid) 80%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Save button row (used elsewhere) */
 .settings-actions {
   display: flex;
   justify-content: flex-end;
@@ -653,8 +679,9 @@
 }
 
 @media (max-width: 860px) {
-  .ts-two-col    { grid-template-columns: 1fr; }
-  .ts-path-grid  { grid-template-columns: 1fr; }
+  .ts-settings-body { grid-template-columns: 1fr; }
+  .ts-full          { grid-column: 1; }
+  .ts-path-grid     { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .ts-toggle-grid { grid-template-columns: 1fr; }

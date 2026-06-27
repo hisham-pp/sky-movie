@@ -11,8 +11,8 @@ export function TorrentSettingsTab() {
 
   if (!local) {
     return (
-      <div className="settings-content">
-        <div className="settings-sections">
+      <div className="ts-settings-wrap">
+        <div className="ts-settings-body">
           <p className="settings-empty">Loading…</p>
         </div>
       </div>
@@ -28,16 +28,14 @@ export function TorrentSettingsTab() {
   };
 
   return (
-    // settings-content gives us the same overflow-y:auto + padding as the main settings page
-    <div className="settings-content">
-      <div className="settings-sections">
+    <div className="ts-settings-wrap">
+      <div className="ts-settings-body">
 
-        {/* ── Paths ─────────────────────────────────────────────── */}
-        <div className="settings-section">
+        {/* ── Paths — full width ─────────────────────────────────── */}
+        <div className="settings-section ts-full">
           <div className="settings-section-heading">
             <div><h3>Paths</h3><p>Where torrent files are saved on disk.</p></div>
           </div>
-          {/* Two-column path row: download dir | completed dir */}
           <div className="ts-path-grid">
             <PathField
               label="Default download directory"
@@ -62,26 +60,25 @@ export function TorrentSettingsTab() {
           />
         </div>
 
-        {/* ── Queue + Speed side by side ────────────────────────── */}
-        <div className="ts-two-col">
-          <div className="settings-section">
-            <div className="settings-section-heading">
-              <div><h3>Queue</h3><p>Concurrent download limits.</p></div>
-            </div>
-            <div className="settings-form-grid">
-              <InlineNumber label="Max simultaneous downloads" value={local.maxSimultaneousDownloads} min={1} max={20} onChange={(v) => patch('maxSimultaneousDownloads', v)} />
-              <InlineNumber label="Max active torrents"        value={local.maxActiveTorrents}        min={1} max={50} onChange={(v) => patch('maxActiveTorrents', v)} />
-            </div>
+        {/* ── Queue ─────────────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Queue</h3><p>Concurrent download limits.</p></div>
           </div>
+          <div className="settings-form-grid">
+            <InlineNumber label="Max simultaneous downloads" value={local.maxSimultaneousDownloads} min={1} max={20} onChange={(v) => patch('maxSimultaneousDownloads', v)} />
+            <InlineNumber label="Max active torrents"        value={local.maxActiveTorrents}        min={1} max={50} onChange={(v) => patch('maxActiveTorrents', v)} />
+          </div>
+        </div>
 
-          <div className="settings-section">
-            <div className="settings-section-heading">
-              <div><h3>Speed limits</h3><p>Bytes/s — 0 means unlimited.</p></div>
-            </div>
-            <div className="settings-form-grid">
-              <InlineNumber label="Download limit (B/s)" value={local.downloadSpeedLimit} min={0} onChange={(v) => patch('downloadSpeedLimit', v)} />
-              <InlineNumber label="Upload limit (B/s)"   value={local.uploadSpeedLimit}   min={0} onChange={(v) => patch('uploadSpeedLimit', v)} />
-            </div>
+        {/* ── Speed limits ──────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Speed limits</h3><p>Bytes/s — 0 means unlimited.</p></div>
+          </div>
+          <div className="settings-form-grid">
+            <InlineNumber label="Download limit (B/s)" value={local.downloadSpeedLimit} min={0} onChange={(v) => patch('downloadSpeedLimit', v)} />
+            <InlineNumber label="Upload limit (B/s)"   value={local.uploadSpeedLimit}   min={0} onChange={(v) => patch('uploadSpeedLimit', v)} />
           </div>
         </div>
 
@@ -91,18 +88,16 @@ export function TorrentSettingsTab() {
             <div><h3>Protocol</h3><p>Network and connection settings.</p></div>
           </div>
           <div className="settings-form-grid">
-            {/* Toggles in a 3-col grid */}
             <div className="ts-toggle-grid">
-              <Switch id="ts-dht" label="DHT"              checked={local.enableDht}          onChange={(v) => patch('enableDht', v)} />
-              <Switch id="ts-pex" label="PEX"              checked={local.enablePex}          onChange={(v) => patch('enablePex', v)} />
-              <Switch id="ts-lsd" label="LSD"              checked={local.enableLsd}          onChange={(v) => patch('enableLsd', v)} />
-              <Switch id="ts-seq" label="Sequential"       checked={local.sequentialDownload} onChange={(v) => patch('sequentialDownload', v)} />
+              <Switch id="ts-dht" label="DHT"        checked={local.enableDht}          onChange={(v) => patch('enableDht', v)} />
+              <Switch id="ts-pex" label="PEX"        checked={local.enablePex}          onChange={(v) => patch('enablePex', v)} />
+              <Switch id="ts-lsd" label="LSD"        checked={local.enableLsd}          onChange={(v) => patch('enableLsd', v)} />
+              <Switch id="ts-seq" label="Sequential" checked={local.sequentialDownload} onChange={(v) => patch('sequentialDownload', v)} />
             </div>
-            {/* Port / connections / cache in a 3-col grid */}
             <div className="ts-number-grid">
-              <InlineNumber label="Port"           value={local.port}            min={1024} max={65535} onChange={(v) => patch('port', v)} />
-              <InlineNumber label="Max connections" value={local.maxConnections} min={10}   max={1000}  onChange={(v) => patch('maxConnections', v)} />
-              <InlineNumber label="Disk cache (MB)" value={local.diskCacheSizeMb} min={16} max={1024}  onChange={(v) => patch('diskCacheSizeMb', v)} />
+              <InlineNumber label="Port"            value={local.port}             min={1024} max={65535} onChange={(v) => patch('port', v)} />
+              <InlineNumber label="Max connections"  value={local.maxConnections}  min={10}   max={1000}  onChange={(v) => patch('maxConnections', v)} />
+              <InlineNumber label="Disk cache (MB)"  value={local.diskCacheSizeMb} min={16}   max={1024}  onChange={(v) => patch('diskCacheSizeMb', v)} />
             </div>
           </div>
         </div>
@@ -114,8 +109,8 @@ export function TorrentSettingsTab() {
           </div>
           <div className="settings-form-grid">
             <div className="ts-toggle-grid">
-              <Switch id="ts-autostart"  label="Auto-start"     checked={local.autoStart}   onChange={(v) => patch('autoStart', v)} />
-              <Switch id="ts-autoseed"   label="Auto-seed"      checked={local.autoSeed}    onChange={(v) => patch('autoSeed', v)} />
+              <Switch id="ts-autostart"  label="Auto-start"          checked={local.autoStart}   onChange={(v) => patch('autoStart', v)} />
+              <Switch id="ts-autoseed"   label="Auto-seed"           checked={local.autoSeed}    onChange={(v) => patch('autoSeed', v)} />
               <Switch id="ts-autodelete" label="Delete after seeding" checked={local.autoDelete} onChange={(v) => patch('autoDelete', v)} />
               {local.autoSeed && (
                 <InlineNumber label="Stop at ratio (0 = never)" value={local.seedRatio} min={0} step={0.1} onChange={(v) => patch('seedRatio', v)} />
@@ -124,17 +119,17 @@ export function TorrentSettingsTab() {
           </div>
         </div>
 
-        {/* ── Save ──────────────────────────────────────────────── */}
-        <div className="settings-actions">
-          <button
-            onClick={() => update(local)}
-            disabled={saving}
-            className="settings-btn-primary"
-          >
-            {saving ? 'Saving…' : 'Save settings'}
-          </button>
-        </div>
+      </div>
 
+      {/* ── Sticky save bar ───────────────────────────────────────── */}
+      <div className="ts-save-bar">
+        <button
+          onClick={() => update(local)}
+          disabled={saving}
+          className="settings-btn-primary"
+        >
+          {saving ? 'Saving…' : 'Save settings'}
+        </button>
       </div>
     </div>
   );
