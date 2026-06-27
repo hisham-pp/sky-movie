@@ -1,6 +1,6 @@
 {
   "name": "sky-movie",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Sky Movie local-first movie and TV library workspace.",
