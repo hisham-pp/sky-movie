@@ -508,3 +508,142 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ── Torrent settings extras ── */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 13px;
+  color: var(--soft);
+}
+
+.settings-path-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.settings-number-input {
+  width: 80px;
+  min-height: 36px;
+  padding: 0 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.settings-number-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.settings-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--soft);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-btn-ghost:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--ink);
+}
+
+.settings-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: 10px;
+  color: var(--on-primary, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.settings-btn-primary:hover { opacity: 0.88; }
+.settings-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.settings-empty {
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* ── Torrent settings layout helpers ── */
+
+/* Queue + Speed appear side-by-side */
+.ts-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ts-two-col .settings-section {
+  margin: 0;
+}
+
+/* Protocol toggles: 2-per-row grid */
+.ts-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+}
+
+/* Port / connections / cache: 3-per-row */
+.ts-number-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+
+/* Save button row */
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .ts-two-col { grid-template-columns: 1fr; }
+  .ts-toggle-grid { grid-template-columns: 1fr; }
+  .ts-number-grid { grid-template-columns: 1fr 1fr; }
+}

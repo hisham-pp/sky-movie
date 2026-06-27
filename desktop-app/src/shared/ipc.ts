@@ -575,7 +575,7 @@ export type TorrentStatus =
   | 'metadata' | 'downloading' | 'paused' | 'queued'
   | 'checking'  | 'stalled'    | 'completed' | 'error';
 
-export type TorrentCategory = 'movie' | 'tv' | 'anime' | 'other';
+export type TorrentCategory = 'movie' | 'tv' | 'anime' | 'malayalam' | 'other';
 
 export interface TorrentFileInfo {
   name: string;

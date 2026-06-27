@@ -14,79 +14,83 @@ import { renameTorrentFile } from './TorrentRenamer';
 import { YtsProvider } from './providers/YtsProvider';
 import { TpbProvider } from './providers/TpbProvider';
 import { EztvProvider } from './providers/EztvProvider';
+import { MalayalamProvider } from './providers/MalayalamProvider';
 import type { TorrentProvider } from './providers/TorrentProvider';
 import type { TorrentService } from './TorrentService';
 
 const SETTINGS_FILE = 'torrent-settings.json';
 const STATE_FILE    = 'torrent-state.json';
 
+/** Minimum info needed to restore an active torrent across restarts. */
+interface PersistedActiveTorrent {
+  magnetUri: string;
+  savePath:  string;
+  category:  TorrentInfo['category'];
+  addedAt:   string;
+}
+
 interface PersistedState {
+  active:    PersistedActiveTorrent[];
   completed: TorrentInfo[];
 }
 
 export class TorrentManager {
-  /** Populated lazily — null until first torrent IPC call. */
   private service: TorrentService | null = null;
-  /** Resolves when service is fully ready; avoids double-init on concurrent calls. */
   private initPromise: Promise<void> | null = null;
 
   private readonly providers: TorrentProvider[];
   private readonly stateDir: string;
   private settings: TorrentSettings;
+
+  /** Active entries persisted to disk (survives restarts). */
+  private activePersisted: PersistedActiveTorrent[] = [];
+  /** Completed entries persisted to disk. */
   private completedTorrents: TorrentInfo[] = [];
+
   private progressListeners: Array<(info: TorrentInfo) => void> = [];
 
   constructor(stateDir: string) {
-    this.stateDir = stateDir;
+    this.stateDir  = stateDir;
     mkdirSync(stateDir, { recursive: true });
-
-    // Settings and state load synchronously — cheap, no WebTorrent yet.
     this.settings  = this.loadSettings();
+    this.providers = [new YtsProvider(), new TpbProvider(), new EztvProvider(), new MalayalamProvider()];
     this.loadState();
-
-    // Search providers are pure HTTP — also fine to create eagerly.
-    this.providers = [new YtsProvider(), new TpbProvider(), new EztvProvider()];
-
-    console.log('[TorrentManager] created (torrent engine NOT started yet)');
+    console.log('[TorrentManager] created — engine not started yet');
   }
 
-  /**
-   * Boots WebTorrent the first time any torrent action is needed.
-   * Subsequent calls return immediately once the engine is running.
-   */
+  // ── Lazy engine init ───────────────────────────────────────────────────────
+
   private ensureInit(): Promise<void> {
     if (this.service) return Promise.resolve();
-
-    if (!this.initPromise) {
-      this.initPromise = this.bootEngine();
-    }
-
+    if (!this.initPromise) this.initPromise = this.bootEngine();
     return this.initPromise;
   }
 
   private async bootEngine(): Promise<void> {
-    console.log('[TorrentManager] lazily starting WebTorrent engine…');
-
-    // Dynamic import keeps WebTorrent out of the cold-start require graph.
+    console.log('[TorrentManager] booting WebTorrent engine…');
     const { TorrentService } = await import('./TorrentService');
     const svc = new TorrentService(this.settings);
     await svc.init();
 
     svc.on('done', (info: TorrentInfo) => {
-      const renameResult = renameTorrentFile(info);
-      if (renameResult) {
-        console.log(`[TorrentManager] renamed → "${renameResult.newName}"`);
+      // Rename file to match app naming convention
+      const renamed = renameTorrentFile(info);
+      if (renamed) {
+        console.log(`[TorrentManager] renamed → "${renamed.newName}"`);
         for (const f of info.files) {
-          if (f.path.endsWith(renameResult.originalPath.split(/[\\/]/).pop() ?? '')) {
-            f.path = renameResult.renamedPath.replace(info.savePath, '').replace(/^[\\/]/, '');
-            f.name = renameResult.newName;
+          if (f.path.endsWith(renamed.originalPath.split(/[\\/]/).pop() ?? '')) {
+            f.path = renamed.renamedPath.replace(info.savePath, '').replace(/^[\\/]/, '');
+            f.name = renamed.newName;
           }
         }
-        info.name = renameResult.newName.replace(/\.[^.]+$/, '');
+        info.name = renamed.newName.replace(/\.[^.]+$/, '');
       }
 
+      // Move from active → completed persistence
+      this.activePersisted = this.activePersisted.filter((a) => !info.magnetUri.includes(a.magnetUri) && !a.magnetUri.includes(info.infoHash));
       this.completedTorrents.unshift(info);
       this.saveState();
+
       new Notification({ title: 'Download Complete', body: info.name }).show();
     });
 
@@ -95,19 +99,35 @@ export class TorrentManager {
     });
 
     this.service = svc;
-    console.log('[TorrentManager] WebTorrent engine ready');
+
+    // Restore active torrents from previous session
+    if (this.activePersisted.length > 0) {
+      console.log(`[TorrentManager] restoring ${this.activePersisted.length} active torrent(s)…`);
+      for (const entry of [...this.activePersisted]) {
+        svc.addMagnet(entry.magnetUri, {
+          savePath:  entry.savePath,
+          category:  entry.category,
+          paused:    false,
+          addedAt:   entry.addedAt,
+        }).catch((err) => {
+          console.error('[TorrentManager] failed to restore torrent', err);
+          this.activePersisted = this.activePersisted.filter((a) => a.magnetUri !== entry.magnetUri);
+          this.saveState();
+        });
+      }
+    }
+
+    console.log('[TorrentManager] engine ready');
   }
 
-  // ── Search (no engine needed — pure HTTP) ──────────────────────────────────
+  // ── Search (no engine needed) ──────────────────────────────────────────────
 
   async search(req: TorrentSearchRequest): Promise<TorrentSearchResult[]> {
     const settled = await Promise.allSettled(this.providers.map((p) => p.search(req)));
-
     const results: TorrentSearchResult[] = [];
     for (const s of settled) {
       if (s.status === 'fulfilled') results.push(...s.value);
     }
-
     const seen = new Set<string>();
     return results.filter((r) => {
       const hash = this.extractHash(r.magnetUri);
@@ -117,33 +137,38 @@ export class TorrentManager {
     });
   }
 
-  // ── Download control (engine required) ────────────────────────────────────
+  // ── Download control ───────────────────────────────────────────────────────
 
   async addMagnet(req: AddMagnetRequest): Promise<TorrentInfo> {
     await this.ensureInit();
+
+    const savePath = req.savePath ?? this.settings.downloadPath;
+    const category = req.category ?? 'other';
+
     const info = await this.service!.addMagnet(req.magnetUri, {
-      savePath:   req.savePath ?? this.settings.downloadPath,
-      sequential: req.sequential,
-      category:   req.category,
-      paused:     req.paused ?? !this.settings.autoStart,
+      savePath,
+      category,
+      paused:  req.paused ?? !this.settings.autoStart,
     });
+
+    // Persist so we can restore after restart
+    const already = this.activePersisted.some((a) => a.magnetUri === req.magnetUri || req.magnetUri.includes(info.infoHash));
+    if (!already) {
+      this.activePersisted.push({ magnetUri: req.magnetUri, savePath, category, addedAt: info.addedAt });
+      this.saveState();
+    }
+
     new Notification({ title: 'Download Started', body: info.name }).show();
     return info;
   }
 
-  async pause(id: string): Promise<void> {
-    await this.ensureInit();
-    this.service!.pause(id);
-  }
-
-  async resume(id: string): Promise<void> {
-    await this.ensureInit();
-    this.service!.resume(id);
-  }
+  async pause(id: string): Promise<void>  { await this.ensureInit(); this.service!.pause(id); }
+  async resume(id: string): Promise<void> { await this.ensureInit(); this.service!.resume(id); }
 
   async remove(id: string): Promise<void> {
     await this.ensureInit();
     await this.service!.remove(id, false);
+    this.removePersisted(id);
     this.completedTorrents = this.completedTorrents.filter((t) => t.id !== id);
     this.saveState();
   }
@@ -151,12 +176,13 @@ export class TorrentManager {
   async deleteFiles(id: string): Promise<void> {
     await this.ensureInit();
     await this.service!.remove(id, true);
+    this.removePersisted(id);
     this.completedTorrents = this.completedTorrents.filter((t) => t.id !== id);
     this.saveState();
   }
 
   move(_req: TorrentMoveRequest): void {
-    console.warn('[TorrentManager] move not fully implemented yet');
+    console.warn('[TorrentManager] move not yet implemented');
   }
 
   async recheck(id: string): Promise<void> {
@@ -166,29 +192,31 @@ export class TorrentManager {
   }
 
   openFolder(id: string): void {
-    const info = this.list().find((t) => t.id === id)
-      ?? this.completedTorrents.find((t) => t.id === id);
+    const info = this.list().find((t) => t.id === id);
     if (info) shell.openPath(info.savePath);
   }
 
   // ── Queries ────────────────────────────────────────────────────────────────
 
+  /**
+   * Returns ALL torrents — active (from engine) + completed (from disk).
+   * This is the single source of truth for the UI.
+   */
   list(): TorrentInfo[] {
-    // Engine not started yet — active list is empty, that's correct.
-    return this.service?.list() ?? [];
-  }
-
-  completedList(): TorrentInfo[] {
-    return this.completedTorrents;
+    const active = this.service?.list() ?? [];
+    // Merge: completed entries not already in the active list
+    const activeIds = new Set(active.map((t) => t.id));
+    const completed = this.completedTorrents.filter((t) => !activeIds.has(t.id));
+    return [...active, ...completed];
   }
 
   stats(): TorrentGlobalStats {
-    const gs   = this.service?.globalStats() ?? { downloadSpeed: 0, uploadSpeed: 0 };
-    const all  = this.list();
+    const gs  = this.service?.globalStats() ?? { downloadSpeed: 0, uploadSpeed: 0 };
+    const all = this.list();
     return {
       ...gs,
-      activeTorrents: all.filter((t) => t.status === 'downloading').length,
-      totalTorrents:  all.length + this.completedTorrents.length,
+      activeTorrents: all.filter((t) => t.status === 'downloading' || t.status === 'metadata').length,
+      totalTorrents:  all.length,
     };
   }
 
@@ -207,9 +235,7 @@ export class TorrentManager {
 
   onProgress(cb: (info: TorrentInfo) => void): () => void {
     this.progressListeners.push(cb);
-    return () => {
-      this.progressListeners = this.progressListeners.filter((l) => l !== cb);
-    };
+    return () => { this.progressListeners = this.progressListeners.filter((l) => l !== cb); };
   }
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -221,6 +247,13 @@ export class TorrentManager {
 
   // ── Private ────────────────────────────────────────────────────────────────
 
+  private removePersisted(id: string): void {
+    // id is infoHash; active entries only have magnetUri, so check both
+    this.activePersisted = this.activePersisted.filter(
+      (a) => !a.magnetUri.toLowerCase().includes(id.toLowerCase())
+    );
+  }
+
   private settingsPath(): string { return join(this.stateDir, SETTINGS_FILE); }
   private statePath():    string { return join(this.stateDir, STATE_FILE); }
 
@@ -231,7 +264,7 @@ export class TorrentManager {
       maxActiveTorrents:        5,
       downloadSpeedLimit:       0,
       uploadSpeedLimit:         0,
-      sequentialDownload:       true,
+      sequentialDownload:       false,
       enableDht:                true,
       enablePex:                true,
       enableLsd:                true,
@@ -245,29 +278,25 @@ export class TorrentManager {
       port:                     6881,
       maxConnections:           200,
     };
-
     try {
       if (existsSync(this.settingsPath())) {
         const saved = JSON.parse(readFileSync(this.settingsPath(), 'utf8')) as Partial<TorrentSettings>;
         return { ...defaults, ...saved };
       }
-    } catch { /* ignore corrupt file */ }
-
+    } catch { /* ignore */ }
     return defaults;
   }
 
   private saveSettings(): void {
-    try {
-      writeFileSync(this.settingsPath(), JSON.stringify(this.settings, null, 2));
-    } catch (e) {
-      console.error('[TorrentManager] failed to save settings', e);
-    }
+    try { writeFileSync(this.settingsPath(), JSON.stringify(this.settings, null, 2)); }
+    catch (e) { console.error('[TorrentManager] save settings failed', e); }
   }
 
   private loadState(): void {
     try {
       if (existsSync(this.statePath())) {
         const s: PersistedState = JSON.parse(readFileSync(this.statePath(), 'utf8'));
+        this.activePersisted   = s.active    ?? [];
         this.completedTorrents = s.completed ?? [];
       }
     } catch { /* ignore */ }
@@ -275,10 +304,11 @@ export class TorrentManager {
 
   private saveState(): void {
     try {
-      writeFileSync(this.statePath(), JSON.stringify({ completed: this.completedTorrents }, null, 2));
-    } catch (e) {
-      console.error('[TorrentManager] failed to save state', e);
-    }
+      writeFileSync(this.statePath(), JSON.stringify({
+        active:    this.activePersisted,
+        completed: this.completedTorrents,
+      } satisfies PersistedState, null, 2));
+    } catch (e) { console.error('[TorrentManager] save state failed', e); }
   }
 
   private extractHash(magnetUri: string): string {

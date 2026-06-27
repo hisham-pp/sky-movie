@@ -29,51 +29,68 @@ export class TorrentService extends EventEmitter {
 
   async addMagnet(
     magnetUri: string,
-    opts: { savePath?: string; sequential?: boolean; category?: TorrentInfo['category']; paused?: boolean } = {}
+    opts: {
+      savePath?:  string;
+      category?:  TorrentInfo['category'];
+      paused?:    boolean;
+      addedAt?:   string;
+    } = {}
   ): Promise<TorrentInfo> {
     if (!this.client) throw new Error('TorrentService not initialized');
 
     const savePath = opts.savePath ?? this.settings.downloadPath;
     if (!existsSync(savePath)) mkdirSync(savePath, { recursive: true });
 
+    // Skip duplicate
+    const existingTorrent = this.client.torrents.find((t) => t.magnetURI === magnetUri || magnetUri.includes(t.infoHash));
+    if (existingTorrent) {
+      const existing = this.infoMap.get(existingTorrent.infoHash);
+      if (existing) return existing;
+    }
+
     return new Promise<TorrentInfo>((resolve, reject) => {
-      const torrent: Torrent = this.client!.add(magnetUri, {
-        path: savePath,
-        so: opts.sequential ?? this.settings.sequentialDownload ? '0-' : undefined,
-      });
+      // NOTE: do NOT pass `so` (select-only) — invalid in WebTorrent v3 and breaks the add
+      const torrent: Torrent = this.client!.add(magnetUri, { path: savePath });
 
       let resolved = false;
 
-      const doResolve = () => {
+      const doResolve = (status: TorrentStatus) => {
         if (resolved) return;
         resolved = true;
-        const info = this.buildInfo(torrent, opts.category ?? 'other', savePath, 'metadata');
-        this.infoMap.set(info.id, info);
-        this.startProgressPolling(torrent, info.id);
+        const info = this.buildInfo(torrent, opts.category ?? 'other', savePath, status, opts.addedAt);
+        this.infoMap.set(torrent.infoHash, info);
+        this.startProgressPolling(torrent, torrent.infoHash);
         resolve(info);
         this.emit('added', info);
       };
 
-      torrent.on('metadata', doResolve);
+      torrent.on('metadata', () => doResolve('metadata'));
 
       torrent.on('ready', () => {
-        doResolve();
+        const isPaused = opts.paused ?? false;
+        const status: TorrentStatus = isPaused ? 'paused' : 'downloading';
+
         const info = this.infoMap.get(torrent.infoHash);
         if (info) {
-          info.name = torrent.name;
-          info.totalSize = torrent.length;
-          info.status = opts.paused ? 'paused' : 'downloading';
-          info.files = this.buildFiles(torrent);
-          if (opts.paused) torrent.pause();
+          // Update with real metadata now available
+          info.name      = torrent.name || info.name;
+          info.totalSize = torrent.length ?? info.totalSize;
+          info.status    = status;
+          info.files     = this.buildFiles(torrent);
+        } else {
+          // metadata event didn't fire first — resolve here
+          doResolve(status);
         }
+
+        if (isPaused) torrent.pause();
       });
 
       torrent.on('done', () => {
         const info = this.infoMap.get(torrent.infoHash);
         if (info) {
-          info.status = 'completed';
+          info.status      = 'completed';
           info.completedAt = new Date().toISOString();
-          info.progress = 1;
+          info.progress    = 1;
           this.emit('done', { ...info });
           this.emit('progress', { ...info });
           if (!this.settings.autoSeed) torrent.pause();
@@ -83,34 +100,28 @@ export class TorrentService extends EventEmitter {
       torrent.on('error', (err: Error | string) => {
         const msg = err instanceof Error ? err.message : String(err);
         const info = this.infoMap.get(torrent.infoHash);
-        if (info) {
-          info.status = 'error';
-          info.error = msg;
-          this.emit('error', torrent.infoHash, msg);
-        }
-        if (!resolved) {
-          resolved = true;
-          reject(new Error(msg));
-        }
+        if (info) { info.status = 'error'; info.error = msg; }
+        this.emit('error', torrent.infoHash ?? 'unknown', msg);
+        if (!resolved) { resolved = true; reject(new Error(msg)); }
       });
 
-      // Resolve with placeholder if metadata takes >3s
-      setTimeout(doResolve, 3_000);
+      // Resolve with placeholder after 5s if metadata never fires (dead torrent)
+      setTimeout(() => doResolve('metadata'), 5_000);
     });
   }
 
   pause(id: string): void {
-    const torrent = this.client?.torrents.find((t) => t.infoHash === id);
-    if (!torrent) return;
-    torrent.pause();
+    const t = this.findTorrent(id);
+    if (!t) return;
+    t.pause();
     const info = this.infoMap.get(id);
     if (info) info.status = 'paused';
   }
 
   resume(id: string): void {
-    const torrent = this.client?.torrents.find((t) => t.infoHash === id);
-    if (!torrent) return;
-    torrent.resume();
+    const t = this.findTorrent(id);
+    if (!t) return;
+    t.resume();
     const info = this.infoMap.get(id);
     if (info && info.status === 'paused') {
       info.status = info.progress >= 1 ? 'completed' : 'downloading';
@@ -119,11 +130,11 @@ export class TorrentService extends EventEmitter {
 
   remove(id: string, deleteFiles = false): Promise<void> {
     return new Promise<void>((resolve) => {
-      const torrent = this.client?.torrents.find((t) => t.infoHash === id);
+      const t = this.findTorrent(id);
       this.clearProgressTimer(id);
       this.infoMap.delete(id);
-      if (!torrent) { resolve(); return; }
-      torrent.destroy({ destroyStore: deleteFiles }, () => resolve());
+      if (!t) { resolve(); return; }
+      t.destroy({ destroyStore: deleteFiles }, () => resolve());
     });
   }
 
@@ -133,10 +144,7 @@ export class TorrentService extends EventEmitter {
 
   globalStats(): { downloadSpeed: number; uploadSpeed: number } {
     if (!this.client) return { downloadSpeed: 0, uploadSpeed: 0 };
-    return {
-      downloadSpeed: this.client.downloadSpeed,
-      uploadSpeed:   this.client.uploadSpeed,
-    };
+    return { downloadSpeed: this.client.downloadSpeed, uploadSpeed: this.client.uploadSpeed };
   }
 
   updateSettings(settings: TorrentSettings): void {
@@ -147,24 +155,26 @@ export class TorrentService extends EventEmitter {
     for (const id of this.infoMap.keys()) this.clearProgressTimer(id);
     return new Promise<void>((resolve) => {
       if (!this.client) { resolve(); return; }
-      this.client.destroy((err) => {
-        if (err) console.error('[TorrentService] destroy error', err);
-        resolve();
-      });
+      this.client.destroy((err) => { if (err) console.error('[TorrentService] destroy error', err); resolve(); });
     });
   }
 
   // ── Private ────────────────────────────────────────────────────────────────
 
+  private findTorrent(id: string): Torrent | undefined {
+    return this.client?.torrents.find((t) => t.infoHash === id);
+  }
+
   private buildInfo(
     torrent: Torrent,
     category: TorrentInfo['category'],
     savePath: string,
-    status: TorrentStatus
+    status: TorrentStatus,
+    addedAt?: string,
   ): TorrentInfo {
     return {
       id:            torrent.infoHash,
-      name:          torrent.name || this.extractNameFromMagnet(torrent.magnetURI),
+      name:          torrent.name || this.nameFromMagnet(torrent.magnetURI),
       magnetUri:     torrent.magnetURI,
       infoHash:      torrent.infoHash,
       status,
@@ -180,7 +190,7 @@ export class TorrentService extends EventEmitter {
       eta:           torrent.timeRemaining ? torrent.timeRemaining / 1000 : Infinity,
       savePath,
       category,
-      addedAt:       new Date().toISOString(),
+      addedAt:       addedAt ?? new Date().toISOString(),
       completedAt:   null,
       error:         null,
       files:         this.buildFiles(torrent),
@@ -190,12 +200,8 @@ export class TorrentService extends EventEmitter {
   }
 
   private buildFiles(torrent: Torrent): TorrentFileInfo[] {
-    if (!torrent.files) return [];
-    return torrent.files.map((f: TorrentFile) => ({
-      name:     f.name,
-      path:     f.path,
-      size:     f.length,
-      progress: f.progress,
+    return (torrent.files ?? []).map((f: TorrentFile) => ({
+      name: f.name, path: f.path, size: f.length, progress: f.progress,
     }));
   }
 
@@ -214,6 +220,7 @@ export class TorrentService extends EventEmitter {
       info.eta           = torrent.timeRemaining ? torrent.timeRemaining / 1000 : Infinity;
       info.files         = this.buildFiles(torrent);
 
+      // Detect stall
       if (info.status === 'downloading' && info.downloadSpeed === 0 && info.numPeers === 0) {
         info.status = 'stalled';
       } else if (info.status === 'stalled' && (info.downloadSpeed > 0 || info.numPeers > 0)) {
@@ -231,12 +238,9 @@ export class TorrentService extends EventEmitter {
     if (t) { clearInterval(t); this.progressTimers.delete(id); }
   }
 
-  private extractNameFromMagnet(magnetUri: string): string {
+  private nameFromMagnet(magnetUri: string): string {
     try {
-      const dn = new URLSearchParams(magnetUri.slice(magnetUri.indexOf('?') + 1)).get('dn');
-      return dn ? decodeURIComponent(dn) : 'Unknown';
-    } catch {
-      return 'Unknown';
-    }
+      return decodeURIComponent(new URLSearchParams(magnetUri.slice(magnetUri.indexOf('?') + 1)).get('dn') ?? '') || 'Unknown';
+    } catch { return 'Unknown'; }
   }
 }

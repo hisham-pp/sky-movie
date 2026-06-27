@@ -20,7 +20,7 @@ export function TorrentPage() {
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Tab bar */}
-      <div className="flex items-center border-b border-white/5 px-4 pt-2">
+      <div className="flex items-center border-b border-white/5 px-4 pt-12">
         {TABS.map((tab) => (
           <button
             key={tab.id}

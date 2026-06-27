@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, FolderOpen } from 'lucide-react';
+import { Switch } from '../ui/Switch';
 import { useTorrentSettings } from '../../hooks/useTorrent';
 import type { TorrentSettings } from '@shared/ipc';
 
@@ -10,13 +10,17 @@ export function TorrentSettingsTab() {
   useEffect(() => { if (settings) setLocal({ ...settings }); }, [settings]);
 
   if (!local) {
-    return <div className="flex items-center justify-center h-full text-white/30 text-sm">Loading settings…</div>;
+    return (
+      <div className="settings-content">
+        <div className="settings-sections">
+          <p className="settings-empty">Loading…</p>
+        </div>
+      </div>
+    );
   }
 
   const patch = <K extends keyof TorrentSettings>(key: K, value: TorrentSettings[K]) =>
     setLocal((prev) => prev ? { ...prev, [key]: value } : prev);
-
-  const handleSave = () => update(local);
 
   const chooseFolder = async (key: 'downloadPath' | 'completedPath') => {
     const chosen = await window.skyMovie.chooseFolder('Choose directory');
@@ -24,110 +28,145 @@ export function TorrentSettingsTab() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+    // settings-content gives us the same overflow-y:auto + padding as the main settings page
+    <div className="settings-content">
+      <div className="settings-sections">
 
-        <Section title="Paths">
-          <FolderField
-            label="Default download directory"
-            value={local.downloadPath}
-            onChange={(v) => patch('downloadPath', v)}
-            onBrowse={() => chooseFolder('downloadPath')}
-          />
-          <div className="flex items-center gap-3 mt-3">
-            <Toggle
-              label="Move completed downloads"
+        {/* ── Paths ─────────────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Paths</h3><p>Where torrent files are saved on disk.</p></div>
+          </div>
+          <div className="settings-form-grid">
+            <PathField
+              label="Default download directory"
+              value={local.downloadPath}
+              onChange={(v) => patch('downloadPath', v)}
+              onBrowse={() => chooseFolder('downloadPath')}
+            />
+            <Switch
+              id="ts-move"
+              label="Move completed downloads to a separate folder"
               checked={local.moveCompleted}
               onChange={(v) => patch('moveCompleted', v)}
             />
+            {local.moveCompleted && (
+              <PathField
+                label="Completed downloads folder"
+                value={local.completedPath}
+                onChange={(v) => patch('completedPath', v)}
+                onBrowse={() => chooseFolder('completedPath')}
+              />
+            )}
           </div>
-          {local.moveCompleted && (
-            <FolderField
-              label="Completed downloads directory"
-              value={local.completedPath}
-              onChange={(v) => patch('completedPath', v)}
-              onBrowse={() => chooseFolder('completedPath')}
-            />
-          )}
-        </Section>
+        </div>
 
-        <Section title="Queue">
-          <NumberField label="Max simultaneous downloads" value={local.maxSimultaneousDownloads} onChange={(v) => patch('maxSimultaneousDownloads', v)} min={1} max={20} />
-          <NumberField label="Max active torrents" value={local.maxActiveTorrents} onChange={(v) => patch('maxActiveTorrents', v)} min={1} max={50} />
-        </Section>
+        {/* ── Queue + Speed side by side ────────────────────────── */}
+        <div className="ts-two-col">
+          <div className="settings-section">
+            <div className="settings-section-heading">
+              <div><h3>Queue</h3><p>Concurrent download limits.</p></div>
+            </div>
+            <div className="settings-form-grid">
+              <InlineNumber label="Max simultaneous downloads" value={local.maxSimultaneousDownloads} min={1} max={20} onChange={(v) => patch('maxSimultaneousDownloads', v)} />
+              <InlineNumber label="Max active torrents"        value={local.maxActiveTorrents}        min={1} max={50} onChange={(v) => patch('maxActiveTorrents', v)} />
+            </div>
+          </div>
 
-        <Section title="Speed Limits (0 = unlimited, bytes/s)">
-          <NumberField label="Download speed limit" value={local.downloadSpeedLimit} onChange={(v) => patch('downloadSpeedLimit', v)} min={0} />
-          <NumberField label="Upload speed limit" value={local.uploadSpeedLimit} onChange={(v) => patch('uploadSpeedLimit', v)} min={0} />
-        </Section>
+          <div className="settings-section">
+            <div className="settings-section-heading">
+              <div><h3>Speed limits</h3><p>Bytes/s — 0 means unlimited.</p></div>
+            </div>
+            <div className="settings-form-grid">
+              <InlineNumber label="Download limit (B/s)" value={local.downloadSpeedLimit} min={0} onChange={(v) => patch('downloadSpeedLimit', v)} />
+              <InlineNumber label="Upload limit (B/s)"   value={local.uploadSpeedLimit}   min={0} onChange={(v) => patch('uploadSpeedLimit', v)} />
+            </div>
+          </div>
+        </div>
 
-        <Section title="Protocol">
-          <Toggle label="Enable DHT"             checked={local.enableDht}  onChange={(v) => patch('enableDht', v)} />
-          <Toggle label="Enable PEX"             checked={local.enablePex}  onChange={(v) => patch('enablePex', v)} />
-          <Toggle label="Enable LSD"             checked={local.enableLsd}  onChange={(v) => patch('enableLsd', v)} />
-          <Toggle label="Sequential download"    checked={local.sequentialDownload} onChange={(v) => patch('sequentialDownload', v)} />
-          <NumberField label="Port" value={local.port} onChange={(v) => patch('port', v)} min={1024} max={65535} />
-          <NumberField label="Max connections"   value={local.maxConnections} onChange={(v) => patch('maxConnections', v)} min={10} max={1000} />
-          <NumberField label="Disk cache (MB)"   value={local.diskCacheSizeMb} onChange={(v) => patch('diskCacheSizeMb', v)} min={16} max={1024} />
-        </Section>
+        {/* ── Protocol ──────────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Protocol</h3><p>Network and connection settings.</p></div>
+          </div>
+          <div className="settings-form-grid">
+            {/* Toggles in a 3-col grid */}
+            <div className="ts-toggle-grid">
+              <Switch id="ts-dht" label="DHT"              checked={local.enableDht}          onChange={(v) => patch('enableDht', v)} />
+              <Switch id="ts-pex" label="PEX"              checked={local.enablePex}          onChange={(v) => patch('enablePex', v)} />
+              <Switch id="ts-lsd" label="LSD"              checked={local.enableLsd}          onChange={(v) => patch('enableLsd', v)} />
+              <Switch id="ts-seq" label="Sequential"       checked={local.sequentialDownload} onChange={(v) => patch('sequentialDownload', v)} />
+            </div>
+            {/* Port / connections / cache in a 3-col grid */}
+            <div className="ts-number-grid">
+              <InlineNumber label="Port"           value={local.port}            min={1024} max={65535} onChange={(v) => patch('port', v)} />
+              <InlineNumber label="Max connections" value={local.maxConnections} min={10}   max={1000}  onChange={(v) => patch('maxConnections', v)} />
+              <InlineNumber label="Disk cache (MB)" value={local.diskCacheSizeMb} min={16} max={1024}  onChange={(v) => patch('diskCacheSizeMb', v)} />
+            </div>
+          </div>
+        </div>
 
-        <Section title="Behaviour">
-          <Toggle label="Auto start downloads"   checked={local.autoStart}   onChange={(v) => patch('autoStart', v)} />
-          <Toggle label="Auto seed after done"   checked={local.autoSeed}    onChange={(v) => patch('autoSeed', v)} />
-          {local.autoSeed && (
-            <NumberField label="Seed ratio limit (0 = no limit)" value={local.seedRatio} onChange={(v) => patch('seedRatio', v)} min={0} step={0.1} />
-          )}
-          <Toggle label="Auto delete after seeding" checked={local.autoDelete} onChange={(v) => patch('autoDelete', v)} />
-        </Section>
+        {/* ── Behaviour ─────────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Behaviour</h3><p>Automatic actions on download start / finish.</p></div>
+          </div>
+          <div className="settings-form-grid">
+            <div className="ts-toggle-grid">
+              <Switch id="ts-autostart"  label="Auto-start"     checked={local.autoStart}   onChange={(v) => patch('autoStart', v)} />
+              <Switch id="ts-autoseed"   label="Auto-seed"      checked={local.autoSeed}    onChange={(v) => patch('autoSeed', v)} />
+              <Switch id="ts-autodelete" label="Delete after seeding" checked={local.autoDelete} onChange={(v) => patch('autoDelete', v)} />
+              {local.autoSeed && (
+                <InlineNumber label="Stop at ratio (0 = never)" value={local.seedRatio} min={0} step={0.1} onChange={(v) => patch('seedRatio', v)} />
+              )}
+            </div>
+          </div>
+        </div>
 
-      </div>
+        {/* ── Save ──────────────────────────────────────────────── */}
+        <div className="settings-actions">
+          <button
+            onClick={() => update(local)}
+            disabled={saving}
+            className="settings-btn-primary"
+          >
+            {saving ? 'Saving…' : 'Save settings'}
+          </button>
+        </div>
 
-      <div className="flex justify-end px-5 py-3 border-t border-white/5">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-50 text-white text-sm font-medium transition-all"
-        >
-          <Save size={14} />
-          {saving ? 'Saving…' : 'Save settings'}
-        </button>
       </div>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// ── Shared sub-components ────────────────────────────────────────────────────
+
+function PathField({ label, value, onChange, onBrowse }: {
+  label: string; value: string; onChange(v: string): void; onBrowse(): void;
+}) {
   return (
-    <div>
-      <h3 className="text-xs font-semibold text-white/30 uppercase tracking-widest mb-3">{title}</h3>
-      <div className="space-y-3">{children}</div>
+    <div className="settings-field">
+      <label className="settings-label">{label}</label>
+      <div className="settings-path-row">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="settings-input"
+        />
+        <button className="settings-btn-ghost" onClick={onBrowse}>Browse</button>
+      </div>
     </div>
   );
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange(v: boolean): void }) {
-  return (
-    <label className="flex items-center justify-between cursor-pointer group">
-      <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors">{label}</span>
-      <button
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative w-9 h-5 rounded-full transition-colors ${checked ? 'bg-[var(--color-primary)]' : 'bg-white/10'}`}
-      >
-        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : ''}`} />
-      </button>
-    </label>
-  );
-}
-
-function NumberField({ label, value, onChange, min, max, step }: {
+function InlineNumber({ label, value, onChange, min, max, step }: {
   label: string; value: number; onChange(v: number): void;
   min?: number; max?: number; step?: number;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <label className="text-sm text-white/60">{label}</label>
+    <div className="switch-row" style={{ justifyContent: 'space-between' }}>
+      <span>{label}</span>
       <input
         type="number"
         value={value}
@@ -135,32 +174,8 @@ function NumberField({ label, value, onChange, min, max, step }: {
         max={max}
         step={step ?? 1}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-28 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-sm text-white/80 text-right focus:outline-none focus:border-white/25 transition-colors"
+        className="settings-number-input"
       />
-    </div>
-  );
-}
-
-function FolderField({ label, value, onChange, onBrowse }: {
-  label: string; value: string; onChange(v: string): void; onBrowse(): void;
-}) {
-  return (
-    <div>
-      <label className="text-xs text-white/40 mb-1 block">{label}</label>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white/70 focus:outline-none focus:border-white/25 transition-colors font-mono text-xs"
-        />
-        <button
-          onClick={onBrowse}
-          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 transition-colors"
-        >
-          <FolderOpen size={14} />
-        </button>
-      </div>
     </div>
   );
 }
