@@ -271,10 +271,27 @@ export class UpdateService {
       const request = net.request(releaseInfo.downloadUrl);
       const fileStream = createWriteStream(filePath);
       let bytesDownloaded = 0;
+      let settled = false;
+
+      const fail = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        fileStream.destroy();
+        unlink(filePath, () => {});
+        reject(error);
+      };
+
+      fileStream.on('finish', () => {
+        if (settled) return;
+        settled = true;
+        resolve(filePath);
+      });
+
+      fileStream.on('error', fail);
 
       request.on('response', (response) => {
         if (response.statusCode !== 200) {
-          reject(new Error(`HTTP ${response.statusCode}`));
+          fail(new Error(`HTTP ${response.statusCode}`));
           return;
         }
 
@@ -285,7 +302,6 @@ export class UpdateService {
           bytesDownloaded += chunk.length;
           fileStream.write(chunk);
 
-          // Send progress updates
           this.sendProgress({
             bytesDownloaded,
             totalBytes,
@@ -295,14 +311,10 @@ export class UpdateService {
 
         response.on('end', () => {
           fileStream.end();
-          resolve(filePath);
         });
       });
 
-      request.on('error', (error) => {
-        fileStream.end();
-        reject(error);
-      });
+      request.on('error', fail);
 
       request.end();
     });
