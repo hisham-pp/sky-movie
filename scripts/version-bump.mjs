@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -156,63 +156,6 @@ async function main() {
   console.log(`\n✅ Successfully released version ${newVersion}!`);
   console.log(`\n🔗 GitHub Actions will now build and create the release.`);
   console.log(`   Watch the progress at: https://github.com/${getRepoPath()}/actions`);
-
-  // Wait 7 minutes then check for newer versions
-  console.log(`\n⏳ Waiting 7 minutes before checking for newer versions...`);
-  await countdown(7 * 60); // 7 minutes in seconds
-
-  console.log(`\n🔍 Checking for newer versions (6 attempts, 1 minute apart)...`);
-  
-  let newerVersionFound = null;
-  
-  for (let i = 0; i < 6; i++) {
-    console.log(`\nAttempt ${i + 1}/6: Checking for newer version...`);
-    const newerVersion = await checkForNewerVersion();
-    
-    if (newerVersion) {
-      newerVersionFound = newerVersion;
-      console.log(`✅ Found newer version: ${newerVersion}`);
-      break;
-    }
-    
-    console.log(`No newer version found yet.`);
-    
-    if (i < 5) {
-      console.log(`Waiting 1 minute before next check...`);
-      await sleep(60 * 1000); // 1 minute
-    }
-  }
-
-  if (newerVersionFound) {
-    console.log(`\n🚀 Newer version ${newerVersionFound} found. Running release:github --skip-sha...`);
-    const releaseResult = spawnSync('pnpm', ['release:github', '--skip-sha'], {
-      cwd: repoRoot,
-      stdio: 'inherit'
-    });
-
-    if (releaseResult.status !== 0) {
-      console.error(`❌ Failed to run release:github --skip-sha`);
-      process.exit(1);
-    }
-    
-    console.log(`\n✅ Successfully ran release:github --skip-sha for version ${newerVersionFound}`);
-    
-    // Auto push the updated releases.json
-    console.log(`\n📤 Pushing updated releases.json to remote...`);
-    const pushResult = spawnSync('git', ['push', 'origin', 'main'], {
-      cwd: repoRoot,
-      stdio: 'inherit'
-    });
-
-    if (pushResult.status !== 0) {
-      console.error(`❌ Failed to push changes`);
-      process.exit(1);
-    }
-    
-    console.log(`✅ Successfully pushed changes to remote`);
-  } else {
-    console.log(`\n✅ No newer version found after 6 attempts. Script completed.`);
-  }
 }
 
 main().catch((error) => {
@@ -431,94 +374,6 @@ function getRepoPath() {
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
-}
-
-async function checkForNewerVersion() {
-  // Get current version from website releases.json
-  const manifestPath = join(repoRoot, 'website', 'public', 'releases.json');
-  
-  let currentVersion;
-  try {
-    if (existsSync(manifestPath)) {
-      const manifest = readJson(manifestPath);
-      currentVersion = manifest.latestVersion;
-      console.log(`   Current version from website: ${currentVersion}`);
-    } else {
-      console.log(`   Website releases.json not found locally`);
-      return null;
-    }
-  } catch (error) {
-    console.log(`   Could not read local releases.json: ${error.message}`);
-    return null;
-  }
-  
-  if (!currentVersion) {
-    console.log(`   No current version found in website manifest`);
-    return null;
-  }
-  
-  // Fetch latest version from GitHub Releases API
-  console.log(`   Fetching latest release from GitHub...`);
-  
-  try {
-    const repoPath = getRepoPath();
-    const response = await fetch(`https://api.github.com/repos/${repoPath}/releases/latest`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'sky-movie-version-checker'
-      }
-    });
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        console.log(`   No GitHub releases found yet`);
-        return null;
-      }
-      console.log(`   GitHub API error: ${response.status}`);
-      return null;
-    }
-    
-    const release = await response.json();
-    const latestVersion = release.tag_name.replace(/^v/, '');
-    
-    console.log(`   Latest GitHub release: ${latestVersion}`);
-
-    // Compare versions
-    const currentParts = currentVersion.split('.').map(Number);
-    const latestParts = latestVersion.split('.').map(Number);
-
-    for (let i = 0; i < 3; i++) {
-      if (latestParts[i] > currentParts[i]) {
-        console.log(`   ✅ ${latestVersion} is newer than ${currentVersion}`);
-        return latestVersion;
-      }
-      if (latestParts[i] < currentParts[i]) {
-        console.log(`   ${latestVersion} is older than ${currentVersion}`);
-        return null;
-      }
-    }
-
-    console.log(`   ${latestVersion} is the same as ${currentVersion}`);
-    return null;
-    
-  } catch (error) {
-    console.log(`   Error fetching GitHub release: ${error.message}`);
-    return null;
-  }
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function countdown(seconds) {
-  for (let i = seconds; i >= 0; i--) {
-    const minutes = Math.floor(i / 60);
-    const secs = i % 60;
-    process.stdout.write(`\r   ${minutes}:${secs.toString().padStart(2, '0')} remaining`);
-    await sleep(1000);
-  }
-  process.stdout.write('\r');
 }
 
 function printHelp() {
