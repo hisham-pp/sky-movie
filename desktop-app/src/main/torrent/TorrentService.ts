@@ -43,8 +43,11 @@ export class TorrentService extends EventEmitter {
     const savePath = opts.savePath ?? this.settings.downloadPath;
     if (!existsSync(savePath)) mkdirSync(savePath, { recursive: true });
 
-    // Skip duplicate
-    const existingTorrent = this.client.torrents.find((t) => t.magnetURI === magnetUri || magnetUri.includes(t.infoHash));
+    // Hash-based duplicate detection (magnet URIs can differ by tracker list)
+    const incomingHash = this.hashFromMagnet(magnetUri);
+    const existingTorrent = this.client.torrents.find(
+      (t) => t.infoHash === incomingHash || (incomingHash && t.infoHash?.toLowerCase() === incomingHash.toLowerCase())
+    );
     if (existingTorrent) {
       const existing = this.infoMap.get(existingTorrent.infoHash);
       if (existing) return existing;
@@ -101,6 +104,17 @@ export class TorrentService extends EventEmitter {
 
       torrent.on('error', (err: Error | string) => {
         const msg = err instanceof Error ? err.message : String(err);
+
+        // WebTorrent itself detected a duplicate — return the existing torrent info
+        if (msg.toLowerCase().includes('cannot add duplicate')) {
+          const hash = torrent.infoHash ?? incomingHash;
+          const existing = hash ? this.infoMap.get(hash) : undefined;
+          if (!resolved) {
+            resolved = true;
+            if (existing) { resolve(existing); return; }
+          }
+        }
+
         const info = this.infoMap.get(torrent.infoHash);
         if (info) { info.status = 'error'; info.error = msg; }
         this.emit('torrent-error', torrent.infoHash ?? 'unknown', msg);
@@ -244,5 +258,10 @@ export class TorrentService extends EventEmitter {
     try {
       return decodeURIComponent(new URLSearchParams(magnetUri.slice(magnetUri.indexOf('?') + 1)).get('dn') ?? '') || 'Unknown';
     } catch { return 'Unknown'; }
+  }
+
+  private hashFromMagnet(magnetUri: string): string {
+    const m = magnetUri.match(/xt=urn:btih:([a-fA-F0-9]{40})/i);
+    return m ? m[1].toLowerCase() : '';
   }
 }
