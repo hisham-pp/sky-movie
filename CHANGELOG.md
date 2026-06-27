@@ -5,6 +5,18 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.8] - 2026-06-27
+
+### Changed
+
+- optimise all renderer pages with memo, useMemo, useCallback and shared date utils (Hisham)
+
+### Other
+
+- add error routing (Hisham)
+- add watch history to the application (Hisham)
+- chore(release): publish Sky Movie 0.6.7 downloads from GitHub (Hisham)
+
 ## [0.6.7] - 2026-06-26
 
 ### Added
@@ -395,3 +407,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.5
 [0.6.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.6
 [0.6.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.7
+[0.6.8]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.8
