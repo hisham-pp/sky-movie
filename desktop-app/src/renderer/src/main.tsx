@@ -19,6 +19,7 @@ import './styles/unrecognized-drawer.css';
 import './styles/playlist.css';
 import './styles/last-watched.css';
 import './styles/watch-history.css';
+import './styles/route-error.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
