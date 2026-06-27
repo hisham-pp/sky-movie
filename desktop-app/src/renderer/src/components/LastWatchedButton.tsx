@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import type { LastWatchedInfo } from '@shared/ipc';
+import { formatPosition } from '../utils/dateUtils';
 
 interface LastWatchedButtonProps {
   onPlay: (mediaFileId: number) => void;
@@ -7,15 +8,7 @@ interface LastWatchedButtonProps {
   activeMediaFileId: number | null;
 }
 
-function formatTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-export function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButtonProps) {
+export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButtonProps) {
   const [info, setInfo] = useState<LastWatchedInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -30,12 +23,10 @@ export function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButt
     }
   }, []);
 
-  // Refresh on mount and whenever the active player changes (e.g. after playback starts/stops)
   useEffect(() => {
     refresh();
   }, [activeMediaFileId, refresh]);
 
-  // Handle Ctrl+L keyboard shortcut trigger
   useEffect(() => {
     const handler = (e: Event) => {
       const mediaFileId = (e as CustomEvent<number>).detail;
@@ -45,25 +36,33 @@ export function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButt
     return () => window.removeEventListener('sky-movie:play-last-watched', handler);
   }, [onPlay]);
 
-  const handlePlay = () => {
+  const handlePlay = useCallback(() => {
     if (!info) return;
     setDismissed(true);
     onPlay(info.mediaFileId);
-  };
+  }, [info, onPlay]);
+
+  const handleDismiss = useCallback(() => setDismissed(true), []);
+  const handleMouseEnter = useCallback(() => setHovered(true), []);
+  const handleMouseLeave = useCallback(() => setHovered(false), []);
+
+  const progress = useMemo(
+    () => (info && info.durationSeconds > 0 ? (info.positionSeconds / info.durationSeconds) * 100 : 0),
+    [info],
+  );
 
   // Don't show if no history, dismissed, or currently playing the same file
   if (!info || dismissed || activeMediaFileId === info.mediaFileId) return null;
 
-  const progress = info.durationSeconds > 0 ? (info.positionSeconds / info.durationSeconds) * 100 : 0;
-  const resumeLabel = info.completed ? 'Play Again' : `Resume at ${formatTime(info.positionSeconds)}`;
+  const resumeLabel = info.completed ? 'Play Again' : `Resume at ${formatPosition(info.positionSeconds)}`;
 
   return (
     <div
       className="last-watched-fab"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <button className="last-watched-dismiss" onClick={() => setDismissed(true)} title="Dismiss">
+      <button className="last-watched-dismiss" onClick={handleDismiss} title="Dismiss">
         ×
       </button>
 
@@ -85,4 +84,4 @@ export function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButt
       )}
     </div>
   );
-}
+});

@@ -1,29 +1,32 @@
+import { memo } from 'react';
 import { Clapperboard, ChevronRight } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
 import { NAV_MAIN, NAV_BOTTOM } from '../config/navItems';
 
-const NavGroup = ({ items, view, onViewChange }: {
+const NavGroup = memo(function NavGroup({ items, view, onViewChange }: {
   items: typeof NAV_MAIN;
   view: ViewMode;
   onViewChange(v: ViewMode): void;
-}) => (
-  <>
-    {items.map(({ view: v, label, icon }) => (
-      <button
-        key={v}
-        className={view === v ? 'active' : ''}
-        onClick={() => onViewChange(v)}
-        title={label}
-      >
-        {icon}
-        <span className="nav-label">{label}</span>
-      </button>
-    ))}
-  </>
-);
+}) {
+  return (
+    <>
+      {items.map(({ view: v, label, icon }) => (
+        <button
+          key={v}
+          className={view === v ? 'active' : ''}
+          onClick={() => onViewChange(v)}
+          title={label}
+        >
+          {icon}
+          <span className="nav-label">{label}</span>
+        </button>
+      ))}
+    </>
+  );
+});
 
-export function Sidebar({
+export const Sidebar = memo(function Sidebar({
   view,
   summary: _summary,
   onViewChange,
@@ -60,4 +63,4 @@ export function Sidebar({
       </nav>
     </aside>
   );
-}
+});

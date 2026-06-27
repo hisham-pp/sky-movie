@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import { ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
 import { PlayerPanel } from '../PlayerPanel';
 
-export function BannerHero({
+export const BannerHero = memo(function BannerHero({
   backdropPath,
   posterContent,
   label,
@@ -46,6 +47,7 @@ export function BannerHero({
               <Play size={16} fill="currentColor" />
             </button>
           )}
+          {actions}
         </div>
       </div>
       {indicators}
@@ -56,9 +58,9 @@ export function BannerHero({
       )}
     </div>
   );
-}
+});
 
-export function BannerIndicators({
+export const BannerIndicators = memo(function BannerIndicators({
   total,
   current,
   onSelect
@@ -81,4 +83,4 @@ export function BannerIndicators({
       ))}
     </div>
   );
-}
+});

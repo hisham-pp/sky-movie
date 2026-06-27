@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { ArrowLeft, ListMusic, Edit2, Trash2, Film, Tv, GripVertical, X, Plus, Grid3x3, List, Play, ExternalLink } from 'lucide-react';
 import type { Playlist, PlaylistItem, Movie, TvShow, MediaFile } from '@shared/ipc';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
@@ -26,7 +26,7 @@ interface PlaylistDetailPageProps {
 
 type ViewMode = 'list' | 'grid';
 
-export function PlaylistDetailPage({
+export const PlaylistDetailPage = memo(function PlaylistDetailPage({
   playlist,
   items,
   busy,
@@ -50,13 +50,10 @@ export function PlaylistDetailPage({
   const [draggedItemId, setDraggedItemId] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handlePlayAll = async () => {
+  const handlePlayAll = useCallback(async () => {
     if (items.length === 0) return;
-    
-    // Get the first item and find its files
     const firstItem = items[0];
     let filesForFirstItem: MediaFile[] = [];
-    
     if (firstItem.mediaKind === 'movie' && firstItem.movie) {
       await onSelectMovie(firstItem.movie);
       filesForFirstItem = selectedFiles;
@@ -64,62 +61,51 @@ export function PlaylistDetailPage({
       await onSelectShow(firstItem.show);
       filesForFirstItem = selectedFiles;
     }
-    
-    // Play the first file if available
-    if (filesForFirstItem.length > 0) {
-      onPlay(filesForFirstItem[0]);
-    }
-  };
+    if (filesForFirstItem.length > 0) onPlay(filesForFirstItem[0]);
+  }, [items, onSelectMovie, onSelectShow, selectedFiles, onPlay]);
 
-  const handleItemClick = (item: PlaylistItem) => {
-    if (item.mediaKind === 'movie' && item.movie) {
-      onViewMovieDetails(item.movie);
-    } else if (item.mediaKind === 'show' && item.show) {
-      onViewShowDetails(item.show);
-    }
-  };
+  const handleItemClick = useCallback((item: PlaylistItem) => {
+    if (item.mediaKind === 'movie' && item.movie) onViewMovieDetails(item.movie);
+    else if (item.mediaKind === 'show' && item.show) onViewShowDetails(item.show);
+  }, [onViewMovieDetails, onViewShowDetails]);
 
-  const handleDragStart = (e: React.DragEvent, item: PlaylistItem, index: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent, item: PlaylistItem) => {
     setDraggedItemId(item.id);
     e.dataTransfer.effectAllowed = 'move';
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDragOverIndex(index);
-  };
+  }, []);
 
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
-  };
+  const handleDragLeave = useCallback(() => setDragOverIndex(null), []);
 
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
-    
     if (draggedItemId === null) return;
-    
-    const draggedItem = items.find(item => item.id === draggedItemId);
-    if (!draggedItem) return;
-
-    const currentIndex = items.findIndex(item => item.id === draggedItemId);
-    if (currentIndex === targetIndex) {
-      setDraggedItemId(null);
-      setDragOverIndex(null);
-      return;
+    const currentIndex = items.findIndex((item) => item.id === draggedItemId);
+    if (currentIndex !== targetIndex) {
+      onReorderItem(playlist.id, draggedItemId, targetIndex);
     }
-
-    // Call the reorder function with new sort order
-    onReorderItem(playlist.id, draggedItemId, targetIndex);
-    
     setDraggedItemId(null);
     setDragOverIndex(null);
-  };
+  }, [draggedItemId, items, onReorderItem, playlist.id]);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     setDraggedItemId(null);
     setDragOverIndex(null);
-  };
+  }, []);
+
+  const handleOpenAddDialog = useCallback(() => setShowAddDialog(true), []);
+  const handleCloseAddDialog = useCallback(() => setShowAddDialog(false), []);
+  const handleAddToPlaylist = useCallback(
+    (mediaKind: 'movie' | 'show', itemId: number) => onAddToPlaylist(playlist.id, mediaKind, itemId),
+    [onAddToPlaylist, playlist.id],
+  );
+  const handleSetListView = useCallback(() => setViewMode('list'), []);
+  const handleSetGridView = useCallback(() => setViewMode('grid'), []);
 
   return (
     <section className="media-detail-page playlist-detail-page">
@@ -129,14 +115,14 @@ export function PlaylistDetailPage({
             {items.slice(0, 6).map((item, index) => {
               const posterPath = item.movie?.posterPath || item.show?.posterPath;
               return posterPath ? (
-                <img key={item.id} src={posterPath} alt="" style={{ '--delay': index } as any} />
+                <img key={item.id} src={posterPath} alt="" style={{ '--delay': index } as React.CSSProperties} />
               ) : null;
             })}
           </div>
           <div className="playlist-backdrop-overlay"></div>
         </div>
       )}
-      
+
       <div className="detail-hero">
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={17} />
@@ -175,40 +161,16 @@ export function PlaylistDetailPage({
               <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
             </div>
             <div className="playlist-actions">
-              <Button
-                variant="primary"
-                size="medium"
-                icon={<Play />}
-                onClick={handlePlayAll}
-                disabled={busy || items.length === 0}
-              >
+              <Button variant="primary" size="medium" icon={<Play />} onClick={handlePlayAll} disabled={busy || items.length === 0}>
                 Play All
               </Button>
-              <Button
-                variant="secondary"
-                size="medium"
-                icon={<Plus />}
-                onClick={() => setShowAddDialog(true)}
-                disabled={busy}
-              >
+              <Button variant="secondary" size="medium" icon={<Plus />} onClick={handleOpenAddDialog} disabled={busy}>
                 Add Items
               </Button>
-              <Button
-                variant="secondary"
-                size="medium"
-                icon={<Edit2 />}
-                onClick={onEdit}
-                disabled={busy}
-              >
+              <Button variant="secondary" size="medium" icon={<Edit2 />} onClick={onEdit} disabled={busy}>
                 Edit
               </Button>
-              <Button
-                variant="danger"
-                size="medium"
-                icon={<Trash2 />}
-                onClick={onDelete}
-                disabled={busy}
-              >
+              <Button variant="danger" size="medium" icon={<Trash2 />} onClick={onDelete} disabled={busy}>
                 Delete
               </Button>
             </div>
@@ -223,18 +185,10 @@ export function PlaylistDetailPage({
             <span>{items.length} items</span>
           </div>
           <div className="view-mode-toggle">
-            <button
-              className={viewMode === 'list' ? 'active' : ''}
-              onClick={() => setViewMode('list')}
-              title="List view"
-            >
+            <button className={viewMode === 'list' ? 'active' : ''} onClick={handleSetListView} title="List view">
               <List size={18} />
             </button>
-            <button
-              className={viewMode === 'grid' ? 'active' : ''}
-              onClick={() => setViewMode('grid')}
-              title="Grid view"
-            >
+            <button className={viewMode === 'grid' ? 'active' : ''} onClick={handleSetGridView} title="Grid view">
               <Grid3x3 size={18} />
             </button>
           </div>
@@ -248,20 +202,14 @@ export function PlaylistDetailPage({
                   key={item.id}
                   className={`playlist-item-row ${draggedItemId === item.id ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
                   draggable
-                  onDragStart={(e) => handleDragStart(e, item, index)}
+                  onDragStart={(e) => handleDragStart(e, item)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, index)}
                   onDragEnd={handleDragEnd}
                 >
-                  <div className="playlist-item-drag-handle">
-                    <GripVertical size={16} />
-                  </div>
-                  <div 
-                    className="playlist-item-poster"
-                    onClick={() => handleItemClick(item)}
-                    style={{ cursor: 'pointer' }}
-                  >
+                  <div className="playlist-item-drag-handle"><GripVertical size={16} /></div>
+                  <div className="playlist-item-poster" onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
                     {item.movie?.posterPath || item.show?.posterPath ? (
                       <img src={(item.movie?.posterPath || item.show?.posterPath)!} alt="" />
                     ) : (
@@ -270,11 +218,7 @@ export function PlaylistDetailPage({
                       </div>
                     )}
                   </div>
-                  <div 
-                    className="playlist-item-info"
-                    onClick={() => handleItemClick(item)}
-                    style={{ cursor: 'pointer', flex: 1 }}
-                  >
+                  <div className="playlist-item-info" onClick={() => handleItemClick(item)} style={{ cursor: 'pointer', flex: 1 }}>
                     <strong>{item.movie?.title || item.show?.title}</strong>
                     <small>
                       {item.mediaKind === 'movie'
@@ -282,25 +226,10 @@ export function PlaylistDetailPage({
                         : `TV Show • ${item.show?.firstAirYear || 'Unknown year'}`}
                     </small>
                   </div>
-                  <button
-                    className="playlist-item-view"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleItemClick(item);
-                    }}
-                    title="View details"
-                  >
+                  <button className="playlist-item-view" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }} title="View details">
                     <ExternalLink size={16} />
                   </button>
-                  <button
-                    className="playlist-item-remove"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveItem(item.id);
-                    }}
-                    disabled={busy}
-                    title="Remove from playlist"
-                  >
+                  <button className="playlist-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} title="Remove from playlist">
                     <X size={16} />
                   </button>
                 </div>
@@ -313,7 +242,7 @@ export function PlaylistDetailPage({
                   key={item.id}
                   className={`playlist-grid-item ${draggedItemId === item.id ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
                   draggable
-                  onDragStart={(e) => handleDragStart(e, item, index)}
+                  onDragStart={(e) => handleDragStart(e, item)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, index)}
@@ -321,18 +250,8 @@ export function PlaylistDetailPage({
                   onClick={() => handleItemClick(item)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <div className="playlist-grid-item-drag-handle">
-                    <GripVertical size={14} />
-                  </div>
-                  <button
-                    className="playlist-grid-item-remove"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveItem(item.id);
-                    }}
-                    disabled={busy}
-                    title="Remove from playlist"
-                  >
+                  <div className="playlist-grid-item-drag-handle"><GripVertical size={14} /></div>
+                  <button className="playlist-grid-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} title="Remove from playlist">
                     <X size={14} />
                   </button>
                   <div className="playlist-grid-item-poster">
@@ -347,9 +266,7 @@ export function PlaylistDetailPage({
                   <div className="playlist-grid-item-info">
                     <strong>{item.movie?.title || item.show?.title}</strong>
                     <small>
-                      {item.mediaKind === 'movie'
-                        ? item.movie?.releaseYear || 'Unknown'
-                        : item.show?.firstAirYear || 'Unknown'}
+                      {item.mediaKind === 'movie' ? item.movie?.releaseYear || 'Unknown' : item.show?.firstAirYear || 'Unknown'}
                     </small>
                   </div>
                   <div className="playlist-grid-item-type">
@@ -364,13 +281,7 @@ export function PlaylistDetailPage({
             <ListMusic size={32} />
             <span>This playlist is empty</span>
             <p>Add movies and TV shows to your playlist</p>
-            <Button
-              variant="primary"
-              size="medium"
-              icon={<Plus />}
-              onClick={() => setShowAddDialog(true)}
-              disabled={busy}
-            >
+            <Button variant="primary" size="medium" icon={<Plus />} onClick={handleOpenAddDialog} disabled={busy}>
               Add Items
             </Button>
           </div>
@@ -384,12 +295,10 @@ export function PlaylistDetailPage({
           shows={shows}
           existingItems={items}
           busy={busy}
-          onAdd={(mediaKind, itemId) => {
-            onAddToPlaylist(playlist.id, mediaKind, itemId);
-          }}
-          onClose={() => setShowAddDialog(false)}
+          onAdd={handleAddToPlaylist}
+          onClose={handleCloseAddDialog}
         />
       )}
     </section>
   );
-}
+});

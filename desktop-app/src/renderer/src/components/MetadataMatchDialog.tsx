@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Movie, MovieMetadataSearchResult } from '@shared/ipc';
 
 export interface MetadataMatchPrompt {
@@ -5,7 +6,7 @@ export interface MetadataMatchPrompt {
   results: MovieMetadataSearchResult[];
 }
 
-export function MetadataMatchDialog({
+export const MetadataMatchDialog = memo(function MetadataMatchDialog({
   prompt,
   busy,
   onApply,
@@ -16,9 +17,7 @@ export function MetadataMatchDialog({
   onApply(result: MovieMetadataSearchResult): void;
   onSkip(): void;
 }) {
-  if (!prompt) {
-    return null;
-  }
+  if (!prompt) return null;
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -28,9 +27,7 @@ export function MetadataMatchDialog({
             <span>TMDB match review</span>
             <h2 id="metadata-match-title">{prompt.movie.title}</h2>
           </div>
-          <button disabled={busy} onClick={onSkip}>
-            Skip
-          </button>
+          <button disabled={busy} onClick={onSkip}>Skip</button>
         </header>
 
         <div className="metadata-match-list">
@@ -48,4 +45,4 @@ export function MetadataMatchDialog({
       </section>
     </div>
   );
-}
+});

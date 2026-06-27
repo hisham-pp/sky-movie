@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Tv2 } from 'lucide-react';
 import type { TvShow, PlayMediaResult } from '@shared/ipc';
 import { ShowTile } from '../LibraryTile';
@@ -7,7 +7,7 @@ import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
 
-export function BrowseTvShowsPage({
+export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   shows,
   selectedShow,
   player,
@@ -25,7 +25,6 @@ export function BrowseTvShowsPage({
   const showsWithBackdrop = useMemo(() => shows.filter((s) => s.backdropPath), [shows]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  // Auto-rotate banner only when nothing is selected
   useEffect(() => {
     if (!selectedShow && showsWithBackdrop.length > 0) {
       const interval = setInterval(() => {
@@ -35,17 +34,21 @@ export function BrowseTvShowsPage({
     }
   }, [selectedShow, showsWithBackdrop.length]);
 
-  // Update banner index when show is selected
   useEffect(() => {
     if (selectedShow && showsWithBackdrop.length > 0) {
       const index = showsWithBackdrop.findIndex((s) => s.id === selectedShow.id);
-      if (index !== -1) {
-        setCurrentBannerIndex(index);
-      }
+      if (index !== -1) setCurrentBannerIndex(index);
     }
   }, [selectedShow, showsWithBackdrop]);
 
   const bannerShow = selectedShow || showsWithBackdrop[currentBannerIndex];
+
+  const handleBannerPlay = useCallback(
+    () => bannerShow && onSelectShow(bannerShow),
+    [bannerShow, onSelectShow],
+  );
+
+  const showCount = shows.length;
 
   return (
     <div className="browse-grid">
@@ -72,7 +75,7 @@ export function BrowseTvShowsPage({
                 {bannerShow.rating && <span>★ {bannerShow.rating.toFixed(1)}</span>}
               </>
             ) : (
-              <span>{shows.length} show{shows.length !== 1 ? 's' : ''}</span>
+              <span>{showCount} show{showCount !== 1 ? 's' : ''}</span>
             )
           }
           indicators={
@@ -82,15 +85,15 @@ export function BrowseTvShowsPage({
               onSelect={setCurrentBannerIndex}
             />
           }
-          onPlay={bannerShow ? () => onSelectShow(bannerShow) : undefined}
+          onPlay={bannerShow ? handleBannerPlay : undefined}
           player={player}
           onOpenExternal={onOpenExternal}
         />
 
         <LibraryFilters />
-        <SectionTitle title="Current TV Shows" count={shows.length} />
+        <SectionTitle title="Current TV Shows" count={showCount} />
 
-        {shows.length > 0 ? (
+        {showCount > 0 ? (
           <div className="poster-grid">
             {shows.map((show) => (
               <ShowTile
@@ -113,4 +116,4 @@ export function BrowseTvShowsPage({
       </section>
     </div>
   );
-}
+});

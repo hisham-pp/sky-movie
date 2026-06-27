@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 import { Film, Tv, Plus } from 'lucide-react';
 import type { Playlist, PlaylistItem, Movie, TvShow } from '@shared/ipc';
 import { Modal } from '../common';
@@ -13,7 +13,7 @@ interface AddToPlaylistDialogProps {
   onClose(): void;
 }
 
-export function AddToPlaylistDialog({
+export const AddToPlaylistDialog = memo(function AddToPlaylistDialog({
   playlist,
   movies,
   shows,
@@ -25,37 +25,39 @@ export function AddToPlaylistDialog({
   const [activeTab, setActiveTab] = useState<'movies' | 'shows'>('movies');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const existingMovieIds = new Set(existingItems.filter(i => i.mediaKind === 'movie').map(i => i.movieId));
-  const existingShowIds = new Set(existingItems.filter(i => i.mediaKind === 'show').map(i => i.showId));
+  const existingMovieIds = useMemo(
+    () => new Set(existingItems.filter((i) => i.mediaKind === 'movie').map((i) => i.movieId)),
+    [existingItems],
+  );
+  const existingShowIds = useMemo(
+    () => new Set(existingItems.filter((i) => i.mediaKind === 'show').map((i) => i.showId)),
+    [existingItems],
+  );
 
-  const filteredMovies = movies
-    .filter(m => !existingMovieIds.has(m.id))
-    .filter(m => 
-      searchQuery === '' || 
-      m.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const q = searchQuery.toLowerCase();
 
-  const filteredShows = shows
-    .filter(s => !existingShowIds.has(s.id))
-    .filter(s => 
-      searchQuery === '' || 
-      s.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filteredMovies = useMemo(
+    () => movies.filter((m) => !existingMovieIds.has(m.id) && (q === '' || m.title.toLowerCase().includes(q))),
+    [movies, existingMovieIds, q],
+  );
+
+  const filteredShows = useMemo(
+    () => shows.filter((s) => !existingShowIds.has(s.id) && (q === '' || s.title.toLowerCase().includes(q))),
+    [shows, existingShowIds, q],
+  );
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value), []);
+  const handleMoviesTab = useCallback(() => setActiveTab('movies'), []);
+  const handleShowsTab = useCallback(() => setActiveTab('shows'), []);
 
   return (
     <Modal isOpen={true} onClose={onClose} title={`Add to ${playlist.name}`} maxWidth="large">
       <div className="add-to-playlist-tabs">
-        <button
-          className={activeTab === 'movies' ? 'active' : ''}
-          onClick={() => setActiveTab('movies')}
-        >
+        <button className={activeTab === 'movies' ? 'active' : ''} onClick={handleMoviesTab}>
           <Film size={16} />
           Movies ({filteredMovies.length})
         </button>
-        <button
-          className={activeTab === 'shows' ? 'active' : ''}
-          onClick={() => setActiveTab('shows')}
-        >
+        <button className={activeTab === 'shows' ? 'active' : ''} onClick={handleShowsTab}>
           <Tv size={16} />
           TV Shows ({filteredShows.length})
         </button>
@@ -66,7 +68,7 @@ export function AddToPlaylistDialog({
           type="text"
           placeholder={`Search ${activeTab}...`}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
 
@@ -74,19 +76,12 @@ export function AddToPlaylistDialog({
         {activeTab === 'movies' ? (
           filteredMovies.length > 0 ? (
             filteredMovies.map((movie) => (
-              <button
-                key={movie.id}
-                className="add-to-playlist-item"
-                onClick={() => onAdd('movie', movie.id)}
-                disabled={busy}
-              >
+              <button key={movie.id} className="add-to-playlist-item" onClick={() => onAdd('movie', movie.id)} disabled={busy}>
                 <div className="add-to-playlist-item-poster">
                   {movie.posterPath ? (
                     <img src={movie.posterPath} alt="" />
                   ) : (
-                    <div className="add-to-playlist-item-poster-placeholder">
-                      <Film size={20} />
-                    </div>
+                    <div className="add-to-playlist-item-poster-placeholder"><Film size={20} /></div>
                   )}
                 </div>
                 <div className="add-to-playlist-item-info">
@@ -106,19 +101,12 @@ export function AddToPlaylistDialog({
         ) : (
           filteredShows.length > 0 ? (
             filteredShows.map((show) => (
-              <button
-                key={show.id}
-                className="add-to-playlist-item"
-                onClick={() => onAdd('show', show.id)}
-                disabled={busy}
-              >
+              <button key={show.id} className="add-to-playlist-item" onClick={() => onAdd('show', show.id)} disabled={busy}>
                 <div className="add-to-playlist-item-poster">
                   {show.posterPath ? (
                     <img src={show.posterPath} alt="" />
                   ) : (
-                    <div className="add-to-playlist-item-poster-placeholder">
-                      <Tv size={20} />
-                    </div>
+                    <div className="add-to-playlist-item-poster-placeholder"><Tv size={20} /></div>
                   )}
                 </div>
                 <div className="add-to-playlist-item-info">
@@ -139,4 +127,4 @@ export function AddToPlaylistDialog({
       </div>
     </Modal>
   );
-}
+});

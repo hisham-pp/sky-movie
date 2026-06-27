@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Clapperboard, Play, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
 import { PlayerPanel } from '../PlayerPanel';
@@ -30,7 +30,7 @@ type MovieDetailPageProps =  {
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }
 
-export function MovieDetailPage({
+export const MovieDetailPage = memo(function MovieDetailPage({
   movie,
   files,
   metadataQuery,
@@ -50,12 +50,20 @@ export function MovieDetailPage({
   onAddToPlaylist
 }:MovieDetailPageProps) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
-  const meta = [
+
+  const meta = useMemo(() => [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
     movie.runtimeMinutes ? `${movie.runtimeMinutes} min` : null,
     movie.rating ? `${movie.rating.toFixed(1)} rating` : null,
-    `${files.length} local file${files.length === 1 ? '' : 's'}`
-  ].filter(Boolean);
+    `${files.length} local file${files.length === 1 ? '' : 's'}`,
+  ].filter(Boolean), [movie.releaseYear, movie.runtimeMinutes, movie.rating, files.length]);
+
+  const handleOpenPlaylistDialog = useCallback(() => setShowPlaylistDialog(true), []);
+  const handleClosePlaylistDialog = useCallback(() => setShowPlaylistDialog(false), []);
+  const handleSelectPlaylist = useCallback((playlistId: number) => {
+    onAddToPlaylist(playlistId, 'movie', movie.id);
+    setShowPlaylistDialog(false);
+  }, [onAddToPlaylist, movie.id]);
 
   return (
     <section className="media-detail-page movie-detail-page">
@@ -89,7 +97,7 @@ export function MovieDetailPage({
               variant="secondary"
               size="medium"
               icon={<ListMusic />}
-              onClick={() => setShowPlaylistDialog(true)}
+              onClick={handleOpenPlaylistDialog}
               disabled={busy || playlists.length === 0}
               title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
             >
@@ -129,13 +137,10 @@ export function MovieDetailPage({
       {showPlaylistDialog && (
         <PlaylistSelectorDialog
           playlists={playlists}
-          onSelect={(playlistId) => {
-            onAddToPlaylist(playlistId, 'movie', movie.id);
-            setShowPlaylistDialog(false);
-          }}
-          onClose={() => setShowPlaylistDialog(false)}
+          onSelect={handleSelectPlaylist}
+          onClose={handleClosePlaylistDialog}
         />
       )}
     </section>
   );
-}
+});

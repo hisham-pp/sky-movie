@@ -1,9 +1,10 @@
+import { memo, useCallback } from 'react';
 import { Star } from 'lucide-react';
 import type { MovieMetadataSearchResult, TvMetadataSearchResult } from '@shared/ipc';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
-export function MetadataTools({
+export const MetadataTools = memo(function MetadataTools({
   label,
   overview,
   meta,
@@ -24,6 +25,13 @@ export function MetadataTools({
   onSearchMetadata(): void;
   onApplyMetadata(result: MetadataResult): void;
 }) {
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => onMetadataQueryChange(e.target.value),
+    [onMetadataQueryChange],
+  );
+
+  const metaDisplay = meta.filter(Boolean).join(' / ');
+
   return (
     <section className="detail-card metadata-panel">
       <div>
@@ -32,12 +40,12 @@ export function MetadataTools({
           {label}
         </strong>
         <p>{overview ?? 'No overview stored yet.'}</p>
-        <span>{meta.filter(Boolean).join(' / ')}</span>
+        <span>{metaDisplay}</span>
       </div>
       <div className="metadata-search">
         <input
           value={metadataQuery}
-          onChange={(event) => onMetadataQueryChange(event.target.value)}
+          onChange={handleInputChange}
           placeholder="Search TMDB metadata"
         />
         <button disabled={busy} onClick={onSearchMetadata}>
@@ -57,4 +65,4 @@ export function MetadataTools({
       </div>
     </section>
   );
-}
+});

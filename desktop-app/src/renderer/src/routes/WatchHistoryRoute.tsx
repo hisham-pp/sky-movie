@@ -20,14 +20,14 @@ export function WatchHistoryRoute() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handlePlay = (item: WatchHistoryItem) => {
+  const handlePlay = useCallback((item: WatchHistoryItem) => {
     library.playById(item.mediaFileId);
-  };
+  }, [library]);
 
-  const handleClear = async () => {
+  const handleClear = useCallback(async () => {
     await window.skyMovie.clearWatchHistory();
     setItems([]);
-  };
+  }, []);
 
   return (
     <WatchHistoryPage

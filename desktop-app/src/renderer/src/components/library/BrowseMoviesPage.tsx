@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Clapperboard } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
 import { MovieTile } from '../LibraryTile';
@@ -7,7 +7,7 @@ import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
 
-export function BrowseMoviesPage({
+export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   movies,
   selectedMovie,
   player,
@@ -25,7 +25,6 @@ export function BrowseMoviesPage({
   const moviesWithBackdrop = useMemo(() => movies.filter((m) => m.backdropPath), [movies]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  // Auto-rotate banner only when nothing is selected
   useEffect(() => {
     if (!selectedMovie && moviesWithBackdrop.length > 0) {
       const interval = setInterval(() => {
@@ -35,17 +34,21 @@ export function BrowseMoviesPage({
     }
   }, [selectedMovie, moviesWithBackdrop.length]);
 
-  // Update banner index when movie is selected
   useEffect(() => {
     if (selectedMovie && moviesWithBackdrop.length > 0) {
       const index = moviesWithBackdrop.findIndex((m) => m.id === selectedMovie.id);
-      if (index !== -1) {
-        setCurrentBannerIndex(index);
-      }
+      if (index !== -1) setCurrentBannerIndex(index);
     }
   }, [selectedMovie, moviesWithBackdrop]);
 
   const bannerMovie = selectedMovie || moviesWithBackdrop[currentBannerIndex];
+
+  const handleBannerPlay = useCallback(
+    () => bannerMovie && onSelectMovie(bannerMovie),
+    [bannerMovie, onSelectMovie],
+  );
+
+  const movieCount = movies.length;
 
   return (
     <div className="browse-grid">
@@ -72,7 +75,7 @@ export function BrowseMoviesPage({
                 {bannerMovie.rating && <span>★ {bannerMovie.rating.toFixed(1)}</span>}
               </>
             ) : (
-              <span>{movies.length} movie{movies.length !== 1 ? 's' : ''}</span>
+              <span>{movieCount} movie{movieCount !== 1 ? 's' : ''}</span>
             )
           }
           indicators={
@@ -82,15 +85,15 @@ export function BrowseMoviesPage({
               onSelect={setCurrentBannerIndex}
             />
           }
-          onPlay={bannerMovie ? () => onSelectMovie(bannerMovie) : undefined}
+          onPlay={bannerMovie ? handleBannerPlay : undefined}
           player={player}
           onOpenExternal={onOpenExternal}
         />
 
         <LibraryFilters />
-        <SectionTitle title="Current Movies" count={movies.length} />
+        <SectionTitle title="Current Movies" count={movieCount} />
 
-        {movies.length > 0 ? (
+        {movieCount > 0 ? (
           <div className="poster-grid">
             {movies.map((movie) => (
               <MovieTile
@@ -113,4 +116,4 @@ export function BrowseMoviesPage({
       </section>
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Calendar, Play, Star, Tv2, FolderSearch, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
 import { PlayerPanel } from '../PlayerPanel';
@@ -11,7 +11,7 @@ import { Button } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
-export function SeriesDetailPage({
+export const SeriesDetailPage = memo(function SeriesDetailPage({
   show,
   episodes,
   files,
@@ -51,27 +51,34 @@ export function SeriesDetailPage({
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
 }) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
-  const seasons = groupEpisodesBySeason(episodes);
-  
-  // Map files to episodes based on filename patterns
-  const episodeFileMap = new Map<number, MediaFile>();
-  files.forEach((file) => {
-    const fileName = file.fileName.toLowerCase();
-    // Match patterns like S01E01, s01e01, 1x01, etc.
-    const match = fileName.match(/s(\d+)e(\d+)|(\d+)x(\d+)/i);
-    if (match) {
-      const seasonNum = parseInt(match[1] || match[3], 10);
-      const episodeNum = parseInt(match[2] || match[4], 10);
-      
-      const episode = episodes.find(
-        (ep) => ep.seasonNumber === seasonNum && ep.episodeNumber === episodeNum
-      );
-      
-      if (episode) {
-        episodeFileMap.set(episode.id, file);
+
+  const seasons = useMemo(() => groupEpisodesBySeason(episodes), [episodes]);
+
+  const episodeFileMap = useMemo(() => {
+    const map = new Map<number, MediaFile>();
+    files.forEach((file) => {
+      const match = file.fileName.toLowerCase().match(/s(\d+)e(\d+)|(\d+)x(\d+)/i);
+      if (match) {
+        const seasonNum = parseInt(match[1] || match[3], 10);
+        const episodeNum = parseInt(match[2] || match[4], 10);
+        const episode = episodes.find((ep) => ep.seasonNumber === seasonNum && ep.episodeNumber === episodeNum);
+        if (episode) map.set(episode.id, file);
       }
-    }
-  });
+    });
+    return map;
+  }, [files, episodes]);
+
+  const meta = useMemo(
+    () => [show.firstAirYear ?? 'Unknown year', show.rating ? `${show.rating.toFixed(1)} rating` : null],
+    [show.firstAirYear, show.rating],
+  );
+
+  const handleOpenPlaylistDialog = useCallback(() => setShowPlaylistDialog(true), []);
+  const handleClosePlaylistDialog = useCallback(() => setShowPlaylistDialog(false), []);
+  const handleSelectPlaylist = useCallback((playlistId: number) => {
+    onAddToPlaylist(playlistId, 'show', show.id);
+    setShowPlaylistDialog(false);
+  }, [onAddToPlaylist, show.id]);
 
   return (
     <section className="media-detail-page series-detail-page">
@@ -107,7 +114,7 @@ export function SeriesDetailPage({
           variant="secondary"
           size="medium"
           icon={<ListMusic />}
-          onClick={() => setShowPlaylistDialog(true)}
+          onClick={handleOpenPlaylistDialog}
           disabled={busy || playlists.length === 0}
           title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
         >
@@ -138,8 +145,8 @@ export function SeriesDetailPage({
                             <strong>{episode.title ?? `Episode ${episode.episodeNumber}`}</strong>
                             <small>{episode.runtimeMinutes ? `${episode.runtimeMinutes} min` : episode.airDate ?? 'No runtime'}</small>
                             {episodeFile && (
-                              <button 
-                                className="episode-play-button" 
+                              <button
+                                className="episode-play-button"
                                 onClick={() => onPlay(episodeFile)}
                                 title={`Play: ${episodeFile.fileName}`}
                               >
@@ -175,7 +182,7 @@ export function SeriesDetailPage({
           <MetadataTools
             label="Series metadata"
             overview={show.overview}
-            meta={[show.firstAirYear ?? 'Unknown year', show.rating ? `${show.rating.toFixed(1)} rating` : null]}
+            meta={meta}
             metadataQuery={metadataQuery}
             metadataResults={metadataResults}
             busy={busy}
@@ -189,13 +196,10 @@ export function SeriesDetailPage({
       {showPlaylistDialog && (
         <PlaylistSelectorDialog
           playlists={playlists}
-          onSelect={(playlistId) => {
-            onAddToPlaylist(playlistId, 'show', show.id);
-            setShowPlaylistDialog(false);
-          }}
-          onClose={() => setShowPlaylistDialog(false)}
+          onSelect={handleSelectPlaylist}
+          onClose={handleClosePlaylistDialog}
         />
       )}
     </section>
   );
-}
+});

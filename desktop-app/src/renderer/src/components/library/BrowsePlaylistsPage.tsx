@@ -1,9 +1,10 @@
+import { memo, useCallback } from 'react';
 import { ListMusic, Plus } from 'lucide-react';
 import type { Playlist } from '@shared/ipc';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { SectionTitle } from './SectionTitle';
 
-export function BrowsePlaylistsPage({
+export const BrowsePlaylistsPage = memo(function BrowsePlaylistsPage({
   playlists,
   onSelectPlaylist,
   onCreatePlaylist: _onCreatePlaylist,
@@ -18,10 +19,11 @@ export function BrowsePlaylistsPage({
   setShowCreateModal(show: boolean): void;
   busy: boolean;
 }) {
+  const handleOpenCreate = useCallback(() => setShowCreateModal(true), [setShowCreateModal]);
+
   return (
     <div className="browse-grid">
       <section className="library-list">
-        {/* Page header */}
         <div className="playlist-browse-header">
           <div className="playlist-browse-header-icon">
             <ListMusic size={28} />
@@ -33,7 +35,7 @@ export function BrowsePlaylistsPage({
           </div>
           <button
             className="playlist-browse-create-btn"
-            onClick={() => setShowCreateModal(true)}
+            onClick={handleOpenCreate}
             disabled={busy}
           >
             <Plus size={16} />
@@ -73,4 +75,4 @@ export function BrowsePlaylistsPage({
       </section>
     </div>
   );
-}
+});

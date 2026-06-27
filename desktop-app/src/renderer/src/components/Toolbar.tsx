@@ -1,6 +1,7 @@
-import { Search, Sparkles, AlertTriangle } from 'lucide-react';
+import { memo } from 'react';
+import { Search, AlertTriangle } from 'lucide-react';
 
-export function Toolbar({
+export const Toolbar = memo(function Toolbar({
   onOpenSearch,
   unmatchedCount,
   onOpenUnrecognized
@@ -37,4 +38,4 @@ export function Toolbar({
       </div>
     </header>
   );
-}
+});

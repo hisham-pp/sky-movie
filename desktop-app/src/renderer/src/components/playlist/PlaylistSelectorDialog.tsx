@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { ListMusic, Plus } from 'lucide-react';
 import type { Playlist } from '@shared/ipc';
 import { Modal } from '../common';
 
-export function PlaylistSelectorDialog({
+export const PlaylistSelectorDialog = memo(function PlaylistSelectorDialog({
   playlists,
   onSelect,
   onClose
@@ -39,4 +40,4 @@ export function PlaylistSelectorDialog({
       )}
     </Modal>
   );
-}
+});

@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import type { ScanResult } from '@shared/ipc';
 
-export function StatusBar({ status, lastScan }: { status: string; lastScan: ScanResult | null }) {
+export const StatusBar = memo(function StatusBar({ status, lastScan }: { status: string; lastScan: ScanResult | null }) {
   return (
     <footer className="statusbar">
       <span>{status}</span>
@@ -11,4 +12,4 @@ export function StatusBar({ status, lastScan }: { status: string; lastScan: Scan
       ) : null}
     </footer>
   );
-}
+});

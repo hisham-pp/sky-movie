@@ -1,5 +1,5 @@
+import { memo, useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { Search, Film, Tv, ListMusic, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 import { Modal } from './common';
 import { ALL_NAV_ITEMS } from '../config/navItems';
@@ -32,7 +32,7 @@ const ALL_NAV_RESULT_ITEMS: NavResultItem[] = ALL_NAV_ITEMS.map((n) => ({
   icon: n.iconLg,
 }));
 
-export function SearchModal({
+export const SearchModal = memo(function SearchModal({
   isOpen,
   onClose,
   movies,
@@ -56,37 +56,40 @@ export function SearchModal({
 
   const q = query.toLowerCase();
 
-  const filteredNav = query
-    ? ALL_NAV_RESULT_ITEMS.filter((n) => n.label.toLowerCase().includes(q))
-    : ALL_NAV_RESULT_ITEMS;
+  const filteredNav = useMemo(
+    () => query ? ALL_NAV_RESULT_ITEMS.filter((n) => n.label.toLowerCase().includes(q)) : ALL_NAV_RESULT_ITEMS,
+    [q, query],
+  );
 
-  const filteredMovies = query
-    ? movies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 6)
-    : [];
+  const filteredMovies = useMemo(
+    () => query ? movies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 6) : [],
+    [movies, q, query],
+  );
 
-  const filteredShows = query
-    ? shows.filter((s) => s.title.toLowerCase().includes(q)).slice(0, 6)
-    : [];
+  const filteredShows = useMemo(
+    () => query ? shows.filter((s) => s.title.toLowerCase().includes(q)).slice(0, 6) : [],
+    [shows, q, query],
+  );
 
-  const filteredPlaylists = query
-    ? playlists.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 4)
-    : [];
+  const filteredPlaylists = useMemo(
+    () => query ? playlists.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 4) : [],
+    [playlists, q, query],
+  );
 
-  // Nav first (prioritized), then content results
-  const allItems: AnyItem[] = [
+  const allItems: AnyItem[] = useMemo(() => [
     ...filteredNav,
     ...filteredMovies.map((data): ResultItem => ({ kind: 'movie', data })),
     ...filteredShows.map((data): ResultItem => ({ kind: 'show', data })),
     ...filteredPlaylists.map((data): ResultItem => ({ kind: 'playlist', data })),
-  ];
+  ], [filteredNav, filteredMovies, filteredShows, filteredPlaylists]);
 
-  const selectItem = (item: AnyItem) => {
+  const selectItem = useCallback((item: AnyItem) => {
     if (item.kind === 'nav') { onNavigate(item.path); onClose(); return; }
     if (item.kind === 'movie') onSelectMovie(item.data);
     else if (item.kind === 'show') onSelectShow(item.data);
     else onSelectPlaylist(item.data);
     onClose();
-  };
+  }, [onNavigate, onClose, onSelectMovie, onSelectShow, onSelectPlaylist]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -96,7 +99,6 @@ export function SearchModal({
         return;
       }
       if (!isOpen) return;
-
       if (e.key === 'Escape') {
         onClose();
       } else if (e.key === 'ArrowDown') {
@@ -110,18 +112,19 @@ export function SearchModal({
         selectItem(allItems[activeIndex]);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, allItems, activeIndex]);
+  }, [isOpen, onClose, allItems, activeIndex, selectItem]);
 
-  useEffect(() => {
-    setActiveIndex(-1);
-  }, [query]);
+  useEffect(() => { setActiveIndex(-1); }, [query]);
 
   useEffect(() => {
     activeItemRef.current?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
+
+  const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value), []);
+
+  const hasContentResults = filteredMovies.length > 0 || filteredShows.length > 0 || filteredPlaylists.length > 0;
 
   let globalIndex = -1;
 
@@ -215,8 +218,6 @@ export function SearchModal({
     );
   };
 
-  const hasContentResults = filteredMovies.length > 0 || filteredShows.length > 0 || filteredPlaylists.length > 0;
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
       <div className="search-modal" onClick={(e) => e.stopPropagation()}>
@@ -226,7 +227,7 @@ export function SearchModal({
             type="text"
             placeholder="Search movies, shows, playlists..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleQueryChange}
             autoFocus
             className="search-modal-input"
           />
@@ -236,7 +237,6 @@ export function SearchModal({
         </div>
 
         <div className="search-modal-results">
-          {/* Nav section — always shown, filtered by query */}
           {filteredNav.length > 0 && (
             <div className="search-modal-section">
               <h3 className="search-modal-section-title">Navigate to</h3>
@@ -246,7 +246,6 @@ export function SearchModal({
             </div>
           )}
 
-          {/* Content results */}
           {query && hasContentResults && (
             <>
               {filteredMovies.length > 0 && (
@@ -287,4 +286,4 @@ export function SearchModal({
       </div>
     </Modal>
   );
-}
+});

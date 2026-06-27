@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { Save } from 'lucide-react';
 import type { Playlist } from '@shared/ipc';
 import { Modal, ModalFooter, Button } from '../common';
 
-export function EditPlaylistModal({
+export const EditPlaylistModal = memo(function EditPlaylistModal({
   playlist,
   onClose,
   onUpdate,
@@ -17,11 +17,12 @@ export function EditPlaylistModal({
   const [name, setName] = useState(playlist.name);
   const [description, setDescription] = useState(playlist.description || '');
 
-  const handleUpdate = () => {
-    if (name.trim()) {
-      onUpdate(playlist.id, name.trim(), description.trim() || undefined);
-    }
-  };
+  const handleUpdate = useCallback(() => {
+    if (name.trim()) onUpdate(playlist.id, name.trim(), description.trim() || undefined);
+  }, [name, description, onUpdate, playlist.id]);
+
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value), []);
+  const handleDescChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value), []);
 
   return (
     <Modal isOpen={true} onClose={onClose} title="Edit Playlist" maxWidth="small">
@@ -32,7 +33,7 @@ export function EditPlaylistModal({
           type="text"
           placeholder="Enter playlist name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={handleNameChange}
           autoFocus
         />
       </div>
@@ -42,23 +43,16 @@ export function EditPlaylistModal({
           id="edit-playlist-description"
           placeholder="Enter a description for your playlist"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={handleDescChange}
           rows={3}
         />
       </div>
       <ModalFooter>
-        <Button variant="secondary" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          icon={<Save />}
-          onClick={handleUpdate}
-          disabled={!name.trim() || busy}
-        >
+        <Button variant="secondary" onClick={onClose}>Cancel</Button>
+        <Button variant="primary" icon={<Save />} onClick={handleUpdate} disabled={!name.trim() || busy}>
           Save Changes
         </Button>
       </ModalFooter>
     </Modal>
   );
-}
+});
