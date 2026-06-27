@@ -138,6 +138,14 @@ export function registerIpcHandlers(services: IpcServices): void {
     safe(ipcChannels.getLastWatched, () => services.player.getLastWatched())
   );
 
+  h(ipcChannels.getWatchHistory, (_e) =>
+    safe(ipcChannels.getWatchHistory, () => services.player.getWatchHistory())
+  );
+
+  h(ipcChannels.clearWatchHistory, (_e) =>
+    safe(ipcChannels.clearWatchHistory, () => services.player.clearWatchHistory())
+  );
+
   h(ipcChannels.exportLibrary, async (_e, request?: SyncRequest) =>
     safe(ipcChannels.exportLibrary, async () => {
       const destinationPath =

@@ -1,7 +1,8 @@
-import { Search, Film, Tv, ListMusic, X, ScanSearch, Settings, ListVideo } from 'lucide-react';
+import { Search, Film, Tv, ListMusic, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 import { Modal } from './common';
+import { ALL_NAV_ITEMS } from '../config/navItems';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -20,17 +21,16 @@ type ResultItem =
   | { kind: 'show'; data: TvShow }
   | { kind: 'playlist'; data: Playlist };
 
-type NavItem = { kind: 'nav'; path: string; label: string; icon: React.ReactNode };
+type NavResultItem = { kind: 'nav'; path: string; label: string; icon: React.ReactNode };
 
-type AnyItem = NavItem | ResultItem;
+type AnyItem = NavResultItem | ResultItem;
 
-const ALL_NAV_ITEMS: NavItem[] = [
-  { kind: 'nav', label: 'Movies', path: '/movies', icon: <Film size={18} /> },
-  { kind: 'nav', label: 'TV Shows', path: '/shows', icon: <Tv size={18} /> },
-  { kind: 'nav', label: 'Playlists', path: '/playlists', icon: <ListVideo size={18} /> },
-  { kind: 'nav', label: 'Scan', path: '/scan', icon: <ScanSearch size={18} /> },
-  { kind: 'nav', label: 'Settings', path: '/settings', icon: <Settings size={18} /> },
-];
+const ALL_NAV_RESULT_ITEMS: NavResultItem[] = ALL_NAV_ITEMS.map((n) => ({
+  kind: 'nav',
+  label: n.label,
+  path: n.path,
+  icon: n.iconLg,
+}));
 
 export function SearchModal({
   isOpen,
@@ -57,8 +57,8 @@ export function SearchModal({
   const q = query.toLowerCase();
 
   const filteredNav = query
-    ? ALL_NAV_ITEMS.filter((n) => n.label.toLowerCase().includes(q))
-    : ALL_NAV_ITEMS;
+    ? ALL_NAV_RESULT_ITEMS.filter((n) => n.label.toLowerCase().includes(q))
+    : ALL_NAV_RESULT_ITEMS;
 
   const filteredMovies = query
     ? movies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 6)
@@ -125,7 +125,7 @@ export function SearchModal({
 
   let globalIndex = -1;
 
-  const renderNavItem = (item: NavItem) => {
+  const renderNavItem = (item: NavResultItem) => {
     globalIndex++;
     const idx = globalIndex;
     const isActive = idx === activeIndex;

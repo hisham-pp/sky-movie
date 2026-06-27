@@ -12,6 +12,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { WindowControls } from './components/WindowControls';
 import { LastWatchedButton } from './components/LastWatchedButton';
 import type { ViewMode } from './types';
+import { ALL_NAV_ITEMS } from './config/navItems';
 
 export function AppLayout() {
   return (
@@ -35,6 +36,7 @@ function AppLayoutInner() {
   const getCurrentView = (): ViewMode => {
     if (location.pathname === '/settings') return 'settings';
     if (location.pathname === '/scan') return 'scan';
+    if (location.pathname === '/history') return 'history';
     if (location.pathname.startsWith('/playlists')) return 'playlists';
     if (location.pathname.startsWith('/shows')) return 'shows';
     if (location.pathname.startsWith('/movies')) return 'movies';
@@ -93,25 +95,8 @@ function AppLayoutInner() {
   );
 
   const handleViewChange = (view: ViewMode) => {
-    switch (view) {
-      case 'settings':
-        navigate('/settings');
-        break;
-      case 'scan':
-        navigate('/scan');
-        break;
-      case 'playlists':
-        navigate('/playlists');
-        break;
-      case 'shows':
-        navigate('/shows');
-        break;
-      case 'movies':
-        navigate('/movies');
-        break;
-      default:
-        navigate('/movies');
-    }
+    const item = ALL_NAV_ITEMS.find((n) => n.view === view);
+    navigate(item?.path ?? '/movies');
   };
 
   return (

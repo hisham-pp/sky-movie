@@ -4,7 +4,7 @@ import { stat } from 'node:fs/promises';
 import { dirname, extname, basename, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { LastWatchedInfo, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
+import type { LastWatchedInfo, WatchHistoryItem, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
 import { extractMediaMetadata, isMKVFile, needsSpecialHandling } from './mediaMetadataService';
@@ -243,6 +243,57 @@ export class PlayerService {
       completed: Boolean(row.completed),
       updatedAt: row.updated_at
     };
+  }
+
+  getWatchHistory(): WatchHistoryItem[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+           wp.media_file_id,
+           wp.position_seconds,
+           wp.duration_seconds,
+           wp.completed,
+           wp.updated_at AS last_watched_at,
+           mf.media_kind,
+           COALESCE(m.title, s.title, mf.file_name) AS title,
+           COALESCE(m.poster_path, s.poster_path)   AS poster_path,
+           COUNT(wh.id) AS watch_count
+         FROM watch_progress wp
+         JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN movies   m  ON m.id  = mf.matched_movie_id
+         LEFT JOIN tv_shows s  ON s.id  = mf.matched_show_id
+         LEFT JOIN watch_history wh ON wh.media_file_id = wp.media_file_id
+         GROUP BY wp.media_file_id
+         ORDER BY wp.updated_at DESC`
+      )
+      .all() as {
+        media_file_id: number;
+        position_seconds: number;
+        duration_seconds: number;
+        completed: number;
+        last_watched_at: string;
+        media_kind: string;
+        title: string;
+        poster_path: string | null;
+        watch_count: number;
+      }[];
+
+    return rows.map((r) => ({
+      mediaFileId: r.media_file_id,
+      title: r.title,
+      mediaKind: r.media_kind as 'movie' | 'show',
+      posterPath: r.poster_path,
+      positionSeconds: r.position_seconds,
+      durationSeconds: r.duration_seconds,
+      completed: Boolean(r.completed),
+      lastWatchedAt: r.last_watched_at,
+      watchCount: r.watch_count
+    }));
+  }
+
+  clearWatchHistory(): void {
+    this.db.prepare('DELETE FROM watch_history').run();
+    this.db.prepare('DELETE FROM watch_progress').run();
   }
 
   private getWatchProgress(mediaFileId: number): WatchProgressSnapshot | null {

@@ -3,6 +3,7 @@ import { AppLayout } from './AppLayout';
 import { LibraryRoute } from './routes/LibraryRoute';
 import { SettingsRoute } from './routes/SettingsRoute';
 import { ScanRoute } from './routes/ScanRoute';
+import { WatchHistoryRoute } from './routes/WatchHistoryRoute';
 
 const STORAGE_KEY = 'sky-movie-router-history';
 const MAX_HISTORY_SIZE = 100;
@@ -97,6 +98,10 @@ export function createRouter() {
           {
             path: 'playlists/:id',
             element: <LibraryRoute view="playlists" />,
+          },
+          {
+            path: 'history',
+            element: <WatchHistoryRoute />,
           },
         ],
       },

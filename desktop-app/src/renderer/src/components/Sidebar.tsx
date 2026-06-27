@@ -1,17 +1,7 @@
-import { Film, FolderSearch, ListMusic, Settings, Tv, Clapperboard, ChevronRight } from 'lucide-react';
+import { Clapperboard, ChevronRight } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
 import type { ViewMode } from '../types';
-
-const NAV_MAIN: { view: ViewMode; label: string; icon: React.ReactNode }[] = [
-  { view: 'movies',    label: 'Movies',    icon: <Film size={18} /> },
-  { view: 'shows',     label: 'TV Shows',  icon: <Tv size={18} /> },
-  { view: 'playlists', label: 'Playlists', icon: <ListMusic size={18} /> },
-];
-
-const NAV_BOTTOM: { view: ViewMode; label: string; icon: React.ReactNode }[] = [
-  { view: 'scan',     label: 'Scan',     icon: <FolderSearch size={18} /> },
-  { view: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-];
+import { NAV_MAIN, NAV_BOTTOM } from '../config/navItems';
 
 const NavGroup = ({ items, view, onViewChange }: {
   items: typeof NAV_MAIN;
