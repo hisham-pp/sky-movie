@@ -5,6 +5,23 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-06-27
+
+### Added
+
+- persist settings/torrent tabs to localStorage and add tab deep-links to search modal (Hisham)
+- add torrent download manager section with screenshots (Hisham)
+- add torrent download manager with lazy-loaded WebTorrent engine (Hisham)
+
+### Fixed
+
+- torrent settings scroll, 2-column layout, Malayalam auto-search, download persistence (Hisham)
+- resolve installer download promise only after file stream finishes flushing to disk (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.6.12 downloads from GitHub (Hisham)
+
 ## [0.6.12] - 2026-06-27
 
 ### Added
@@ -448,3 +465,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.10
 [0.6.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.11
 [0.6.12]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.6.12
+[0.7.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.0
