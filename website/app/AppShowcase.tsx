@@ -5,11 +5,12 @@ import Image from 'next/image';
 import { ImageModal } from './ExpandableImage';
 
 const TABS = [
-  { id: 'movies',  label: 'Movies',      icon: 'movie'    },
-  { id: 'shows',   label: 'TV Shows',    icon: 'live_tv'  },
-  { id: 'detail',  label: 'Movie Detail',icon: 'info'     },
-  { id: 'tvdetail',label: 'Show Detail', icon: 'video_library' },
-  { id: 'search',  label: 'Search',      icon: 'search'   },
+  { id: 'movies',    label: 'Movies',      icon: 'movie'         },
+  { id: 'shows',     label: 'TV Shows',    icon: 'live_tv'       },
+  { id: 'detail',    label: 'Movie Detail',icon: 'info'          },
+  { id: 'tvdetail',  label: 'Show Detail', icon: 'video_library' },
+  { id: 'search',    label: 'Search',      icon: 'search'        },
+  { id: 'downloads', label: 'Downloads',   icon: 'download'      },
 ] as const;
 type TabId = typeof TABS[number]['id'];
 
@@ -42,6 +43,15 @@ const SCREENS: Record<TabId, { slides: { src: string; alt: string; caption: stri
     slides: [
       { src: '/screen-shots/search-nav.png',     alt: 'Sky Movie search — navigation shortcuts',                caption: 'One keystroke (Ctrl+K) to navigate anywhere in the app' },
       { src: '/screen-shots/search-results.png', alt: 'Sky Movie search — movie results',                       caption: 'Instant fuzzy search across your entire library' },
+    ],
+  },
+  downloads: {
+    slides: [
+      { src: '/screen-shots/torrent-search-results.png',  alt: 'Sky Movie — Torrent search results',       caption: 'Search torrents from YTS, TPB, EZTV and more in one place' },
+      { src: '/screen-shots/torrent-search-query.png',    alt: 'Sky Movie — Torrent search with results',  caption: 'Quality badges, seeds/leechers and file size at a glance' },
+      { src: '/screen-shots/torrent-downloading.png',     alt: 'Sky Movie — Active torrent download',      caption: 'Real-time download progress with pause, resume and delete' },
+      { src: '/screen-shots/torrent-downloads-sidebar.png', alt: 'Sky Movie — Downloads sidebar',          caption: 'Downloads accessible from the sidebar alongside your library' },
+      { src: '/screen-shots/torrent-settings.png',        alt: 'Sky Movie — Torrent settings',             caption: 'Full control: speed limits, queue, protocol and behaviour' },
     ],
   },
 };
@@ -135,6 +145,11 @@ export function AppShowcase() {
       {tab === 'search' && (
         <p className="text-center text-white/30 text-xs mt-4">
           Press <kbd className="bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-white/40 text-xs">Ctrl+K</kbd> anywhere in the app to open search
+        </p>
+      )}
+      {tab === 'downloads' && (
+        <p className="text-center text-white/30 text-xs mt-4">
+          Files are automatically renamed to match your library naming convention on completion
         </p>
       )}
 

@@ -71,6 +71,7 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8">
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#features">Features</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#player">Player</a>
+          <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#torrent">Torrents</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#platforms">Platforms</a>
           <a className="text-secondary font-label-md hover:text-primary transition-colors" href="#downloads">Download</a>
           <Link className="text-secondary font-label-md hover:text-primary transition-colors" href="/docs">Docs</Link>
@@ -154,9 +155,9 @@ export default function Home() {
                 <span className="material-symbols-outlined text-3xl">search</span>
               </div>
               <h3 className="font-headline-sm text-xl mb-3">Instant Search <span className="text-primary text-sm font-label-md ml-2 bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full align-middle">Ctrl+K</span></h3>
-              <p className="text-secondary text-sm leading-relaxed mb-4">Search your entire library in milliseconds. Navigate to Movies, TV Shows, Playlists, Scan, or Settings — all from one keystroke. Results prioritize navigation then content.</p>
+              <p className="text-secondary text-sm leading-relaxed mb-4">Search your entire library in milliseconds. Navigate to Movies, TV Shows, Playlists, Downloads, Scan, or Settings — all from one keystroke.</p>
               <div className="flex flex-wrap gap-2">
-                {['Movies', 'TV Shows', 'Playlists', 'Scan', 'Settings'].map(item => (
+                {['Movies', 'TV Shows', 'Playlists', 'Downloads', 'Scan', 'Settings'].map(item => (
                   <span key={item} className="text-xs bg-white/5 border border-white/10 text-secondary px-2.5 py-1 rounded-full">{item}</span>
                 ))}
               </div>
@@ -255,6 +256,96 @@ export default function Home() {
                     <h3 className="font-headline-sm text-lg mb-3">Variable Speed &amp; Watch Progress</h3>
                     <p className="text-secondary text-sm leading-relaxed">Playback speeds from 0.25× to 2×. Resume exactly where you left off — progress is saved automatically every 10 seconds and on close.</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ── Torrent Download Manager ─────────────────────────────────────── */}
+        <section className="py-24 px-container-padding relative overflow-hidden" id="torrent">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/4 to-transparent -z-10"></div>
+          <div className="max-w-7xl mx-auto">
+
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 text-primary text-sm font-label-md bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full mb-6">
+                <span className="material-symbols-outlined text-base">download</span>
+                Built-in Torrent Manager
+              </span>
+              <h2 className="font-headline-md text-3xl md:text-5xl mb-6">
+                Find it. Download it. <span className="gradient-text">Watch it.</span>
+              </h2>
+              <p className="text-secondary font-body-lg max-w-2xl mx-auto text-lg">
+                A fully embedded torrent client — no third-party app needed. Search multiple providers, download in the background, and your files land in your library automatically.
+              </p>
+            </div>
+
+            {/* Feature cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              <div className="glass-panel p-6 rounded-2xl hover:border-primary/40 transition-all group">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-xl">travel_explore</span>
+                </div>
+                <h3 className="font-headline-sm text-base mb-2">Multi-Provider Search</h3>
+                <p className="text-secondary text-sm leading-relaxed">YTS, The Pirate Bay, EZTV — all searched in parallel. Results are deduplicated by info hash.</p>
+              </div>
+
+              <div className="glass-panel p-6 rounded-2xl hover:border-primary/40 transition-all group">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-xl">manage_history</span>
+                </div>
+                <h3 className="font-headline-sm text-base mb-2">Persistent Downloads</h3>
+                <p className="text-secondary text-sm leading-relaxed">Downloads survive app restarts. Active torrents are resumed automatically when you reopen Sky Movie.</p>
+              </div>
+
+              <div className="glass-panel p-6 rounded-2xl hover:border-primary/40 transition-all group">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-xl">drive_file_rename_outline</span>
+                </div>
+                <h3 className="font-headline-sm text-base mb-2">Auto File Renaming</h3>
+                <p className="text-secondary text-sm leading-relaxed">Completed files are renamed to match your library convention — <code className="text-primary text-xs">Title (Year).mkv</code> or <code className="text-primary text-xs">Show S01E01.mkv</code>.</p>
+              </div>
+
+              <div className="glass-panel p-6 rounded-2xl hover:border-primary/40 transition-all group">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-xl">tune</span>
+                </div>
+                <h3 className="font-headline-sm text-base mb-2">Full Configuration</h3>
+                <p className="text-secondary text-sm leading-relaxed">Speed limits, queue size, DHT/PEX/LSD toggles, auto-seed ratio — all in a clean settings panel.</p>
+              </div>
+            </div>
+
+            {/* Screenshot showcase — two-up layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+
+              {/* Main large screenshot */}
+              <div className="lg:col-span-3 glass-panel p-2 rounded-[24px] shadow-2xl border-white/10 overflow-hidden">
+                <img
+                  src="/screen-shots/torrent-search-results.png"
+                  alt="Sky Movie torrent search — results from multiple providers"
+                  className="w-full h-auto block rounded-[18px]"
+                />
+                <p className="text-center text-white/30 text-xs py-2">Search across YTS, TPB, EZTV and Malayalam in one place</p>
+              </div>
+
+              {/* Stacked smaller shots */}
+              <div className="lg:col-span-2 flex flex-col gap-4">
+                <div className="glass-panel p-2 rounded-[20px] shadow-xl border-white/10 overflow-hidden">
+                  <img
+                    src="/screen-shots/torrent-downloading.png"
+                    alt="Sky Movie — active torrent download with real-time progress"
+                    className="w-full h-auto block rounded-[14px]"
+                  />
+                  <p className="text-center text-white/30 text-xs py-2">Real-time progress with pause, resume &amp; delete</p>
+                </div>
+                <div className="glass-panel p-2 rounded-[20px] shadow-xl border-white/10 overflow-hidden">
+                  <img
+                    src="/screen-shots/torrent-settings.png"
+                    alt="Sky Movie torrent settings — speed limits, queue and protocol"
+                    className="w-full h-auto block rounded-[14px]"
+                  />
+                  <p className="text-center text-white/30 text-xs py-2">Speed limits, queue, protocol and behaviour settings</p>
                 </div>
               </div>
             </div>
