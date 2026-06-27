@@ -215,3 +215,30 @@ jobs:
         run: |
           echo "Release artifacts:"
           ls -lh artifacts/
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update website release manifest
+        run: pnpm release:github --skip-sha
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push manifest update
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add website/public/releases.json
+          git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
+          git push origin HEAD:main
