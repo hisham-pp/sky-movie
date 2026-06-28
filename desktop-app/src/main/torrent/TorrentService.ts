@@ -24,10 +24,12 @@ export class TorrentService extends EventEmitter {
 
   async init(): Promise<void> {
     this.client = new WebTorrent({
-      dht:      this.settings.enableDht,
-      lsd:      this.settings.enableLsd,
-      pex:      this.settings.enablePex,
-      maxConns: this.settings.maxConnections,
+      dht:           this.settings.enableDht,
+      lsd:           this.settings.enableLsd,
+      pex:           this.settings.enablePex,
+      maxConns:      this.settings.maxConnections,
+      downloadLimit: this.settings.downloadSpeedLimit > 0 ? this.settings.downloadSpeedLimit : -1,
+      uploadLimit:   this.settings.uploadSpeedLimit   > 0 ? this.settings.uploadSpeedLimit   : -1,
     });
 
     this.client.on('error', (err: Error) => {
@@ -211,6 +213,14 @@ export class TorrentService extends EventEmitter {
 
   updateSettings(settings: TorrentSettings): void {
     this.settings = settings;
+    if (this.client) {
+      this.client.throttleDownload(settings.downloadSpeedLimit > 0 ? settings.downloadSpeedLimit : -1);
+      this.client.throttleUpload(settings.uploadSpeedLimit   > 0 ? settings.uploadSpeedLimit   : -1);
+    }
+  }
+
+  applyDownloadLimit(rate: number): void {
+    if (this.client) this.client.throttleDownload(rate);
   }
 
   async destroy(): Promise<void> {

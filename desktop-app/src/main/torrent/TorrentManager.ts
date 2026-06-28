@@ -232,6 +232,16 @@ export class TorrentManager {
     return this.settings;
   }
 
+  /** Throttle downloads to ~500 KB/s while video is playing; restore configured limit when done. */
+  setPlaybackThrottle(active: boolean): void {
+    // 500 KB/s cap during playback to leave bandwidth for streaming
+    const playbackCap = 512 * 1024;
+    const configuredLimit = this.settings.downloadSpeedLimit > 0 ? this.settings.downloadSpeedLimit : -1;
+    const rate = active ? (configuredLimit === -1 ? playbackCap : Math.min(configuredLimit, playbackCap)) : configuredLimit;
+    this.service?.applyDownloadLimit(rate);
+    console.log(`[TorrentManager] playback throttle ${active ? 'ON' : 'OFF'} → ${rate === -1 ? 'unlimited' : `${Math.round(rate / 1024)} KB/s`}`);
+  }
+
   // ── Progress listeners ─────────────────────────────────────────────────────
 
   onProgress(cb: (info: TorrentInfo) => void): () => void {

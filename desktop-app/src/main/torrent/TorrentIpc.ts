@@ -76,6 +76,10 @@ export function registerTorrentIpcHandlers(
     safe(ipcChannels.torrentRecheck, () => manager.recheck(id))
   );
 
+  h(ipcChannels.torrentSetPlaybackThrottle, (_e, active: boolean) =>
+    safe(ipcChannels.torrentSetPlaybackThrottle, () => { manager.setPlaybackThrottle(active); })
+  );
+
   // Push progress events from main → renderer (registered once, works before/after engine boot)
   manager.onProgress((info) => {
     const win = getWindow();

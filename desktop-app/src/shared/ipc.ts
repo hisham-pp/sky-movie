@@ -567,6 +567,7 @@ export const ipcChannels = {
   torrentOpenFolder:      'torrent:open-folder',
   torrentRecheck:         'torrent:recheck',
   torrentProgress:        'torrent:progress',   // push: main → renderer
+  torrentSetPlaybackThrottle: 'torrent:set-playback-throttle',
 } as const;
 
 // ── Torrent Types ────────────────────────────────────────────────────────────
@@ -707,5 +708,6 @@ export interface TorrentApi {
   torrentUpdateSettings(settings: Partial<TorrentSettings>): Promise<TorrentSettings>;
   torrentOpenFolder(id: string): Promise<void>;
   torrentRecheck(id: string): Promise<void>;
+  torrentSetPlaybackThrottle(active: boolean): Promise<void>;
   onTorrentProgress(callback: (event: TorrentProgressEvent) => void): () => void;
 }

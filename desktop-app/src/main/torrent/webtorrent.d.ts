@@ -54,6 +54,8 @@ declare module 'webtorrent' {
     add(torrentId: string | Buffer, opts?: AddTorrentOptions): Torrent;
     remove(torrentId: string, opts?: { destroyStore?: boolean }, cb?: () => void): void;
     destroy(cb?: (err?: Error) => void): void;
+    throttleDownload(rate: number): void;
+    throttleUpload(rate: number): void;
     on(event: 'error', listener: (err: Error) => void): this;
     on(event: string, listener: (...args: unknown[]) => void): this;
   }

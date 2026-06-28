@@ -150,13 +150,17 @@ export function usePlayer(
       }
     };
 
+    // === Playback throttle — slow downloads while video is playing ===
+    const enableThrottle  = () => void window.skyMovie.torrentSetPlaybackThrottle(true).catch(() => {});
+    const disableThrottle = () => void window.skyMovie.torrentSetPlaybackThrottle(false).catch(() => {});
+
     // === Event Listeners ===
-    art.on('video:pause', () => void updateProgress(true));
+    art.on('video:pause',  () => { disableThrottle(); void updateProgress(true); });
     art.on('video:seeked', () => void updateProgress(true));
     art.on('video:timeupdate', () => void updateProgress());
-    art.on('video:ended', () => void updateProgress(true));
+    art.on('video:ended',  () => { disableThrottle(); void updateProgress(true); });
     art.on('video:error', handlePlaybackError);
-    art.on('video:play', checkAudioOnPlay);
+    art.on('video:play', () => { enableThrottle(); checkAudioOnPlay(); });
 
     art.on('video:loadedmetadata', () => {
       if (loadTimerRef.current) {
@@ -178,6 +182,7 @@ export function usePlayer(
 
     // === Cleanup ===
     return () => {
+      disableThrottle();
       if (loadTimerRef.current) {
         clearTimeout(loadTimerRef.current);
       }
