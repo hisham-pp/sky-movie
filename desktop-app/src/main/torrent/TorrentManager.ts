@@ -109,8 +109,26 @@ export class TorrentManager {
 
     // Restore active torrents from previous session
     if (this.activePersisted.length > 0) {
-      console.log(`[TorrentManager] restoring ${this.activePersisted.length} active torrent(s)…`);
-      for (const entry of [...this.activePersisted]) {
+      // Guard: if a torrent already completed (possibly in a prior session that
+      // crashed before saveState ran), skip it and clean up the stale entry.
+      const completedHashes = new Set(
+        this.completedTorrents.map((t) => t.infoHash.toLowerCase())
+      );
+      let staleRemoved = false;
+      const toRestore = this.activePersisted.filter((entry) => {
+        const hash = this.extractHash(entry.magnetUri);
+        if (completedHashes.has(hash)) {
+          console.log(`[TorrentManager] skipping already-completed torrent ${hash}`);
+          this.activePersisted = this.activePersisted.filter((a) => a !== entry);
+          staleRemoved = true;
+          return false;
+        }
+        return true;
+      });
+      if (staleRemoved) this.saveState();
+
+      console.log(`[TorrentManager] restoring ${toRestore.length} active torrent(s)…`);
+      for (const entry of toRestore) {
         svc.addMagnet(entry.magnetUri, {
           savePath:  entry.savePath,
           category:  entry.category,

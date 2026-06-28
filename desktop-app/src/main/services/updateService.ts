@@ -268,7 +268,7 @@ export class UpdateService {
     const filePath = join(updatesDir, fileName);
 
     return new Promise((resolve, reject) => {
-      const request = net.request(releaseInfo.downloadUrl);
+      const request = net.request({ url: releaseInfo.downloadUrl, redirect: 'follow' });
       const fileStream = createWriteStream(filePath);
       let bytesDownloaded = 0;
       let settled = false;
@@ -289,6 +289,11 @@ export class UpdateService {
 
       fileStream.on('error', fail);
 
+      // Follow redirects (GitHub release URLs redirect to CDN)
+      request.on('redirect', () => {
+        request.followRedirect();
+      });
+
       request.on('response', (response) => {
         if (response.statusCode !== 200) {
           fail(new Error(`HTTP ${response.statusCode}`));
@@ -298,7 +303,7 @@ export class UpdateService {
         const contentLength = response.headers['content-length'];
         const totalBytes = parseInt(Array.isArray(contentLength) ? contentLength[0] : (contentLength || '0'), 10);
 
-        response.on('data', (chunk) => {
+        response.on('data', (chunk: Buffer) => {
           bytesDownloaded += chunk.length;
           fileStream.write(chunk);
 
@@ -312,9 +317,11 @@ export class UpdateService {
         response.on('end', () => {
           fileStream.end();
         });
+
+        response.on('error', (err: Error) => fail(err));
       });
 
-      request.on('error', fail);
+      request.on('error', (err: Error) => fail(err));
 
       request.end();
     });
