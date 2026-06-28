@@ -152,8 +152,8 @@ function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete,
           {/* Progress bar */}
           <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${isCompleted ? 'bg-blue-500' : 'bg-[var(--primary)]'}`}
-              style={{ width: `${pct}%` }}
+              className="h-full rounded-full transition-all"
+              style={{ width: `${pct}%`, backgroundColor: isCompleted ? '#3b82f6' : 'var(--primary)' }}
             />
           </div>
 
