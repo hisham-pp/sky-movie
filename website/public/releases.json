@@ -1,7 +1,140 @@
 {
-  "latestVersion": "0.7.7",
-  "updatedAt": "2026-06-27T15:10:21.461Z",
+  "latestVersion": "0.7.8",
+  "updatedAt": "2026-06-28T14:03:15.179Z",
   "releases": [
+    {
+      "version": "0.7.8",
+      "releasedAt": "2026-06-28T14:02:47Z",
+      "storageProvider": "github-releases",
+      "storageFolderUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8",
+      "sourceCommit": {
+        "sha": "main",
+        "message": "Release 0.7.8"
+      },
+      "notes": "Sky Movie 0.7.8",
+      "changes": [
+        "- use correct CSS variable for update and torrent UI accent colors (Hisham)",
+        "- use correct CSS variable for download progress bar color (Hisham)",
+        "- follow redirects when downloading update to prevent corrupted installer (Hisham)",
+        "- show active downloads on startup without requiring a new download (Hisham)",
+        "- fill poster grid width evenly, remove right-side whitespace (Hisham)",
+        "- apply torrent speed limits and auto-throttle during playback (Hisham)",
+        "- ci: use Sky Movie identity for release bot commits (Hisham)",
+        "- chore(release): publish Sky Movie 0.7.7 downloads from GitHub (github-actions[bot])"
+      ],
+      "artifacts": [
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.7.8-amd64.deb",
+          "size": 130531096,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-amd64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.7.8-arm64.AppImage",
+          "size": 170980966,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-arm64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.7.8-arm64.deb",
+          "size": 125115712,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-arm64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.7.8-arm64.dmg",
+          "size": 157455972,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-arm64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.7.8-arm64.tar.gz",
+          "size": 159835540,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-arm64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.7.8-arm64.zip",
+          "size": 154022561,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-arm64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "windows",
+          "arch": "x64",
+          "kind": "installer",
+          "fileName": "Sky-Movie-0.7.8-x64-Setup.exe",
+          "size": 220461192,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-x64-Setup.exe",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.7.8-x64.dmg",
+          "size": 162239912,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-x64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.7.8-x64.tar.gz",
+          "size": 159851358,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-x64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.7.8-x64.zip",
+          "size": 158866172,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-x64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        },
+        {
+          "platform": "linux",
+          "arch": "ia32",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.7.8-x86_64.AppImage",
+          "size": 170716986,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.7.8/Sky-Movie-0.7.8-x86_64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8"
+        }
+      ]
+    },
     {
       "version": "0.7.7",
       "releasedAt": "2026-06-27T15:09:52Z",
