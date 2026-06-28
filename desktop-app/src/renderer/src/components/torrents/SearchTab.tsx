@@ -130,7 +130,7 @@ export function SearchTab() {
                 onClick={() => setCategory(c.value)}
                 className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
                   category === c.value
-                    ? 'bg-[var(--color-primary)] text-white'
+                    ? 'bg-[var(--primary)] text-white'
                     : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'
                 }`}
               >
@@ -240,7 +240,7 @@ function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: Se
             <button
               onClick={() => onDownload(result)}
               disabled={isAdding}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] text-white text-xs font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary)]/80 hover:bg-[var(--primary)] text-white text-xs font-medium transition-colors disabled:opacity-50"
             >
               {isAdding ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> : <Download size={12} />}
               {isCopied ? 'Copied!' : isAdding ? 'Adding…' : 'Download'}

@@ -48,7 +48,7 @@ export function TorrentPage() {
             onClick={() => handleTabChange(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all mr-1 ${
               activeTab === tab.id
-                ? 'border-[var(--color-primary)] text-white'
+                ? 'border-[var(--primary)] text-white'
                 : 'border-transparent text-white/40 hover:text-white/65 hover:border-white/20'
             }`}
           >
