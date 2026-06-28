@@ -5,6 +5,22 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.8] - 2026-06-28
+
+### Fixed
+
+- use correct CSS variable for update and torrent UI accent colors (Hisham)
+- use correct CSS variable for download progress bar color (Hisham)
+- follow redirects when downloading update to prevent corrupted installer (Hisham)
+- show active downloads on startup without requiring a new download (Hisham)
+- fill poster grid width evenly, remove right-side whitespace (Hisham)
+- apply torrent speed limits and auto-throttle during playback (Hisham)
+
+### Other
+
+- ci: use Sky Movie identity for release bot commits (Hisham)
+- chore(release): publish Sky Movie 0.7.7 downloads from GitHub (github-actions[bot])
+
 ## [0.7.7] - 2026-06-27
 
 ### Changed
@@ -555,3 +571,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.5
 [0.7.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.6
 [0.7.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.7
+[0.7.8]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8
