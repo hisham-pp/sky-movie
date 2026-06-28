@@ -5,6 +5,20 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.9] - 2026-06-28
+
+### Changed
+
+- cap releases.json to 30 most recent entries (Hisham)
+
+### Fixed
+
+- use inline style for download progress bar color (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.7.8 downloads from GitHub (Sky Movie)
+
 ## [0.7.8] - 2026-06-28
 
 ### Fixed
@@ -572,3 +586,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.6
 [0.7.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.7
 [0.7.8]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8
+[0.7.9]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.9
