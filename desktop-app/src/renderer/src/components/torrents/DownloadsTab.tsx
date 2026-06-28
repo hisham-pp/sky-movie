@@ -130,7 +130,7 @@ function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete,
     <div
       className={`rounded-xl border p-3 transition-all cursor-pointer ${
         selected
-          ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30'
+          ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30'
           : 'bg-white/[0.03] hover:bg-white/[0.05] border-white/5 hover:border-white/10'
       }`}
       onClick={onSelect}
@@ -152,7 +152,7 @@ function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete,
           {/* Progress bar */}
           <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${isCompleted ? 'bg-blue-500' : 'bg-[var(--color-primary)]'}`}
+              className={`h-full rounded-full transition-all ${isCompleted ? 'bg-blue-500' : 'bg-[var(--primary)]'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
