@@ -56,6 +56,12 @@ export class TorrentManager {
     this.providers = [new YtsProvider(), new TpbProvider(), new EztvProvider(), new MalayalamProvider()];
     this.loadState();
     console.log('[TorrentManager] created — engine not started yet');
+
+    // Boot immediately if there are active torrents waiting to be restored
+    if (this.activePersisted.length > 0) {
+      console.log(`[TorrentManager] ${this.activePersisted.length} active torrent(s) pending restore — booting engine early`);
+      this.ensureInit().catch((err) => console.error('[TorrentManager] early boot failed', err));
+    }
   }
 
   // ── Lazy engine init ───────────────────────────────────────────────────────
@@ -205,10 +211,21 @@ export class TorrentManager {
    */
   list(): TorrentInfo[] {
     const active = this.service?.list() ?? [];
-    // Merge: completed entries not already in the active list
     const activeIds = new Set(active.map((t) => t.id));
+
+    // While the engine is still booting, surface persisted active torrents as
+    // placeholder entries so the UI shows them immediately instead of blank.
+    const restoringStubs: TorrentInfo[] = this.service
+      ? []
+      : this.activePersisted
+          .filter((a) => {
+            const hash = this.extractHash(a.magnetUri);
+            return hash && !activeIds.has(hash);
+          })
+          .map((a) => this.stubFromPersisted(a));
+
     const completed = this.completedTorrents.filter((t) => !activeIds.has(t.id));
-    return [...active, ...completed];
+    return [...active, ...restoringStubs, ...completed];
   }
 
   stats(): TorrentGlobalStats {

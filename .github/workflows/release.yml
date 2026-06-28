@@ -235,8 +235,8 @@ jobs:
 
       - name: Update website release manifest
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "Sky Movie"
+          git config user.email "skymovie@users.noreply.github.com"
           git fetch origin main
           git checkout main
           git pull --ff-only origin main
