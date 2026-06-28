@@ -218,14 +218,40 @@ export class TorrentManager {
     const restoringStubs: TorrentInfo[] = this.service
       ? []
       : this.activePersisted
-          .filter((a) => {
-            const hash = this.extractHash(a.magnetUri);
-            return hash && !activeIds.has(hash);
-          })
+          .filter((a) => !activeIds.has(this.extractHash(a.magnetUri)))
           .map((a) => this.stubFromPersisted(a));
 
     const completed = this.completedTorrents.filter((t) => !activeIds.has(t.id));
     return [...active, ...restoringStubs, ...completed];
+  }
+
+  private stubFromPersisted(a: PersistedActiveTorrent): TorrentInfo {
+    const hash = this.extractHash(a.magnetUri);
+    return {
+      id:            hash,
+      name:          hash,
+      infoHash:      hash,
+      magnetUri:     a.magnetUri,
+      savePath:      a.savePath,
+      category:      a.category,
+      addedAt:       a.addedAt,
+      completedAt:   null,
+      status:        'metadata',
+      progress:      0,
+      downloadSpeed: 0,
+      uploadSpeed:   0,
+      downloaded:    0,
+      uploaded:      0,
+      totalSize:     0,
+      numPeers:      0,
+      numSeeds:      0,
+      eta:           0,
+      ratio:         0,
+      files:         [],
+      error:         null,
+      posterPath:    null,
+      tmdbId:        null,
+    };
   }
 
   stats(): TorrentGlobalStats {
