@@ -11,7 +11,8 @@ import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/LoadingScreen';
 import { WindowControls } from './components/WindowControls';
 import { LastWatchedButton } from './components/LastWatchedButton';
-import type { Movie, TvShow, Playlist } from '@shared/ipc';
+import { useResumePlayback } from './hooks/useResumePlayback';
+import type { LastWatchedInfo, Movie, TvShow, Playlist } from '@shared/ipc';
 import type { ViewMode } from './types';
 import { ALL_NAV_ITEMS } from './config/navItems';
 
@@ -69,7 +70,7 @@ function AppLayoutInner() {
   const handlePlayLastWatched = useCallback(async () => {
     const result = await window.skyMovie?.getLastWatched();
     if (!result) return;
-    window.dispatchEvent(new CustomEvent('sky-movie:play-last-watched', { detail: result.mediaFileId }));
+    window.dispatchEvent(new CustomEvent('sky-movie:play-last-watched', { detail: result }));
   }, []);
 
   useGlobalKeyboardShortcuts(
@@ -98,9 +99,10 @@ function AppLayoutInner() {
     navigate(item?.path ?? '/movies');
   }, [navigate]);
 
+  const resumePlayback = useResumePlayback();
   const handleLastWatchedPlay = useCallback(
-    (mediaFileId: number) => library.playById(mediaFileId),
-    [library],
+    (info: LastWatchedInfo) => { void resumePlayback(info); },
+    [resumePlayback],
   );
 
   const handleSelectMovie = useCallback(async (movie: Movie) => {

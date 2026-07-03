@@ -223,7 +223,7 @@ export function useLibraryController() {
     setPlayer(null);
   }
 
-  async function selectMovie(movie: Movie) {
+  async function selectMovie(movie: Movie, playFileId?: number) {
     const details = await getSkyMovieApi().getMovieById(movie.id);
     const selected = details.item ?? movie;
     setSelectedMovie(selected);
@@ -237,10 +237,12 @@ export function useLibraryController() {
     // Clear player when selecting a different movie
     setPlayer(null);
     
-    // Auto-play first file if available
+    // Auto-play the requested file, or the first one available
     if (details.files.length > 0) {
-      const firstFile = details.files[0];
-      const result = await getSkyMovieApi().playMedia(firstFile.id);
+      const targetFile =
+        (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
+        details.files[0];
+      const result = await getSkyMovieApi().playMedia(targetFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);
     }
@@ -250,7 +252,7 @@ export function useLibraryController() {
     await selectMovie(movie);
   }
 
-  async function selectShow(show: TvShow) {
+  async function selectShow(show: TvShow, playFileId?: number) {
     const details = await getSkyMovieApi().getShowById(show.id);
     const selected = details.item ?? show;
     setSelectedShow(selected);
@@ -264,14 +266,15 @@ export function useLibraryController() {
     // Clear player when selecting a different show
     setPlayer(null);
     
-    // Auto-play first episode file if available
+    // Auto-play the requested file if given, else first episode (S01E01) or first file
     if (details.files.length > 0) {
-      // Try to find first episode (S01E01) or just use first file
-      const firstEpisodeFile = details.files.find((file) => {
+      const requestedFile =
+        playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
+      const firstEpisodeFile = requestedFile ?? details.files.find((file) => {
         const fileName = file.fileName.toLowerCase();
         return /s0*1e0*1|1x0*1/i.test(fileName);
       }) ?? details.files[0];
-      
+
       const result = await getSkyMovieApi().playMedia(firstEpisodeFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);

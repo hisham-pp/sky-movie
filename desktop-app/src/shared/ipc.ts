@@ -259,6 +259,8 @@ export interface WatchProgressUpdate {
 
 export interface LastWatchedInfo {
   mediaFileId: number;
+  matchedMovieId: number | null;
+  matchedShowId: number | null;
   title: string;
   positionSeconds: number;
   durationSeconds: number;
@@ -268,6 +270,8 @@ export interface LastWatchedInfo {
 
 export interface WatchHistoryItem {
   mediaFileId: number;
+  matchedMovieId: number | null;
+  matchedShowId: number | null;
   title: string;
   mediaKind: MediaKind;
   posterPath: string | null;

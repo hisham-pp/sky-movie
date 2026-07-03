@@ -23,12 +23,14 @@ export function LibraryRoute(props: LibraryRouteProps) {
     if (selectedId && view === 'movies') {
       const movie = lib.movies.find(m => m.id === selectedId);
       const handledByClick = clickSelectedRef.current?.view === 'movies' && clickSelectedRef.current?.id === selectedId;
-      if (movie && !handledByClick) lib.selectMovie(movie);
+      const alreadySelected = lib.selectedMovie?.id === selectedId;
+      if (movie && !handledByClick && !alreadySelected) lib.selectMovie(movie);
       clickSelectedRef.current = null;
     } else if (selectedId && view === 'shows') {
       const show = lib.shows.find(s => s.id === selectedId);
       const handledByClick = clickSelectedRef.current?.view === 'shows' && clickSelectedRef.current?.id === selectedId;
-      if (show && !handledByClick) lib.selectShow(show);
+      const alreadySelected = lib.selectedShow?.id === selectedId;
+      if (show && !handledByClick && !alreadySelected) lib.selectShow(show);
       clickSelectedRef.current = null;
     } else if (selectedId && view === 'playlists') {
       const playlist = lib.playlists.find(p => p.id === selectedId);

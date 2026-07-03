@@ -227,6 +227,8 @@ export class PlayerService {
            wp.duration_seconds,
            wp.completed,
            wp.updated_at,
+           mf.matched_movie_id,
+           mf.matched_show_id,
            COALESCE(m.title, s.title, mf.file_name) AS title
          FROM watch_progress wp
          JOIN media_files mf ON mf.id = wp.media_file_id
@@ -242,6 +244,8 @@ export class PlayerService {
           duration_seconds: number;
           completed: number;
           updated_at: string;
+          matched_movie_id: number | null;
+          matched_show_id: number | null;
           title: string;
         }
       | undefined;
@@ -250,6 +254,8 @@ export class PlayerService {
 
     return {
       mediaFileId: row.media_file_id,
+      matchedMovieId: row.matched_movie_id,
+      matchedShowId: row.matched_show_id,
       title: row.title,
       positionSeconds: row.position_seconds,
       durationSeconds: row.duration_seconds,
@@ -268,6 +274,8 @@ export class PlayerService {
            wp.completed,
            wp.updated_at AS last_watched_at,
            mf.media_kind,
+           mf.matched_movie_id,
+           mf.matched_show_id,
            COALESCE(m.title, s.title, mf.file_name) AS title,
            COALESCE(m.poster_path, s.poster_path)   AS poster_path,
            COUNT(wh.id) AS watch_count
@@ -286,6 +294,8 @@ export class PlayerService {
         completed: number;
         last_watched_at: string;
         media_kind: string;
+        matched_movie_id: number | null;
+        matched_show_id: number | null;
         title: string;
         poster_path: string | null;
         watch_count: number;
@@ -293,6 +303,8 @@ export class PlayerService {
 
     return rows.map((r) => ({
       mediaFileId: r.media_file_id,
+      matchedMovieId: r.matched_movie_id,
+      matchedShowId: r.matched_show_id,
       title: r.title,
       mediaKind: r.media_kind as 'movie' | 'show',
       posterPath: r.poster_path,

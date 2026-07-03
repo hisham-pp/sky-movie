@@ -3,7 +3,7 @@ import type { LastWatchedInfo } from '@shared/ipc';
 import { formatPosition } from '../utils/dateUtils';
 
 interface LastWatchedButtonProps {
-  onPlay: (mediaFileId: number) => void;
+  onPlay: (info: LastWatchedInfo) => void;
   /** Pass the current player mediaFileId so the button refreshes when playback ends */
   activeMediaFileId: number | null;
 }
@@ -29,8 +29,8 @@ export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activ
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const mediaFileId = (e as CustomEvent<number>).detail;
-      onPlay(mediaFileId);
+      const lastWatched = (e as CustomEvent<LastWatchedInfo>).detail;
+      onPlay(lastWatched);
     };
     window.addEventListener('sky-movie:play-last-watched', handler);
     return () => window.removeEventListener('sky-movie:play-last-watched', handler);
@@ -39,7 +39,7 @@ export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activ
   const handlePlay = useCallback(() => {
     if (!info) return;
     setDismissed(true);
-    onPlay(info.mediaFileId);
+    onPlay(info);
   }, [info, onPlay]);
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
