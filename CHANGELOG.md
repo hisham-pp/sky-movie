@@ -5,6 +5,14 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.11] - 2026-07-03
+
+### Other
+
+- Enhance update download process with integrity checks and version management (Hisham)
+- Refactor code structure for improved readability and maintainability (Hisham)
+- chore(release): publish Sky Movie 0.7.10 downloads from GitHub (Sky Movie)
+
 ## [0.7.10] - 2026-07-03
 
 ### Other
@@ -596,3 +604,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.8]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.8
 [0.7.9]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.9
 [0.7.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.10
+[0.7.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.11
