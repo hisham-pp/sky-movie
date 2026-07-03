@@ -5,6 +5,12 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.14] - 2026-07-03
+
+### Changed
+
+- comment out DEB package signing step in release workflow (Hisham)
+
 ## [0.7.13] - 2026-07-03
 
 ### Fixed
@@ -629,3 +635,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.11
 [0.7.12]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.12
 [0.7.13]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.13
+[0.7.14]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.14
