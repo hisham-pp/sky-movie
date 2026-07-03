@@ -1,5 +1,5 @@
 import type { TorrentCategory, TorrentSearchRequest, TorrentSearchResult } from '../../../shared/ipc';
-import type { TorrentProvider } from './TorrentProvider';
+import { imdbPosterUrl, type TorrentProvider } from './TorrentProvider';
 
 interface TpbResult {
   id: string;
@@ -61,7 +61,7 @@ export class TpbProvider implements TorrentProvider {
         uploader: item.username,
         category: this.mapCategory(item.category),
         provider: this.name,
-        posterUrl: null,
+        posterUrl: imdbPosterUrl(item.imdb),
         imdbId: item.imdb || null,
         runtimeMinutes: null,
         addedAt: new Date(Number(item.added) * 1000).toISOString(),

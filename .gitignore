@@ -31,3 +31,4 @@ envs/*
 *.asar
 tmp/*
 temp/*
+.claude/*

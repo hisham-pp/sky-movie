@@ -216,14 +216,7 @@ interface SearchResultCardProps {
 function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: SearchResultCardProps) {
   return (
     <div className="flex items-start gap-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-3 transition-all">
-      {/* Poster */}
-      <div className="flex-shrink-0 w-10 h-14 rounded-md overflow-hidden bg-white/5 flex items-center justify-center">
-        {result.posterUrl ? (
-          <img src={result.posterUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-white/20 text-xs">?</span>
-        )}
-      </div>
+      <Poster url={result.posterUrl} />
 
       {/* Info */}
       <div className="flex-1 min-w-0">
@@ -259,6 +252,20 @@ function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: Se
           <span className="text-white/25">{result.provider}</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Poster({ url }: { url: string | null }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [url]);
+  return (
+    <div className="flex-shrink-0 w-10 h-14 rounded-md overflow-hidden bg-white/5 flex items-center justify-center">
+      {url && !failed ? (
+        <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-white/20 text-xs">?</span>
+      )}
     </div>
   );
 }

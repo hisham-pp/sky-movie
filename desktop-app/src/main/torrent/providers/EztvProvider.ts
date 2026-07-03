@@ -1,5 +1,5 @@
 import type { TorrentSearchRequest, TorrentSearchResult } from '../../../shared/ipc';
-import type { TorrentProvider } from './TorrentProvider';
+import { imdbPosterUrl, type TorrentProvider } from './TorrentProvider';
 
 interface EztvTorrent {
   id: number;
@@ -57,13 +57,19 @@ export class EztvProvider implements TorrentProvider {
       uploader: 'EZTV',
       category: 'tv',
       provider: this.name,
-      posterUrl: item.small_screenshot || null,
-      imdbId: item.imdb_id || null,
+      posterUrl: imdbPosterUrl(item.imdb_id) ?? this.screenshotUrl(item.small_screenshot),
+      imdbId: item.imdb_id && item.imdb_id !== '0' ? `tt${item.imdb_id}` : null,
       runtimeMinutes: null,
       addedAt: item.date_released_unix
         ? new Date(item.date_released_unix * 1000).toISOString()
         : null,
     }));
+  }
+
+  /** EZTV screenshot URLs are protocol-relative ("//ezimg.ch/…"). */
+  private screenshotUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    return url.startsWith('//') ? `https:${url}` : url;
   }
 
   private detectQuality(name: string): string | null {
