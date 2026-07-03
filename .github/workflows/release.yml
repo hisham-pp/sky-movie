@@ -136,23 +136,25 @@ jobs:
         run: ${{ matrix.packageCommand }}
 
       - name: Sign DEB packages
-        if: runner.os == 'Linux' && secrets.GPG_PRIVATE_KEY != ''
-        run: |
-          # Import GPG private key
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --batch --passphrase "${{ secrets.GPG_PASSPHRASE }}"
-          
-          # Get the key ID
-          KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep -A 1 "sec" | tail -1 | awk '{print $1}')
-          
-          # Sign all .deb packages
-          for deb in desktop-app/dist/*.deb; do
-            if [ -f "$deb" ]; then
-              dpkg-sig -k "$KEY_ID" --sign builder "$deb"
-              echo "Signed: $deb"
-            fi
-          done
+        if: runner.os == 'Linux'
         env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "No GPG key configured. Skipping package signing."
+            exit 0
+          fi
+
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE"
+
+          KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}')
+
+          for deb in desktop-app/dist/*.deb; do
+            [ -f "$deb" ] || continue
+            dpkg-sig -k "$KEY_ID" --sign builder "$deb"
+            echo "Signed: $deb"
+          done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
