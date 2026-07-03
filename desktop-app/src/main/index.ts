@@ -17,7 +17,6 @@ import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
-import streamingServer from './services/streamingServer';
 import { initFileLogging } from './utils/logger';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -147,14 +146,6 @@ app.whenReady().then(async () => {
     }
   });
 
-  // Start streaming server for MKV and other video formats
-  try {
-    await streamingServer.start();
-    console.log('Streaming server started successfully');
-  } catch (error) {
-    console.error('Failed to start streaming server:', error);
-  }
-
   registerIpcHandlers({
     catalog,
     backup,
@@ -205,7 +196,6 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  streamingServer.stop();
   torrentManager?.destroy().catch(console.error);
   closeDatabaseContext();
 

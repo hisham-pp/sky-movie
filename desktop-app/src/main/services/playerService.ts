@@ -4,11 +4,9 @@ import { stat } from 'node:fs/promises';
 import { dirname, extname, basename, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { LastWatchedInfo, WatchHistoryItem, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, MediaTrack, SidecarSubtitle } from '../../shared/ipc';
+import type { LastWatchedInfo, WatchHistoryItem, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, SidecarSubtitle } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
-import { extractMediaMetadata, isMKVFile, needsSpecialHandling } from './mediaMetadataService';
-import streamingServer from './streamingServer';
 
 interface ByteRange {
   start: number;
@@ -117,58 +115,19 @@ export class PlayerService {
 
     console.log('[PlayerService] playMedia called', { mediaFileId, path: mediaFile.absolutePath });
 
-    // Check if this is an MKV file that needs FFmpeg streaming
-    const isMKV = isMKVFile(mediaFile.absolutePath);
-    console.log('[PlayerService] File type check', { isMKV, path: mediaFile.absolutePath });
-
-    let mediaUrl: string;
-    let audioTracks: MediaTrack[] | undefined;
-    let subtitleTracks: MediaTrack[] | undefined;
-
-    if (isMKV) {
-      // Use streaming server for MKV files
-      mediaUrl = streamingServer.getUrl(mediaFileId, mediaFile.absolutePath);
-      console.log('[PlayerService] Using streaming server URL:', mediaUrl);
-
-      // Extract metadata for track information
-      try {
-        const metadata = extractMediaMetadata(mediaFile.absolutePath);
-        audioTracks = metadata.audioTracks as MediaTrack[];
-        subtitleTracks = metadata.subtitleTracks as MediaTrack[];
-      } catch (error) {
-        console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
-      }
-    } else {
-      // Route all non-MKV files through the streaming server which already
-      // has streamDirectFile() with proper 206/Accept-Ranges support.
-      mediaUrl = streamingServer.getUrl(mediaFileId, mediaFile.absolutePath);
-      console.log('[PlayerService] Using streaming server URL (direct):', mediaUrl);
-
-      // Extract metadata for track information
-      try {
-        const metadata = extractMediaMetadata(mediaFile.absolutePath);
-        audioTracks = metadata.audioTracks as MediaTrack[];
-        subtitleTracks = metadata.subtitleTracks as MediaTrack[];
-      } catch (error) {
-        console.warn(`Failed to extract metadata from ${mediaFile.absolutePath}:`, error);
-      }
-    }
-
+    // mpv plays absolutePath directly; the Artplayer fallback streams
+    // browser-compatible formats through the sky-media:// protocol.
+    const mediaUrl = `sky-media://${mediaFileId}`;
     const sidecarSubtitles = scanSidecarSubtitles(mediaFile.absolutePath);
 
-    const result: PlayMediaResult = {
+    return {
       mediaFileId,
       mediaUrl,
       absolutePath: mediaFile.absolutePath,
       title: mediaFile.fileName,
       watchProgress: this.getWatchProgress(mediaFileId),
-      audioTracks,
-      subtitleTracks,
       sidecarSubtitles
     };
-
-    console.log('[PlayerService] Returning PlayMediaResult', { mediaUrl, audioTracks: audioTracks?.length, subtitleTracks: subtitleTracks?.length });
-    return result;
   }
 
   async openExternally(mediaFileId: number): Promise<void> {

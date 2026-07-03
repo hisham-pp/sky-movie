@@ -19,14 +19,14 @@ Run from the repo root (pnpm filters to the right package):
 pnpm install                # workspace install (postinstall rebuilds native deps for Electron)
 pnpm dev                    # desktop app in dev mode (electron-vite dev)
 pnpm typecheck              # tsc --noEmit for desktop-app — the primary check; there is no test suite or linter
-pnpm build                  # full build: downloads FFmpeg + libmpv, builds native addon, typechecks, bundles
+pnpm build                  # full build: downloads libmpv, builds native addon, typechecks, bundles
 pnpm dev:website            # Next.js site dev server
 pnpm rebuild:native         # rebuild better-sqlite3 for Electron
 ```
 
 Packaging (Windows dev machine): `pnpm package:win:dir` (unpacked, fast iteration) or `pnpm package:win:installer` (NSIS). Output lands in `desktop-app/dist/`.
 
-The `prepare:ffmpeg` / `prepare:libmpv` / `build:native` steps run automatically inside `build`/`package` scripts; `build:ci` / `package:*:ci` variants skip them (CI restores those artifacts separately).
+The `prepare:libmpv` / `build:native` steps run automatically inside `build`/`package` scripts; `build:ci` / `package:*:ci` variants skip them (CI restores those artifacts separately).
 
 Releases: `pnpm version:patch|minor|major` bumps both package.json files and CHANGELOG.md. Pushing a `v*` tag triggers `.github/workflows/release.yml` (all platforms → GitHub release). `pnpm release:github` / `pnpm release:r2` update `website/public/releases.json`. See `scripts/README.md`.
 
@@ -47,11 +47,10 @@ One class per concern, constructed in `main/index.ts` with the shared `better-sq
 
 Database schema lives in `src/main/database/`: `schema.ts` (Drizzle definitions) and `migrations.ts` (`ensureSqliteSchema` — idempotent `CREATE TABLE IF NOT EXISTS` + `ALTER` guards run at startup; there are no migration files).
 
-### Video playback (three paths)
+### Video playback (two paths)
 
-1. **Direct playback** — browser-compatible files stream through the privileged `sky-media://` protocol registered by `PlayerService`; the renderer plays them with ArtPlayer (`src/renderer/src/utils/player/` holds buffering, track management, recovery, progress-tracking logic).
-2. **MKV/transcode path** — `streamingServer.ts` runs a local HTTP server (port 13337). FFmpeg transcodes to a growing fragmented-MP4 temp file (`%TEMP%\sky-movie-stream\`), served with range-request support; jobs are cached per `{fileId}-{audioTrack}`. Video is copied when H264, re-encoded (libx264 ultrafast) otherwise; audio copies a native AAC/MP3/Opus track when present, else transcodes to stereo AAC. Do not pipe FFmpeg stdout to the HTTP response — seeking depends on the temp file.
-3. **libmpv path** — `mpvService.ts` wraps the N-API addon in `desktop-app/native/mpv-player/`. A C++ background thread renders frames off the Node main thread and the service throttles → JPEG-encodes → IPCs frames to the renderer. Rebuild it with `pnpm --filter @sky-movie/desktop-app rebuild:native`.
+1. **libmpv path (primary)** — `mpvService.ts` wraps the N-API addon in `desktop-app/native/mpv-player/`. A C++ background thread renders frames off the Node main thread and the service throttles → JPEG-encodes → IPCs frames to the renderer. Rebuild it with `pnpm --filter @sky-movie/desktop-app rebuild:native`. mpv plays the file's `absolutePath` directly and handles all containers/codecs, including MKV.
+2. **ArtPlayer fallback** — used only when the mpv addon fails to load. Browser-compatible files stream through the privileged `sky-media://` protocol registered by `PlayerService` (full range-request support); formats Chromium can't decode (MKV/HEVC) show an "open in system player" error. (`src/renderer/src/utils/player/` holds buffering, track management, recovery, progress-tracking logic.)
 
 Cached poster/backdrop images are served to the sandboxed renderer via the `sky-image://local/<encoded-path>` protocol.
 
@@ -67,6 +66,6 @@ React Router routes in `routes/` (Library, Scan, Settings, Torrent, WatchHistory
 
 - Windows dev environment; repo scripts assume PowerShell.
 - Chromium feature flags must be combined into the single `--enable-features` switch in `main/index.ts` — only one call is respected.
-- When spawning FFmpeg/probes, pass args as an array (no shell string): media paths contain spaces and parentheses.
+- When spawning external processes on media paths, pass args as an array (no shell string): media paths contain spaces and parentheses.
 - `desktop-app` is ESM (`"type": "module"`), but the preload bundle is emitted as CJS (`index.cjs`).
 - Renderer console output is forwarded to the main-process log file (`logs/` next to the exe) — check there when debugging packaged builds.

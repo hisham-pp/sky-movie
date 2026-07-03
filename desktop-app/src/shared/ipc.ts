@@ -223,8 +223,6 @@ export interface PlayMediaResult {
   absolutePath: string;
   title: string;
   watchProgress: WatchProgressSnapshot | null;
-  audioTracks?: MediaTrack[];
-  subtitleTracks?: MediaTrack[];
   sidecarSubtitles?: SidecarSubtitle[];
 }
 
@@ -232,15 +230,6 @@ export interface SidecarSubtitle {
   label: string;
   url: string;
   type: 'srt' | 'vtt' | 'ass';
-}
-
-export interface MediaTrack {
-  index: number;
-  type: 'audio' | 'subtitle';
-  codec: string;
-  language?: string;
-  title?: string;
-  default: boolean;
 }
 
 export interface WatchProgressSnapshot {

@@ -15,13 +15,8 @@ files:
 asar: true
 asarUnpack:
   - '**/*.node'
-  - 'resources/ffmpeg/**'
 
 extraResources:
-  - from: resources/ffmpeg
-    to: ffmpeg
-    filter:
-      - '**/*'
   - from: resources/mpv
     to: mpv
     filter:

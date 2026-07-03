@@ -7,7 +7,6 @@ desktop-app/dist/*
 out
 
 # Bundled binaries (downloaded/built at build time, not committed)
-desktop-app/resources/ffmpeg/
 desktop-app/resources/mpv/
 
 # Native addon build artifacts and downloaded SDK files

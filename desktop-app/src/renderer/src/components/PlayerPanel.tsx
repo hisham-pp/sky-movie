@@ -125,29 +125,6 @@ function ArtplayerFallback({
           }
         },
         {
-          html: 'Audio',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
-          selector: player.audioTracks?.length
-            ? [
-                { html: 'Default', value: '-1', default: true },
-                ...player.audioTracks.map((t, i) => ({
-                  html: t.title || t.language || `Track ${i + 1}`,
-                  value: String(i)
-                }))
-              ]
-            : [{ html: 'Default', value: '-1', default: true }],
-          onSelect(item: any) {
-            const video = art.video as any;
-            const idx = parseInt(item.value);
-            if (video.audioTracks) {
-              for (let i = 0; i < video.audioTracks.length; i++) {
-                video.audioTracks[i].enabled = idx === -1 ? i === 0 : i === idx;
-              }
-            }
-            return item.html;
-          }
-        },
-        {
           html: 'Subtitles',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>',
           selector: [
@@ -156,10 +133,6 @@ function ArtplayerFallback({
               html: s.label,
               value: `sidecar:${i}`,
               default: i === 0 && sidecarList.length > 0
-            })),
-            ...(player.subtitleTracks ?? []).map((t, i) => ({
-              html: t.title || t.language || `Sub ${i + 1}`,
-              value: `embedded:${i}`
             }))
           ],
           onSelect(item: any) {
@@ -172,17 +145,6 @@ function ArtplayerFallback({
               const sub = sidecarList[idx];
               art.subtitle.url = sub.url;
               art.subtitle.show = true;
-              return item.html;
-            }
-            if (item.value.startsWith('embedded:')) {
-              const idx = parseInt(item.value.split(':')[1]);
-              const video = art.video;
-              if (video.textTracks) {
-                for (let i = 0; i < video.textTracks.length; i++) {
-                  video.textTracks[i].mode = i === idx ? 'showing' : 'hidden';
-                }
-              }
-              art.subtitle.show = false;
               return item.html;
             }
             return item.html;

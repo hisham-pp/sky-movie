@@ -118,9 +118,6 @@ jobs:
             desktop-app/native/mpv-player/include
           key: libmpv-${{ runner.arch }}-${{ hashFiles('scripts/download-libmpv.mjs') }}
 
-      - name: Prepare FFmpeg bundle
-        run: pnpm --filter @sky-movie/desktop-app run prepare:ffmpeg
-
       - name: Prepare libmpv
         run: pnpm --filter @sky-movie/desktop-app run prepare:libmpv
 
