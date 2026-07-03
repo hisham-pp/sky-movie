@@ -13,6 +13,14 @@ Sky Movie is organized as a local-first desktop MVP with room for future surface
 
 The MVP does not include a backend API/server. The desktop app stores data locally with SQLite and uses secure Electron IPC between the renderer and main process.
 
+## Installation
+
+### Desktop App
+
+Download the latest release from [GitHub Releases](https://github.com/hisham-pp/sky-movie/releases).
+
+**Linux users:** See [Linux Installation Guide](docs/LINUX_INSTALLATION.md) for detailed installation instructions and troubleshooting.
+
 ## Commands
 
 ```powershell

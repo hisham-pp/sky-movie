@@ -124,7 +124,123 @@ export APPLE_TEAM_ID="YOUR_TEAM_ID"
 
 #### Linux
 
-Linux doesn't require code signing for most distributions. Users can verify integrity using checksums.
+Linux doesn't enforce code signing at the OS level, but signing packages is good practice for repository distribution and user trust.
+
+##### GPG Signing for DEB Packages
+
+**Generate a GPG key:**
+```bash
+gpg --full-generate-key
+# Select: RSA and RSA
+# Key size: 4096
+# Valid for: 1y (or your preference)
+# Enter your name and email
+```
+
+**Export the public key:**
+```bash
+gpg --armor --export your@email.com > public.key
+# Share this key with users so they can verify signatures
+```
+
+**Sign the package:**
+```bash
+# Install dpkg-sig if not available
+sudo apt install dpkg-sig
+
+# Sign the .deb package
+dpkg-sig -k YOUR_KEY_ID --sign builder Sky-Movie-*-linux-x64.deb
+```
+
+**Verify the signature:**
+```bash
+# Users can verify with:
+dpkg-sig --verify Sky-Movie-*-linux-x64.deb
+
+# Or import your public key first:
+gpg --import public.key
+dpkg-sig --verify Sky-Movie-*-linux-x64.deb
+```
+
+**AutomATE in CI/CD:**
+
+The GitHub Actions workflows (`.github/workflows/release.yml` and `.github/workflows/build-desktop.yml`) now include automatic GPG signing for DEB packages.
+
+**Setup:**
+
+1. **Generate a GPG key** (if you don't have one):
+```bash
+gpg --full-generate-key
+# Select: RSA and RSA
+# Key size: 4096
+# Valid for: 1y (or your preference)
+# Enter your name and email
+```
+
+2. **Export your private key**:
+```bash
+gpg --armor --export-secret-keys your@email.com > private-key.asc
+```
+
+3. **Add secrets to GitHub**:
+   - Go to your repository **Settings** > **Secrets and variables** > **Actions**
+   - Add the following secrets:
+     - `GPG_PRIVATE_KEY`: Contents of `private-key.asc` (the entire file including BEGIN/END markers)
+     - `GPG_PASSPHRASE`: The passphrase you set when creating the key
+
+4. **Export your public key** for users:
+```bash
+gpg --armor --export your@email.com > public.key
+```
+Replace the placeholder `public.key` file in the `platfrom/` folder with your exported key. Users can download it from:
+```
+https://github.com/hisham-pp/sky-movie/raw/main/platfrom/public.key
+```
+
+**How it works:**
+
+The CI/CD workflow will:
+- Install `dpkg-sig` on Linux runners
+- Import your GPG private key from secrets
+- Automatically sign all `.deb` packages after building
+- Upload signed packages to the release
+
+**Note:** electron-builder doesn't have built-in GPG signing for DEB packages. The workflow handles this as a post-build step.
+
+##### Alternative: Use AppImage
+
+AppImage format is recommended for Linux distribution as it:
+- Doesn't require installation or root privileges
+- Avoids package manager conflicts
+- Self-contained with all dependencies
+- No signing required for basic usage
+
+Users can simply:
+```bash
+chmod +x Sky-Movie-*-linux-x64.AppImage
+./Sky-Movie-*-linux-x64.AppImage
+```
+
+##### Package Dependencies
+
+The `electron-builder.yml` now includes proper Linux dependencies to prevent installation issues:
+
+```yaml
+deb:
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+  priority: optional
+```
+
+This ensures all required system libraries are installed automatically.
 
 ## Free Alternatives for Open Source Projects
 
