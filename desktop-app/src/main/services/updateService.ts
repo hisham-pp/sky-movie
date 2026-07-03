@@ -1,6 +1,6 @@
 import { app, BrowserWindow, net } from 'electron';
 import { createWriteStream, unlink } from 'node:fs';
-import { mkdir, readdir, rm } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ReleaseInfo, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus } from '../../shared/ipc';
 import { ipcChannels } from '../../shared/ipc';
@@ -35,6 +35,7 @@ export class UpdateService {
   private getMainWindow: () => BrowserWindow | null;
   private currentReleaseInfo: ReleaseInfo | null = null;
   private downloadedFilePath: string | null = null;
+  private downloadedVersion: string | null = null;
   private settingsService: SettingsService;
 
   constructor(getMainWindow: () => BrowserWindow | null, settingsService: SettingsService) {
@@ -45,16 +46,28 @@ export class UpdateService {
   }
 
   private async restoreDownloadedState(): Promise<void> {
+    const updatesDir = join(app.getPath('userData'), 'updates');
     try {
-      const updatesDir = join(app.getPath('userData'), 'updates');
-      const files = await readdir(updatesDir);
-      const installer = files.find((f) => f.endsWith('.exe') || f.endsWith('.dmg') || f.endsWith('.AppImage'));
-      if (installer) {
-        this.downloadedFilePath = join(updatesDir, installer);
+      // Only trust a download that was verified and recorded in the manifest.
+      // Anything else in the dir (e.g. a .partial from an interrupted download)
+      // must not be offered for install — a truncated installer fails the NSIS
+      // integrity check.
+      const manifestRaw = await readFile(join(updatesDir, 'update-info.json'), 'utf-8');
+      const manifest = JSON.parse(manifestRaw) as { version: string; fileName: string; size: number };
+      const filePath = join(updatesDir, manifest.fileName);
+      const stats = await stat(filePath);
+      const isNewerThanCurrent = this.compareVersions(manifest.version, app.getVersion()) > 0;
+      if (stats.size === manifest.size && isNewerThanCurrent) {
+        this.downloadedFilePath = filePath;
+        this.downloadedVersion = manifest.version;
         this.status = 'downloaded';
+        return;
       }
+      await this.cleanupUpdatesDir();
     } catch {
-      // No updates dir yet
+      // No valid downloaded update; remove any leftovers so a corrupt or
+      // outdated installer can never be restored.
+      await this.cleanupUpdatesDir();
     }
   }
 
@@ -154,7 +167,9 @@ export class UpdateService {
     if (!this.currentReleaseInfo) {
       throw new Error('No update available to download');
     }
-    if (this.status === 'downloading' || this.status === 'downloaded') return;
+    if (this.status === 'downloading') return;
+    // Re-download if what we have on disk is not the release we're offering now
+    if (this.status === 'downloaded' && this.downloadedVersion === this.currentReleaseInfo.version) return;
 
     // Clean up any previously downloaded installer before starting a fresh download
     await this.cleanupUpdatesDir();
@@ -266,25 +281,44 @@ export class UpdateService {
     const urlParts: string[] = releaseInfo.downloadUrl.split('/');
     const fileName: string = urlParts.length > 0 ? urlParts[urlParts.length - 1] : 'update.exe';
     const filePath = join(updatesDir, fileName);
+    // Download under a temp name so an interrupted download can never be
+    // mistaken for a complete installer.
+    const partialPath = `${filePath}.partial`;
 
     return new Promise((resolve, reject) => {
       const request = net.request({ url: releaseInfo.downloadUrl, redirect: 'follow' });
-      const fileStream = createWriteStream(filePath);
+      const fileStream = createWriteStream(partialPath);
       let bytesDownloaded = 0;
+      let contentLength = 0;
       let settled = false;
 
       const fail = (error: Error) => {
         if (settled) return;
         settled = true;
         fileStream.destroy();
-        unlink(filePath, () => {});
+        unlink(partialPath, () => {});
         reject(error);
       };
 
       fileStream.on('finish', () => {
         if (settled) return;
+        // Verify we received the whole installer before accepting it
+        const shortOf = [contentLength, releaseInfo.size].find((n) => n > 0 && n !== bytesDownloaded);
+        if (shortOf !== undefined) {
+          fail(new Error(`Update download incomplete: got ${bytesDownloaded} bytes, expected ${shortOf}`));
+          return;
+        }
         settled = true;
-        resolve(filePath);
+        (async () => {
+          await rename(partialPath, filePath);
+          await writeFile(
+            join(updatesDir, 'update-info.json'),
+            JSON.stringify({ version: releaseInfo.version, fileName, size: bytesDownloaded }),
+            'utf-8'
+          );
+          this.downloadedVersion = releaseInfo.version;
+          return filePath;
+        })().then(resolve, reject);
       });
 
       fileStream.on('error', fail);
@@ -300,8 +334,9 @@ export class UpdateService {
           return;
         }
 
-        const contentLength = response.headers['content-length'];
-        const totalBytes = parseInt(Array.isArray(contentLength) ? contentLength[0] : (contentLength || '0'), 10);
+        const lengthHeader = response.headers['content-length'];
+        contentLength = parseInt(Array.isArray(lengthHeader) ? lengthHeader[0] : (lengthHeader || '0'), 10) || 0;
+        const totalBytes = contentLength > 0 ? contentLength : releaseInfo.size;
 
         response.on('data', (chunk: Buffer) => {
           bytesDownloaded += chunk.length;
