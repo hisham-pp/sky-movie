@@ -5,6 +5,22 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.12] - 2026-07-03
+
+### Added
+
+- enhance playback functionality with resume support and additional metadata for last watched items (Hisham)
+- enhance torrent providers with IMDb poster URL functionality and refactor poster rendering in search results (Hisham)
+
+### Fixed
+
+- prevent hero clipping by setting grid-auto-rows to max-content (Hisham)
+- prevent search input click from bubbling to parent (Hisham)
+
+### Other
+
+- Refactor FFmpeg integration and remove outdated documentation (Hisham)
+
 ## [0.7.11] - 2026-07-03
 
 ### Other
@@ -605,3 +621,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.9]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.9
 [0.7.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.10
 [0.7.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.11
+[0.7.12]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.12
