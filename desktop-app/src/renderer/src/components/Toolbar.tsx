@@ -20,6 +20,9 @@ export const Toolbar = memo(function Toolbar({
           placeholder="Search library"
           readOnly
           onClick={(e) => {
+            // stop bubbling to the parent .search onClick — onOpenSearch is a
+            // toggle, so firing twice opens and immediately closes the modal
+            e.stopPropagation();
             e.currentTarget.blur();
             onOpenSearch();
           }}
