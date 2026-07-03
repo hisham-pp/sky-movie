@@ -10,6 +10,9 @@
 .scan-page {
   display: grid;
   align-content: start;
+  /* auto rows would collapse to 0 when content exceeds the viewport (items with
+     overflow:hidden have no automatic minimum), clipping the hero instead of scrolling */
+  grid-auto-rows: max-content;
   gap: 24px;
   height: 100%;
   min-height: 0;
