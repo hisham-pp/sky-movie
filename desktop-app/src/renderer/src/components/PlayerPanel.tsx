@@ -16,10 +16,10 @@ export function PlayerPanel({
   player: PlayMediaResult | null;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const { settings, playNextEpisode } = useLibraryControllerContext();
+  const { settings, advancePlayback } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
-  const handleEnded = () => { void playNextEpisode(); };
+  const handleEnded = () => { void advancePlayback(); };
 
   useEffect(() => {
     window.skyMovie.mpvIsAvailable()
