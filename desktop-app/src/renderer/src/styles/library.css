@@ -452,10 +452,10 @@
 
 .poster-grid {
   display: grid;
-  /* Card width tracks the viewport: ~150px on narrow windows up to 220px on
+  /* Card width tracks the viewport: ~120px on narrow windows up to 170px on
      wide screens, with auto-fill deciding how many columns fit per row. */
-  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 11.5vw, 220px), 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 9vw, 170px), 1fr));
+  gap: 16px;
   min-width: 0;
   position: relative;
   z-index: 5;
@@ -478,9 +478,9 @@
 .tile {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(36px, auto) 18px;
+  grid-template-rows: auto minmax(32px, auto) 16px;
   align-content: start;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   border: 1px solid transparent;
   background: transparent;
@@ -492,7 +492,7 @@
   /* Skip layout/paint for offscreen tiles — keeps large libraries scrolling smoothly.
      The intrinsic size approximates poster (2:3) + caption so the scrollbar stays stable. */
   content-visibility: auto;
-  contain-intrinsic-size: 180px 340px;
+  contain-intrinsic-size: 150px 285px;
 }
 
 .tile:hover {
@@ -612,42 +612,46 @@
   font-size: 11.5px;
 }
 
+/* Circular glass icon action, matching the player control buttons */
 .details-button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  background: var(--primary);
-  color: var(--on-primary);
-  border: none;
-  border-radius: 7px;
-  font-size: 11.5px;
-  font-weight: 700;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 14, 20, 0.45);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
   margin-top: 2px;
-  width: fit-content;
 }
 
 .details-button:hover {
-  opacity: 0.88;
-  background: var(--primary);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
 }
 
 .tile > strong {
   display: -webkit-box;
   overflow: hidden;
-  min-height: 36px;
+  min-height: 32px;
   color: var(--ink);
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .tile > span {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
 }
 
