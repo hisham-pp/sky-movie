@@ -87,8 +87,7 @@
   .library-list,
   .media-detail-page,
   .scan-page,
-  .settings-page,
-  .statusbar {
+  .settings-page {
     padding-inline: 24px;
   }
 

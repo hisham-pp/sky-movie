@@ -4,7 +4,6 @@ import { MetadataMatchDialog } from './components/MetadataMatchDialog';
 import { SearchModal } from './components/SearchModal';
 import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
 import { Sidebar } from './components/Sidebar';
-import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { LibraryControllerProvider, useLibraryControllerContext } from './hooks/LibraryControllerContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
@@ -146,7 +145,6 @@ function AppLayoutInner() {
 
           <Outlet />
 
-          <StatusBar status={library.status} lastScan={library.lastScan} />
           <MetadataMatchDialog
             prompt={library.metadataPrompt}
             busy={library.busy}
