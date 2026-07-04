@@ -418,6 +418,7 @@ export interface SkyMovieApi extends TorrentApi {
   mpvSetSpeed(speed: number): Promise<void>;
   mpvSetRenderSize(width: number, height: number): Promise<void>;
   mpvSetSubFile(path: string): Promise<void>;
+  mpvSetAudioFilter(filter: string): Promise<void>;
   onMpvFrame(callback: (jpeg: Uint8Array) => void): () => void;
   onMpvEvent(callback: (ev: MpvEvent) => void): () => void;
   onMpvTracks(callback: (tracks: MpvTrack[]) => void): () => void;
@@ -535,6 +536,7 @@ export const ipcChannels = {
   mpvSetSpeed:       'mpv:set-speed',
   mpvSetRenderSize:  'mpv:set-render-size',
   mpvSetSubFile:     'mpv:set-sub-file',
+  mpvSetAudioFilter: 'mpv:set-audio-filter',
   // push channels (main → renderer)
   mpvFrame:          'mpv:frame',
   mpvEvent:          'mpv:event',

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
 import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
+import { buildMpvAudioFilter } from '../../../utils/player/audioEnhance';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
 
@@ -118,6 +119,16 @@ function DefaultControls({
     } catch { /* MPV path */ }
     return () => { if (audioRef.current) { audioRef.current.ctx.close(); audioRef.current = null; } };
   }, []);
+
+  // mpv path: no <video> element exists, so Web Audio can't intercept the
+  // stream — apply the equivalent enhancement chain as mpv audio filters.
+  useEffect(() => {
+    if (audioRef.current) return;
+    const af = buildMpvAudioFilter({
+      bassBoost, trebleBoost, voiceBoost, stableVolume: stableVol, aiAudio: aiAudioOn
+    });
+    window.skyMovie.mpvSetAudioFilter(af).catch(() => {});
+  }, [bassBoost, trebleBoost, voiceBoost, stableVol, aiAudioOn]);
 
   useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.bass.gain.value = bassBoost ? 8 : 0; } }, [bassBoost]);
   useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.treble.gain.value = trebleBoost ? 6 : 0; } }, [trebleBoost]);
@@ -348,7 +359,11 @@ function DefaultControls({
                 <Settings size={16} />
               </button>
               {showMenu === 'settings' && (
-                <div className="default-menu default-settings-panel">
+                <div
+                  className="default-menu default-settings-panel"
+                  onClick={e => e.stopPropagation()}
+                  onPointerDown={e => e.stopPropagation()}
+                >
 
                   {/* Speed */}
                   <div className="default-settings-section">
