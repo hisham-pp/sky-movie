@@ -67,7 +67,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm libmpv-dev dpkg-sig
+          # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
+          sudo apt-get install -y libarchive-tools rpm libmpv-dev
 
       - name: Cache Homebrew Cellar
         if: runner.os == 'macOS'
