@@ -61,7 +61,8 @@ export function LibraryView({
   onDeletePlaylist,
   onRemoveFromPlaylist,
   onReorderPlaylistItem,
-  onPlayAllPlaylist
+  onPlayAllPlaylist,
+  onToggleFavorite
 }: {
   view: Exclude<ViewMode, 'settings' | 'scan'>;
   showDetailView: boolean;
@@ -100,6 +101,7 @@ export function LibraryView({
   onRemoveFromPlaylist(playlistId: number, itemId: number): void;
   onReorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): void;
   onPlayAllPlaylist(): void;
+  onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -127,6 +129,7 @@ export function LibraryView({
         onDeleteFile={onDeleteFile}
         onShowInFolder={onShowInFolder}
         onAddToPlaylist={onAddToPlaylist}
+        onToggleFavorite={onToggleFavorite}
       />
     );
   }
@@ -152,6 +155,7 @@ export function LibraryView({
         onDeleteFile={onDeleteFile}
         onShowInFolder={onShowInFolder}
         onAddToPlaylist={onAddToPlaylist}
+        onToggleFavorite={onToggleFavorite}
       />
     );
   }
@@ -210,6 +214,7 @@ export function LibraryView({
           onSelectMovie={onSelectMovie}
           onViewMovieDetails={onViewMovieDetails}
           onOpenExternal={onOpenExternal}
+          onToggleFavorite={onToggleFavorite}
         />
       )}
 
@@ -221,6 +226,7 @@ export function LibraryView({
           onSelectShow={onSelectShow}
           onViewShowDetails={onViewShowDetails}
           onOpenExternal={onOpenExternal}
+          onToggleFavorite={onToggleFavorite}
         />
       )}
 

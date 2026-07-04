@@ -14,7 +14,8 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   player,
   onSelectMovie,
   onViewMovieDetails,
-  onOpenExternal
+  onOpenExternal,
+  onToggleFavorite
 }: {
   movies: Movie[];
   selectedMovie: Movie | null;
@@ -22,6 +23,7 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   onSelectMovie(movie: Movie): void;
   onViewMovieDetails(movie: Movie): void;
   onOpenExternal(mediaFileId: number): void;
+  onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
   const [search, setSearch] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -159,6 +161,7 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
                   movie={movie}
                   onClick={() => onSelectMovie(movie)}
                   onViewDetails={() => onViewMovieDetails(movie)}
+                  onToggleFavorite={() => onToggleFavorite('movie', movie.id, !movie.favorite)}
                   isSelected={selectedMovie?.id === movie.id}
                 />
               ))}

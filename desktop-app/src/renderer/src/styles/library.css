@@ -655,14 +655,57 @@
   color: var(--muted);
 }
 
-.favorite {
+/* Favorite heart toggle — circular glass action on the poster's top-right.
+   Hidden until the tile is hovered, but always visible once favorited. */
+.tile-fav-btn {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 3;
-  color: var(--gold);
-  fill: var(--gold);
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--control-border);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
+  box-shadow: var(--overlay-shadow), var(--overlay-highlight);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s ease, background 0.15s ease, border-color 0.15s ease,
+              color 0.15s ease, transform 0.15s ease;
+}
+
+.tile:hover .tile-fav-btn,
+.tile-fav-btn.active {
+  opacity: 1;
+}
+
+.tile-fav-btn:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--control-border-hover);
+  transform: scale(1.1);
+}
+
+.tile-fav-btn.active {
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.45);
+  background: rgba(233, 69, 96, 0.16);
+}
+
+.tile-fav-btn.active svg {
+  animation: fav-pop 0.32s var(--ease-spring);
+}
+
+@keyframes fav-pop {
+  0%   { transform: scale(0.55); }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 .library-empty-state {

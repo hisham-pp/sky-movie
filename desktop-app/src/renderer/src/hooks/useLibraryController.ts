@@ -405,6 +405,24 @@ export function useLibraryController() {
     setStatus('Playlist finished');
   }
 
+  /** Toggle favorite for a movie/show — persisted via updateMetadata, with
+   *  optimistic list + selection updates so every view refreshes instantly. */
+  async function toggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean) {
+    try {
+      await queries.updateMetadata({ mediaKind, id, favorite });
+      if (mediaKind === 'movie') {
+        setMovies((prev) => prev.map((m) => (m.id === id ? { ...m, favorite } : m)));
+        setSelectedMovie((prev) => (prev && prev.id === id ? { ...prev, favorite } : prev));
+      } else {
+        setShows((prev) => prev.map((s) => (s.id === id ? { ...s, favorite } : s)));
+        setSelectedShow((prev) => (prev && prev.id === id ? { ...prev, favorite } : prev));
+      }
+      setStatus(favorite ? 'Added to favorites' : 'Removed from favorites');
+    } catch (error) {
+      setStatus(`Favorite update failed: ${formatError(error)}`);
+    }
+  }
+
   async function openExternal(mediaFileId: number) {
     try {
       await queries.openMediaExternally(mediaFileId);
@@ -984,6 +1002,7 @@ export function useLibraryController() {
     playNextEpisode,
     playPlaylist,
     advancePlayback,
+    toggleFavorite,
     openExternal,
     saveSettings,
     clearLocalData,
