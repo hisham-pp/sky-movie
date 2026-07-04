@@ -92,6 +92,7 @@ const api: SkyMovieApi = {
   mpvSetSpeed:      (s: number)  => ipcRenderer.invoke(ipcChannels.mpvSetSpeed, s),
   mpvSetRenderSize: (w: number, h: number) => ipcRenderer.invoke(ipcChannels.mpvSetRenderSize, w, h),
   mpvSetSubFile:    (path: string) => ipcRenderer.invoke(ipcChannels.mpvSetSubFile, path),
+  mpvSetAudioFilter:(filter: string) => ipcRenderer.invoke(ipcChannels.mpvSetAudioFilter, filter),
   onMpvFrame: (callback: (jpeg: Uint8Array) => void) => {
     const listener = (_: Electron.IpcRendererEvent, data: Uint8Array) => callback(data);
     ipcRenderer.on(ipcChannels.mpvFrame, listener);

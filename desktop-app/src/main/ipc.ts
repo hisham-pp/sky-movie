@@ -224,6 +224,7 @@ export function registerIpcHandlers(services: IpcServices): void {
   h(ipcChannels.mpvSetSpeed,     (_e, s: number)          => safe(ipcChannels.mpvSetSpeed,     () => mpvService.setSpeed(s)));
   h(ipcChannels.mpvSetRenderSize,(_e, w: number, h2: number) => safe(ipcChannels.mpvSetRenderSize, () => mpvService.setRenderSize(w, h2)));
   h(ipcChannels.mpvSetSubFile,   (_e, path: string)       => safe(ipcChannels.mpvSetSubFile,   () => mpvService.setSubFile(path)));
+  h(ipcChannels.mpvSetAudioFilter,(_e, filter: string)    => safe(ipcChannels.mpvSetAudioFilter,() => mpvService.setAudioFilter(filter)));
 
   // Synchronous close — called from the renderer's beforeunload handler via
   // ipcRenderer.sendSync. Blocks until mpv is fully destroyed so audio stops

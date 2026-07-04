@@ -12,6 +12,7 @@ import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
 import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
 import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
+import { buildMpvAudioFilter } from '../../../utils/player/audioEnhance';
 
 function formatTime(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00';
@@ -190,6 +191,16 @@ function YouTubeControls({
     }
     return () => { if (audioRef.current) { audioRef.current.ctx.close(); audioRef.current = null; } };
   }, []);
+
+  // mpv path: no <video> element exists, so Web Audio can't intercept the
+  // stream — apply the equivalent enhancement chain as mpv audio filters.
+  useEffect(() => {
+    if (audioRef.current) return;
+    const af = buildMpvAudioFilter({
+      bassBoost, trebleBoost, voiceBoost, stableVolume: stableVol, aiAudio: aiAudioOn
+    });
+    window.skyMovie.mpvSetAudioFilter(af).catch(() => {});
+  }, [bassBoost, trebleBoost, voiceBoost, stableVol, aiAudioOn]);
 
   // Sync audio enhancement params
   useEffect(() => {

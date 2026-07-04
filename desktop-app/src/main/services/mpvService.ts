@@ -332,6 +332,12 @@ export class MpvService {
     this.session?.player.setProperty('sub-file', path);
   }
 
+  /** Replace mpv's audio filter chain; empty string clears all filters. */
+  setAudioFilter(filter: string): void {
+    log.info(`[MpvService] setAudioFilter: ${filter || '(clear)'}`);
+    this.session?.player.setProperty('af', filter);
+  }
+
   // ── Frame delivery (runs on Node.js main thread) ───────────────────────────
 
   private onFrameReceived(rgba: Buffer, width: number, height: number): void {
