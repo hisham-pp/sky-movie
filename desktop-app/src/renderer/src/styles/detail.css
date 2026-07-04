@@ -105,6 +105,55 @@
   text-transform: uppercase;
 }
 
+/* Title + favorite toggle row on detail pages */
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.detail-title-row h2 {
+  min-width: 0;
+}
+
+.detail-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
+  box-shadow: var(--control-highlight);
+  color: var(--soft);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+              color 0.15s ease, transform 0.15s ease;
+}
+
+.detail-fav-btn:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--control-border-hover);
+  color: var(--ink);
+  transform: scale(1.08);
+}
+
+.detail-fav-btn.active {
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.45);
+  background: rgba(233, 69, 96, 0.16);
+}
+
+.detail-fav-btn.active svg {
+  animation: fav-pop 0.32s var(--ease-spring);
+}
+
 .detail-copy h2,
 .series-title-row h2 {
   margin: 8px 0 12px;

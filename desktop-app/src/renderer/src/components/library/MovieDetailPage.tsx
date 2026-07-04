@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback } from 'react';
-import { ArrowLeft, Clapperboard, Play, ListMusic } from 'lucide-react';
+import { ArrowLeft, Clapperboard, Heart, Play, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
 import { PlayerPanel } from '../player/PlayerPanel';
 import { FileList } from './FileList';
@@ -28,6 +28,7 @@ type MovieDetailPageProps =  {
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
+  onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }
 
 export const MovieDetailPage = memo(function MovieDetailPage({
@@ -47,7 +48,8 @@ export const MovieDetailPage = memo(function MovieDetailPage({
   onOpenExternal,
   onDeleteFile,
   onShowInFolder,
-  onAddToPlaylist
+  onAddToPlaylist,
+  onToggleFavorite
 }:MovieDetailPageProps) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
@@ -80,7 +82,17 @@ export const MovieDetailPage = memo(function MovieDetailPage({
           </div>
           <div className="detail-copy">
             <span className="detail-kicker">Movie detail</span>
-            <h2>{movie.title}</h2>
+            <div className="detail-title-row">
+              <h2>{movie.title}</h2>
+              <button
+                className={`detail-fav-btn${movie.favorite ? ' active' : ''}`}
+                title={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                onClick={() => onToggleFavorite('movie', movie.id, !movie.favorite)}
+              >
+                <Heart size={17} fill={movie.favorite ? 'currentColor' : 'none'} />
+              </button>
+            </div>
             <div className="hero-chips">
               {meta.map((item) => (
                 <span key={String(item)}>{item}</span>

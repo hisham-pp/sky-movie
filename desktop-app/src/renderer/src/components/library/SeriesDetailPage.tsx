@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback } from 'react';
-import { ArrowLeft, Calendar, Play, Star, Tv2, FolderSearch, ListMusic } from 'lucide-react';
+import { ArrowLeft, Calendar, Heart, Play, Star, Tv2, FolderSearch, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
 import { PlayerPanel } from '../player/PlayerPanel';
 import { FileList } from './FileList';
@@ -29,7 +29,8 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
   onOpenExternal,
   onDeleteFile,
   onShowInFolder,
-  onAddToPlaylist
+  onAddToPlaylist,
+  onToggleFavorite
 }: {
   show: TvShow;
   episodes: Episode[];
@@ -49,6 +50,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
   onDeleteFile(file: MediaFile): void;
   onShowInFolder(file: MediaFile): void;
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
+  onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
@@ -91,7 +93,17 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
         <div className="series-title-row">
           <div>
             <span className="detail-kicker">Series detail</span>
-            <h2>{show.title}</h2>
+            <div className="detail-title-row">
+              <h2>{show.title}</h2>
+              <button
+                className={`detail-fav-btn${show.favorite ? ' active' : ''}`}
+                title={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
+              >
+                <Heart size={17} fill={show.favorite ? 'currentColor' : 'none'} />
+              </button>
+            </div>
             <p>{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
           </div>
           <div className="series-poster">

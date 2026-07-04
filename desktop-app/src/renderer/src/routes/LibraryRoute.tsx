@@ -121,6 +121,7 @@ export function LibraryRoute(props: LibraryRouteProps) {
       onRemoveFromPlaylist={handleRemoveFromPlaylist}
       onReorderPlaylistItem={library.reorderPlaylistItem}
       onPlayAllPlaylist={handlePlayAllPlaylist}
+      onToggleFavorite={library.toggleFavorite}
     />
   );
 }

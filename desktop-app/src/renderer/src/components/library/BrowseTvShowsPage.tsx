@@ -14,7 +14,8 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   player,
   onSelectShow,
   onViewShowDetails,
-  onOpenExternal
+  onOpenExternal,
+  onToggleFavorite
 }: {
   shows: TvShow[];
   selectedShow: TvShow | null;
@@ -22,6 +23,7 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   onSelectShow(show: TvShow): void;
   onViewShowDetails(show: TvShow): void;
   onOpenExternal(mediaFileId: number): void;
+  onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
   const [search, setSearch] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -159,6 +161,7 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
                   show={show}
                   onClick={() => onSelectShow(show)}
                   onViewDetails={() => onViewShowDetails(show)}
+                  onToggleFavorite={() => onToggleFavorite('show', show.id, !show.favorite)}
                   isSelected={selectedShow?.id === show.id}
                 />
               ))}
