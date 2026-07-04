@@ -62,6 +62,8 @@ export function MpvPlayer({
   const seekOsdTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onEndedRef      = useRef(onEnded);
   onEndedRef.current    = onEnded;
+  const tracksRef       = useRef<MpvTrack[]>([]);
+  const trackOsdTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [state,        setState]     = useState<PlayerState>(DEFAULT_STATE);
   const [tracks,       setTracks]    = useState<MpvTrack[]>([]);
@@ -71,6 +73,7 @@ export function MpvPlayer({
   const [showMenu,     setShowMenu]  = useState<'settings' | null>(null);
   const [error,        setError]     = useState<string | null>(null);
   const [ripple,       setRipple]    = useState<'left' | 'right' | null>(null);
+  const [trackOsd,     setTrackOsd]  = useState<string | null>(null);
 
   const updateState = useCallback((patch: Partial<PlayerState>) => {
     stateRef.current = { ...stateRef.current, ...patch };
@@ -180,7 +183,10 @@ export function MpvPlayer({
         posRestored = true;
       }
     });
-    const unsubTracks = window.skyMovie.onMpvTracks(setTracks);
+    const unsubTracks = window.skyMovie.onMpvTracks(ts => {
+      tracksRef.current = ts;
+      setTracks(ts);
+    });
 
     const progressTimer = setInterval(() => {
       const s = stateRef.current;
@@ -213,12 +219,57 @@ export function MpvPlayer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player.mediaFileId]);
 
+  // ── audio / subtitle track cycling (Ctrl+H / Ctrl+J) ───────────────────────
+  // Only refs are used so the functions stay valid inside the long-lived
+  // keydown listener without resubscribing on every tracks update.
+
+  const showTrackOsd = (text: string) => {
+    setTrackOsd(text);
+    if (trackOsdTimer.current) clearTimeout(trackOsdTimer.current);
+    trackOsdTimer.current = setTimeout(() => setTrackOsd(null), 1800);
+  };
+
+  const trackLabel = (t: MpvTrack) => t.title || t.lang || `Track ${t.id}`;
+
+  const cycleAudioTrack = () => {
+    const audio = tracksRef.current.filter(t => t.type === 'audio');
+    if (audio.length < 2) return;
+    const idx = audio.findIndex(t => t.selected);
+    const next = audio[(idx + 1) % audio.length];
+    tracksRef.current = tracksRef.current.map(t =>
+      t.type === 'audio' ? { ...t, selected: t.id === next.id } : t
+    );
+    window.skyMovie.mpvSetAudioTrack(next.id).catch(() => {});
+    showTrackOsd(`Audio · ${trackLabel(next)}`);
+  };
+
+  const cycleSubTrack = () => {
+    const subs = tracksRef.current.filter(t => t.type === 'sub');
+    if (subs.length === 0) return;
+    // Cycle Off → first → … → last → Off
+    const idx = subs.findIndex(t => t.selected);
+    const next = idx + 1 < subs.length ? subs[idx + 1] : null;
+    tracksRef.current = tracksRef.current.map(t =>
+      t.type === 'sub' ? { ...t, selected: next !== null && t.id === next.id } : t
+    );
+    window.skyMovie.mpvSetSubTrack(next?.id ?? 0).catch(() => {});
+    showTrackOsd(next ? `Subtitles · ${trackLabel(next)}` : 'Subtitles · Off');
+  };
+
   // ── keyboard shortcuts (driven by skin keyMap) ─────────────────────────────
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+        if (e.key === 'h' || e.key === 'H') {
+          e.preventDefault(); cycleAudioTrack(); return;
+        }
+        if (e.key === 'j' || e.key === 'J') {
+          e.preventDefault(); cycleSubTrack(); return;
+        }
+      }
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       const k = e.key;
 
@@ -396,6 +447,11 @@ export function MpvPlayer({
       <div className={`mpv-ripple mpv-ripple-right${ripple === 'right' ? ' active' : ''}`}>
         <RotateCw size={28} />
         <span>{keyMap.seekForwardLargeSeconds} seconds</span>
+      </div>
+
+      {/* Track-switch OSD (Ctrl+H / Ctrl+J) */}
+      <div className={`mpv-track-osd${trackOsd ? ' visible' : ''}`}>
+        {trackOsd}
       </div>
 
       {/* Buffering spinner */}
