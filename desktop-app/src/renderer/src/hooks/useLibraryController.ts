@@ -297,6 +297,41 @@ export function useLibraryController() {
     setStatus(`Playing ${result.title}`);
   }
 
+  /**
+   * Advance to the next episode of the selected show after the current file
+   * finishes. Episodes are ordered season/episode; episodes without a local
+   * file are skipped. Returns false when there is nothing left to play.
+   */
+  async function playNextEpisode(): Promise<boolean> {
+    if (!player || !selectedShow || selectedEpisodes.length === 0) return false;
+
+    const currentFile = selectedFiles.find((file) => file.id === player.mediaFileId);
+    if (currentFile?.matchedEpisodeId == null) return false;
+
+    const ordered = [...selectedEpisodes].sort(
+      (a, b) => a.seasonNumber - b.seasonNumber || a.episodeNumber - b.episodeNumber
+    );
+    const currentIndex = ordered.findIndex((ep) => ep.id === currentFile.matchedEpisodeId);
+    if (currentIndex < 0) return false;
+
+    for (let i = currentIndex + 1; i < ordered.length; i++) {
+      const nextFile = selectedFiles.find((file) => file.matchedEpisodeId === ordered[i].id);
+      if (!nextFile) continue;
+      try {
+        const result = await getSkyMovieApi().playMedia(nextFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      } catch (error) {
+        setStatus(`Autoplay failed: ${formatError(error)}`);
+        return false;
+      }
+    }
+
+    setStatus('Finished the last available episode');
+    return false;
+  }
+
   async function openExternal(mediaFileId: number) {
     try {
       await getSkyMovieApi().openMediaExternally(mediaFileId);
@@ -890,6 +925,7 @@ export function useLibraryController() {
     backToLibrary,
     play,
     playById,
+    playNextEpisode,
     openExternal,
     saveSettings,
     clearLocalData,

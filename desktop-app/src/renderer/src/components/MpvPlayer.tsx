@@ -37,11 +37,13 @@ const DEFAULT_STATE: PlayerState = {
 export function MpvPlayer({
   player,
   playerStyle = 'default',
-  onOpenExternal
+  onOpenExternal,
+  onEnded
 }: {
   player: PlayMediaResult;
   playerStyle?: PlayerStyle;
   onOpenExternal(mediaFileId: number): void;
+  onEnded?(): void;
 }) {
   const skin = getSkin(playerStyle);
   const { keyMap } = skin;
@@ -58,6 +60,8 @@ export function MpvPlayer({
   const preMuteVolume   = useRef(DEFAULT_STATE.volume);
   const showControlsRef = useRef(true);
   const seekOsdTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onEndedRef      = useRef(onEnded);
+  onEndedRef.current    = onEnded;
 
   const [state,        setState]     = useState<PlayerState>(DEFAULT_STATE);
   const [tracks,       setTracks]    = useState<MpvTrack[]>([]);
@@ -136,6 +140,7 @@ export function MpvPlayer({
     const savedPos = player.watchProgress?.positionSeconds ?? 0;
     const savedDur = player.watchProgress?.durationSeconds ?? 0;
     let posRestored = false;
+    let eofFired = false;
 
     const unsubFrame  = window.skyMovie.onMpvFrame(drawFrame);
     const unsubEvent  = window.skyMovie.onMpvEvent(ev => {
@@ -146,6 +151,25 @@ export function MpvPlayer({
         if (ev.name === 'duration'  && typeof ev.value === 'number') updateState({ duration: ev.value });
         if (ev.name === 'pause'     && typeof ev.value === 'boolean') updateState({ playing: !ev.value });
         if (ev.name === 'volume'    && typeof ev.value === 'number') updateState({ volume: ev.value });
+        // keep-open=yes means eof-reached flips true only at natural end of
+        // file — never on manual close or when another file replaces this one.
+        if (ev.name === 'eof-reached' && typeof ev.value === 'boolean') {
+          if (ev.value && !eofFired) {
+            eofFired = true;
+            const s = stateRef.current;
+            if (s.duration > 0) {
+              window.skyMovie.updateWatchProgress({
+                mediaFileId:     player.mediaFileId,
+                positionSeconds: Math.floor(s.duration),
+                durationSeconds: Math.floor(s.duration),
+                completed:       true
+              }).catch(() => {});
+            }
+            onEndedRef.current?.();
+          } else if (!ev.value) {
+            eofFired = false;
+          }
+        }
       }
       if (ev.type === 'file-loaded') {
         updateState({ buffering: false });
