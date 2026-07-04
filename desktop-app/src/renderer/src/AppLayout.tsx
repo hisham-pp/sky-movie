@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { MetadataMatchDialog } from './components/MetadataMatchDialog';
+import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay';
 import { SearchModal } from './components/SearchModal';
 import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
 import { Sidebar } from './components/Sidebar';
@@ -32,6 +33,24 @@ function AppLayoutInner() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+
+  // Global toggle for the shortcuts overlay: Ctrl+/ anywhere, or ? outside inputs
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName;
+      const typing = tag === 'INPUT' || tag === 'TEXTAREA';
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key === '/') {
+        e.preventDefault();
+        setIsShortcutsOpen((v) => !v);
+      } else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const currentView = useMemo((): ViewMode => {
     if (location.pathname === '/settings') return 'settings';
@@ -166,6 +185,11 @@ function AppLayoutInner() {
           <LastWatchedButton
             activeMediaFileId={library.player?.mediaFileId ?? null}
             onPlay={handleLastWatchedPlay}
+          />
+
+          <KeyboardShortcutsOverlay
+            isOpen={isShortcutsOpen}
+            onClose={() => setIsShortcutsOpen(false)}
           />
 
           <SearchModal
