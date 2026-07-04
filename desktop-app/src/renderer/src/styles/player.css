@@ -141,6 +141,34 @@
   image-rendering: high-quality;
 }
 
+/* Track-switch OSD — top-center glass pill (Ctrl+H / Ctrl+J) */
+.mpv-track-osd {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  z-index: 15;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(12, 14, 20, 0.6);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.mpv-track-osd.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* Buffering overlay */
 .mpv-buffering {
   position: absolute;
