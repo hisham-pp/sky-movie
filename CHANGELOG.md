@@ -5,6 +5,13 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.22] - 2026-07-04
+
+### Other
+
+- chore(release): publish Sky Movie 0.7.21 downloads from GitHub (Sky Movie)
+- style: compact media cards with icon-only details action (#18) (Hisham)
+
 ## [0.7.21] - 2026-07-04
 
 ### Added
@@ -724,3 +731,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.19]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.19
 [0.7.20]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.20
 [0.7.21]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.21
+[0.7.22]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.22
