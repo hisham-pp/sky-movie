@@ -10,8 +10,8 @@ interface ReleaseArtifact {
   kind: string;
   fileName: string;
   size: number;
-  sha256: string;
-  driveFileId: string;
+  sha256: string | null;
+  driveFileId?: string | null;
   downloadUrl: string;
   webViewUrl: string;
 }
