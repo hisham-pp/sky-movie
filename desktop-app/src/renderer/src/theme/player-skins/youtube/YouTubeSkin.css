@@ -18,6 +18,7 @@
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
+  container-type: inline-size;
 }
 .yt-controls.visible { opacity: 1; pointer-events: auto; }
 
@@ -67,6 +68,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 6px;
   padding: 4px 16px 20px;
 }
 .yt-left  { display: flex; align-items: center; gap: 8px; }
@@ -600,4 +603,28 @@
 .yt-seek-osd-fill {
   height: 100%; background: var(--primary);
   transition: width 0.1s linear;
+}
+
+/* ── Responsive: compact layout for narrow players ────────────────────────── */
+
+@container (max-width: 600px) {
+  .yt-bottom { padding: 4px 10px 14px; }
+  .yt-left { gap: 5px; }
+  .yt-btn { width: 34px; height: 34px; }
+  .yt-time { height: 34px; padding: 0 9px; font-size: 12px; }
+  .yt-vol-expand.open { width: 70px; }
+  .yt-volume-slider { width: 60px; }
+}
+
+@container (max-width: 440px) {
+  .yt-time .sep,
+  .yt-time-duration { display: none; }
+  .yt-settings-panel {
+    right: 8px;
+    width: min(320px, calc(100cqw - 16px));
+  }
+  .yt-ai-panel {
+    right: 8px;
+    width: min(260px, calc(100cqw - 16px));
+  }
 }

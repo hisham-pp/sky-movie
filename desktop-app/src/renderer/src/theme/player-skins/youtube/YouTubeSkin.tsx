@@ -735,7 +735,7 @@ function YouTubeControls({
                 ? <strong>−{formatTime(Math.max(0, state.duration - state.position))}</strong>
                 : <strong>{formatTime(state.position)}</strong>}
               <span className="sep">/</span>
-              <span style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
+              <span className="yt-time-duration" style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
             </div>
           </div>
 
