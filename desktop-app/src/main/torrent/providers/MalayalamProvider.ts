@@ -25,8 +25,6 @@ const TRACKERS = [
   .join('');
 
 /**
- * Searches The Pirate Bay for Malayalam content by automatically appending
- * "malayalam" to every query. Results are de-duped against the generic TPB
  * provider by their info_hash in TorrentManager.
  */
 export class MalayalamProvider implements TorrentProvider {

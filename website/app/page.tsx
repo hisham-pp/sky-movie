@@ -326,7 +326,7 @@ export default function Home() {
                   alt="Sky Movie torrent search — results from multiple providers"
                   className="w-full h-auto block rounded-[18px]"
                 />
-                <p className="text-center text-white/30 text-xs py-2">Search across YTS, TPB, EZTV and Malayalam in one place</p>
+                <p className="text-center text-white/30 text-xs py-2">Search across YTS, TPB and EZTV in one place</p>
               </div>
 
               {/* Stacked smaller shots */}

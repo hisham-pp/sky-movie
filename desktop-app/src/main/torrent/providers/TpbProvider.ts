@@ -28,8 +28,6 @@ export class TpbProvider implements TorrentProvider {
   private readonly baseUrl = 'https://apibay.org';
 
   async search(req: TorrentSearchRequest): Promise<TorrentSearchResult[]> {
-    // Malayalam category is handled exclusively by MalayalamProvider
-    if (req.category === 'malayalam') return [];
 
     const cat = req.category && req.category !== 'all' ? (CATEGORY_MAP[req.category] ?? '0') : '0';
 
