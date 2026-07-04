@@ -13,6 +13,7 @@
   opacity: 0;
   transition: opacity 0.25s ease;
   pointer-events: none;
+  container-type: inline-size;
 }
 
 .default-controls.visible {
@@ -64,7 +65,7 @@
 /* Bottom row layout */
 .default-bottom {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
 }
@@ -74,6 +75,7 @@
   align-items: center;
   gap: 4px;
   justify-content: flex-start;
+  min-width: 0;
 }
 
 .default-right {
@@ -81,6 +83,7 @@
   align-items: center;
   gap: 4px;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .default-center {
@@ -558,3 +561,27 @@
   transition: transform 0.2s;
 }
 .default-toggle.on::after { transform: translateX(14px); }
+
+/* ── Responsive: compact layout for narrow players ────────────────────────── */
+
+@container (max-width: 560px) {
+  .default-controls { padding: 0 8px 8px; }
+  .default-bottom { gap: 4px; }
+  .default-left, .default-right { gap: 2px; }
+  .default-center { gap: 2px; }
+  .default-btn { min-width: 28px; padding: 0 4px; }
+  .default-skip-btn { width: 44px !important; height: 40px !important; }
+  .default-play-btn { width: 36px !important; height: 36px !important; }
+  .default-time { font-size: 11px; padding: 0 2px; }
+  .default-volume-group.expanded .default-volume-expand { max-width: 100px; }
+  .default-volume-slider { width: 70px; }
+}
+
+@container (max-width: 420px) {
+  .default-time,
+  .default-vol-label,
+  .default-boost-label { display: none; }
+  .default-skip-btn { width: 36px !important; }
+  .default-menu,
+  .default-ai-panel { max-width: calc(100cqw - 16px); }
+}
