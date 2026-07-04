@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Tv2, ChevronDown } from 'lucide-react';
 import type { TvShow, PlayMediaResult } from '@shared/ipc';
+import { usePagedList } from '../../hooks/usePagedList';
 import { ShowTile } from '../LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
@@ -83,11 +84,13 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
     [bannerShow, onSelectShow],
   );
 
-  const PAGE_SIZE = 100;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filteredShows]);
-  const visibleShows = useMemo(() => filteredShows.slice(0, visibleCount), [filteredShows, visibleCount]);
-  const handleLoadMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), []);
+  const {
+    visibleItems: visibleShows,
+    hasMore,
+    remaining,
+    loadMore,
+    sentinelRef
+  } = usePagedList(filteredShows);
 
   const showCount = filteredShows.length;
 
@@ -160,11 +163,11 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
                 />
               ))}
             </div>
-            {visibleCount < showCount && (
-              <div className="load-more-row">
-                <button className="load-more-btn" onClick={handleLoadMore}>
+            {hasMore && (
+              <div className="load-more-row" ref={sentinelRef}>
+                <button className="load-more-btn" onClick={loadMore}>
                   <ChevronDown size={16} />
-                  Show more ({showCount - visibleCount} remaining)
+                  Show more ({remaining} remaining)
                 </button>
               </div>
             )}

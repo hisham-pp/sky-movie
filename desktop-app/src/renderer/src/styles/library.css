@@ -474,7 +474,9 @@
 
 .poster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  /* Card width tracks the viewport: ~150px on narrow windows up to 220px on
+     wide screens, with auto-fill deciding how many columns fit per row. */
+  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 11.5vw, 220px), 1fr));
   gap: 20px;
   min-width: 0;
   position: relative;
@@ -1012,6 +1014,9 @@
   display: flex;
   justify-content: center;
   padding: 24px 0 8px;
+  /* Above the .poster-grid frosted gradient, which bleeds 40px below the grid */
+  position: relative;
+  z-index: 6;
 }
 
 .load-more-btn {

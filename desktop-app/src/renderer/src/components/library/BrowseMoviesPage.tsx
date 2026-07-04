@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Clapperboard, ChevronDown } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
+import { usePagedList } from '../../hooks/usePagedList';
 import { MovieTile } from '../LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
@@ -83,11 +84,13 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
     [bannerMovie, onSelectMovie],
   );
 
-  const PAGE_SIZE = 100;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filteredMovies]);
-  const visibleMovies = useMemo(() => filteredMovies.slice(0, visibleCount), [filteredMovies, visibleCount]);
-  const handleLoadMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), []);
+  const {
+    visibleItems: visibleMovies,
+    hasMore,
+    remaining,
+    loadMore,
+    sentinelRef
+  } = usePagedList(filteredMovies);
 
   const movieCount = filteredMovies.length;
 
@@ -160,11 +163,11 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
                 />
               ))}
             </div>
-            {visibleCount < movieCount && (
-              <div className="load-more-row">
-                <button className="load-more-btn" onClick={handleLoadMore}>
+            {hasMore && (
+              <div className="load-more-row" ref={sentinelRef}>
+                <button className="load-more-btn" onClick={loadMore}>
                   <ChevronDown size={16} />
-                  Show more ({movieCount - visibleCount} remaining)
+                  Show more ({remaining} remaining)
                 </button>
               </div>
             )}
