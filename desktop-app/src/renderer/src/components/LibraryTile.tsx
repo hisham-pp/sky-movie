@@ -23,13 +23,14 @@ export const MovieTile = memo(function MovieTile({
           <small>{movie.releaseYear ?? 'Unknown year'}</small>
           <button
             className="details-button"
+            title="View details"
+            aria-label="View details"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails();
             }}
           >
-            <Info size={16} />
-            View Details
+            <Info size={15} />
           </button>
         </span>
       </div>
@@ -61,13 +62,14 @@ export const ShowTile = memo(function ShowTile({
           <small>{show.firstAirYear ?? 'Unknown year'}</small>
           <button
             className="details-button"
+            title="View details"
+            aria-label="View details"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails();
             }}
           >
-            <Info size={16} />
-            View Details
+            <Info size={15} />
           </button>
         </span>
       </div>
