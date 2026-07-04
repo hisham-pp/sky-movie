@@ -17,6 +17,7 @@ import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
+import mpvService from './services/mpvService';
 import { initFileLogging } from './utils/logger';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -111,6 +112,10 @@ app.whenReady().then(async () => {
   // TorrentManager is created immediately but boots WebTorrent lazily on
   // first use — player and other services stay on the critical startup path.
   torrentManager = new TorrentManager(paths.root);
+
+  // Give video playback bandwidth/disk priority: while an mpv session is
+  // active, throttle torrent transfer rates; restore limits when it ends.
+  mpvService.onSessionActiveChange = (active) => torrentManager?.setPlaybackThrottle(active);
 
   const catalog = new CatalogService(sqlite);
   const backup = new BackupService(sqlite, paths);

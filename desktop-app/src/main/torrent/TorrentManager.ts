@@ -49,6 +49,9 @@ export class TorrentManager {
 
   private progressListeners: Array<(info: TorrentInfo) => void> = [];
 
+  /** True while a video is playing — transfer limits are capped to protect playback. */
+  private playbackThrottleActive = false;
+
   constructor(stateDir: string) {
     this.stateDir  = stateDir;
     mkdirSync(stateDir, { recursive: true });
@@ -106,6 +109,9 @@ export class TorrentManager {
     });
 
     this.service = svc;
+
+    // A video may already be playing (engine boots lazily) — apply caps now
+    if (this.playbackThrottleActive) this.applyEffectiveLimits();
 
     // Restore active torrents from previous session
     if (this.activePersisted.length > 0) {
@@ -289,18 +295,42 @@ export class TorrentManager {
   updateSettings(patch: Partial<TorrentSettings>): TorrentSettings {
     this.settings = { ...this.settings, ...patch };
     this.service?.updateSettings(this.settings);
+    // updateSettings applies raw limits — reinstate the playback caps if a video is playing
+    if (this.playbackThrottleActive) this.applyEffectiveLimits();
     this.saveSettings();
     return this.settings;
   }
 
-  /** Throttle downloads to ~500 KB/s while video is playing; restore configured limit when done. */
+  /** Throttle transfers while video is playing; restore configured limits when done. */
   setPlaybackThrottle(active: boolean): void {
-    // 500 KB/s cap during playback to leave bandwidth for streaming
-    const playbackCap = 512 * 1024;
-    const configuredLimit = this.settings.downloadSpeedLimit > 0 ? this.settings.downloadSpeedLimit : -1;
-    const rate = active ? (configuredLimit === -1 ? playbackCap : Math.min(configuredLimit, playbackCap)) : configuredLimit;
-    this.service?.applyDownloadLimit(rate);
-    console.log(`[TorrentManager] playback throttle ${active ? 'ON' : 'OFF'} → ${rate === -1 ? 'unlimited' : `${Math.round(rate / 1024)} KB/s`}`);
+    if (this.playbackThrottleActive === active) return;
+    this.playbackThrottleActive = active;
+    if (!this.service) return; // engine not booted — nothing to throttle
+    this.applyEffectiveLimits();
+    console.log(`[TorrentManager] playback throttle ${active ? 'ON' : 'OFF'}`);
+  }
+
+  /**
+   * Applies download/upload limits, folding in the playback throttle when a
+   * video is playing. Upload is capped hard during playback — saturated
+   * upstream delays TCP ACKs and stalls both streaming and the download.
+   */
+  private applyEffectiveLimits(): void {
+    // Caps during playback: leave bandwidth and disk I/O for the video
+    const playbackDownCap = 512 * 1024; // 512 KB/s
+    const playbackUpCap   = 64 * 1024;  // 64 KB/s
+    const cfgDown = this.settings.downloadSpeedLimit > 0 ? this.settings.downloadSpeedLimit : -1;
+    const cfgUp   = this.settings.uploadSpeedLimit   > 0 ? this.settings.uploadSpeedLimit   : -1;
+
+    const down = this.playbackThrottleActive
+      ? (cfgDown === -1 ? playbackDownCap : Math.min(cfgDown, playbackDownCap))
+      : cfgDown;
+    const up = this.playbackThrottleActive
+      ? (cfgUp === -1 ? playbackUpCap : Math.min(cfgUp, playbackUpCap))
+      : cfgUp;
+
+    this.service?.applyDownloadLimit(down);
+    this.service?.applyUploadLimit(up);
   }
 
   // ── Progress listeners ─────────────────────────────────────────────────────

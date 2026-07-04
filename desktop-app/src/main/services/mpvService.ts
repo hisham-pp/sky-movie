@@ -135,6 +135,12 @@ export class MpvService {
   private addon: MpvAddonModule | null = null;
   private session: RenderSession | null = null;
   private addonLoaded = false;
+  /**
+   * Set by main/index.ts — notified when a playback session starts (true) or
+   * ends (false). Used to throttle torrent traffic while video is playing so
+   * playback gets bandwidth/disk priority.
+   */
+  onSessionActiveChange: ((active: boolean) => void) | null = null;
   // Prevents a new session from starting while the previous one is still tearing down.
   // Teardown() joins C++ threads which can take ~50-200ms, blocking the Node.js event
   // loop. Without this guard, rapid card clicks queue multiple openFile() calls that
@@ -256,6 +262,8 @@ export class MpvService {
 
     player.loadFile(filePath);
     log.info('[MpvService] loadFile dispatched');
+
+    this.notifySessionActive(true);
   }
 
   closeSession(): void {
@@ -282,6 +290,16 @@ export class MpvService {
       s.player.destroy();  // synchronous — joins C++ threads, blocks briefly
     } finally {
       this.closing = false;
+    }
+
+    this.notifySessionActive(false);
+  }
+
+  private notifySessionActive(active: boolean): void {
+    try {
+      this.onSessionActiveChange?.(active);
+    } catch (err) {
+      log.warn('[MpvService] onSessionActiveChange callback failed:', err);
     }
   }
 

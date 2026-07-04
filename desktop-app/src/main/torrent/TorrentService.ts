@@ -223,6 +223,10 @@ export class TorrentService extends EventEmitter {
     if (this.client) this.client.throttleDownload(rate);
   }
 
+  applyUploadLimit(rate: number): void {
+    if (this.client) this.client.throttleUpload(rate);
+  }
+
   async destroy(): Promise<void> {
     for (const id of this.infoMap.keys()) this.clearProgressTimer(id);
     return new Promise<void>((resolve) => {
