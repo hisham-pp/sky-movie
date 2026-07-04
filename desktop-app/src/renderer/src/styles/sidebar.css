@@ -8,7 +8,11 @@
   background: var(--glass-sheen), var(--glass-bg);
   padding: 38px 0 12px;
   backdrop-filter: var(--glass-blur);
-  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--ink) 5%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  /* full glass treatment: inner ring + top-edge highlight + right-edge seam */
+  box-shadow:
+    var(--glass-shine),
+    inset -1px 0 0 color-mix(in srgb, var(--ink) 5%, transparent);
   transition: width 0.3s var(--ease-fluid),
               min-width 0.3s var(--ease-fluid);
   overflow: hidden;
@@ -106,9 +110,10 @@
   width: 26px;
   min-width: 26px;
   height: 26px;
-  border-radius: 7px;
-  background: transparent;
-  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  box-shadow: var(--control-highlight);
   color: var(--muted);
   flex: 0 0 auto;
   cursor: pointer;
@@ -116,10 +121,10 @@
 }
 
 .sidebar-collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--control-bg-hover);
   color: var(--soft);
-  border-color: var(--line-strong);
-  box-shadow: none;
+  border-color: var(--control-border-hover);
+  box-shadow: var(--control-highlight);
 }
 
 /* Rotate the chevron: collapsed = pointing right (expand), expanded = pointing left (collapse) */
@@ -157,7 +162,7 @@
   width: 100%;
   min-height: 42px;
   gap: 11px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 10px;
   background: transparent;
   color: var(--muted);
@@ -176,7 +181,7 @@
 }
 
 .nav button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--control-bg);
   color: var(--soft);
   box-shadow: none;
   transform: none;
@@ -184,6 +189,8 @@
 
 .nav button.active {
   background: color-mix(in srgb, var(--primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+  box-shadow: var(--control-highlight);
   color: var(--primary);
   font-weight: 700;
 }
