@@ -3,6 +3,7 @@ import { Search, Download, Copy, Filter, X, ChevronDown } from 'lucide-react';
 import type { TorrentCategory, TorrentSearchResult } from '@shared/ipc';
 import { useTorrentSearch, useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatBytes } from './utils';
+import { GlassSelect } from '../common';
 
 const QUALITY_OPTIONS = ['all', '2160p', '1080p', '720p', '480p', 'HDR', 'x265', 'x264', 'HEVC', 'BluRay', 'WEBRip'];
 const CATEGORY_OPTIONS: { value: TorrentCategory | 'all'; label: string }[] = [
@@ -144,23 +145,23 @@ export function SearchTab() {
           <div className="flex flex-wrap gap-3 pt-1">
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/40">Quality</span>
-              <select
+              <GlassSelect
+                size="sm"
+                ariaLabel="Filter by quality"
+                options={QUALITY_OPTIONS.map((q) => ({ value: q, label: q === 'all' ? 'Any' : q }))}
                 value={quality}
-                onChange={(e) => setQuality(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded text-xs text-white/70 px-2 py-1 focus:outline-none focus:border-white/25"
-              >
-                {QUALITY_OPTIONS.map((q) => <option key={q} value={q}>{q === 'all' ? 'Any' : q}</option>)}
-              </select>
+                onChange={setQuality}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/40">Sort by</span>
-              <select
+              <GlassSelect
+                size="sm"
+                ariaLabel="Sort results"
+                options={SORT_OPTIONS.map((s) => ({ value: s.value as typeof sortBy, label: s.label }))}
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="bg-white/5 border border-white/10 rounded text-xs text-white/70 px-2 py-1 focus:outline-none focus:border-white/25"
-              >
-                {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
+                onChange={setSortBy}
+              />
             </div>
           </div>
         )}
