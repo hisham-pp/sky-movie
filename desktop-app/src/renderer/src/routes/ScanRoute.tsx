@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ScanPanel } from '../components/ScanPanel';
+import { ScanPanel } from '../components/scan/ScanPanel';
 import { useLibraryControllerContext as useLibraryController } from '../hooks/LibraryControllerContext';
 
 export function ScanRoute() {

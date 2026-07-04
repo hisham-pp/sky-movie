@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Keyboard, X } from 'lucide-react';
-import { KEYBOARD_SHORTCUTS } from '../config/keyboardShortcuts';
+import { KEYBOARD_SHORTCUTS } from '../../config/keyboardShortcuts';
 
 export function KeyboardShortcutsOverlay({
   isOpen,

@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
@@ -16,7 +17,6 @@ import type {
   PlayMediaResult,
   RemoveFromPlaylistRequest,
   ScanResult,
-  SkyMovieApi,
   TvMetadataSearchResult,
   TvShow,
   UpdatePlaylistRequest
@@ -83,11 +83,10 @@ export function useLibraryController() {
   }, [query]);
 
   async function refreshAll() {
-    const api = getSkyMovieApi();
     const [nextSettings, nextSummary, nextPlaylists] = await Promise.all([
-      api.getSettings(),
-      api.getLibrarySummary(),
-      api.getPlaylists()
+      queries.getSettings(),
+      queries.getLibrarySummary(),
+      queries.getPlaylists()
     ]);
 
     setSettings(nextSettings);
@@ -102,10 +101,9 @@ export function useLibraryController() {
   }
 
   async function refreshLists() {
-    const api = getSkyMovieApi();
     const [nextMovies, nextShows] = await Promise.all([
-      api.getMovies(query),
-      api.getShows(query)
+      queries.getMovies(query),
+      queries.getShows(query)
     ]);
     setMovies(nextMovies);
     setShows(nextShows);
@@ -113,8 +111,7 @@ export function useLibraryController() {
 
   async function refreshUnmatchedFiles() {
     try {
-      const api = getSkyMovieApi();
-      const files = await api.getUnmatchedFiles();
+      const files = await queries.getUnmatchedFiles();
       setUnmatchedFiles(files);
     } catch (error) {
       console.error('Failed to fetch unmatched files:', error);
@@ -125,15 +122,14 @@ export function useLibraryController() {
   async function scanLibrary() {
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
-      const folderPath = libraryFolders[0] ?? (await api.chooseFolder('Choose library folder'));
+      const folderPath = libraryFolders[0] ?? (await queries.chooseFolder('Choose library folder'));
       if (!folderPath) {
         setStatus('Scan cancelled');
         return;
       }
 
       setStatus('Scanning selected folder...');
-      const result = await api.scanLibrary({
+      const result = await queries.scanLibrary({
         path: folderPath,
         mediaKind: scanMode,
         matcherStrategy,
@@ -158,7 +154,7 @@ export function useLibraryController() {
 
   async function chooseLibraryFolders() {
     try {
-      const pickedFolders = await getSkyMovieApi().chooseFolders('Choose library folders');
+      const pickedFolders = await queries.chooseFolders('Choose library folders');
       if (pickedFolders.length) {
         const nextFolders = [...new Set([...libraryFolders, ...pickedFolders])];
         setLibraryFolders(nextFolders);
@@ -184,7 +180,7 @@ export function useLibraryController() {
     try {
       let foldersToScan = libraryFolders;
       if (!foldersToScan.length) {
-        foldersToScan = await getSkyMovieApi().chooseFolders('Choose library folders');
+        foldersToScan = await queries.chooseFolders('Choose library folders');
         if (!foldersToScan.length) {
           setStatus('Scan cancelled');
           return;
@@ -195,7 +191,7 @@ export function useLibraryController() {
       }
 
       setStatus(`Scanning ${foldersToScan.length} librar${foldersToScan.length === 1 ? 'y' : 'ies'}...`);
-      const results = await getSkyMovieApi().scanLibraries({
+      const results = await queries.scanLibraries({
         paths: foldersToScan,
         mediaKind: scanMode,
         matcherStrategy,
@@ -233,7 +229,7 @@ export function useLibraryController() {
 
   async function selectMovie(movie: Movie, playFileId?: number): Promise<boolean> {
     if (!queueNavigationRef.current) playlistQueueRef.current = null;
-    const details = await getSkyMovieApi().getMovieById(movie.id);
+    const details = await queries.getMovieById(movie.id);
     const selected = details.item ?? movie;
     setSelectedMovie(selected);
     setSelectedShow(null);
@@ -251,7 +247,7 @@ export function useLibraryController() {
       const targetFile =
         (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
         details.files[0];
-      const result = await getSkyMovieApi().playMedia(targetFile.id);
+      const result = await queries.playMedia(targetFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);
       return true;
@@ -265,7 +261,7 @@ export function useLibraryController() {
 
   async function selectShow(show: TvShow, playFileId?: number): Promise<boolean> {
     if (!queueNavigationRef.current) playlistQueueRef.current = null;
-    const details = await getSkyMovieApi().getShowById(show.id);
+    const details = await queries.getShowById(show.id);
     const selected = details.item ?? show;
     setSelectedShow(selected);
     setSelectedMovie(null);
@@ -291,7 +287,7 @@ export function useLibraryController() {
         return /s0*1e0*1|1x0*1/i.test(fileName);
       }) ?? details.files[0];
 
-      const result = await getSkyMovieApi().playMedia(firstEpisodeFile.id);
+      const result = await queries.playMedia(firstEpisodeFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);
       return true;
@@ -304,13 +300,13 @@ export function useLibraryController() {
   }
 
   async function play(file: MediaFile) {
-    const result = await getSkyMovieApi().playMedia(file.id);
+    const result = await queries.playMedia(file.id);
     setPlayer(result);
     setStatus(`Playing ${result.title}`);
   }
 
   async function playById(mediaFileId: number) {
-    const result = await getSkyMovieApi().playMedia(mediaFileId);
+    const result = await queries.playMedia(mediaFileId);
     setPlayer(result);
     setStatus(`Playing ${result.title}`);
   }
@@ -336,7 +332,7 @@ export function useLibraryController() {
       const nextFile = selectedFiles.find((file) => file.matchedEpisodeId === ordered[i].id);
       if (!nextFile) continue;
       try {
-        const result = await getSkyMovieApi().playMedia(nextFile.id);
+        const result = await queries.playMedia(nextFile.id);
         setPlayer(result);
         setStatus(`Playing ${result.title}`);
         return true;
@@ -411,7 +407,7 @@ export function useLibraryController() {
 
   async function openExternal(mediaFileId: number) {
     try {
-      await getSkyMovieApi().openMediaExternally(mediaFileId);
+      await queries.openMediaExternally(mediaFileId);
       setStatus('Opened in system player');
     } catch (error) {
       setStatus(`External player failed: ${formatError(error)}`);
@@ -419,7 +415,7 @@ export function useLibraryController() {
   }
 
   async function saveSettings(update: Partial<AppSettings>) {
-    const next = await getSkyMovieApi().updateSettings(update);
+    const next = await queries.updateSettings(update);
     setSettings(next);
     setScanMode(next.defaultScanMode);
     setMatcherStrategy(next.defaultMatcherStrategy);
@@ -431,7 +427,7 @@ export function useLibraryController() {
   async function clearLocalData() {
     setBusy(true);
     try {
-      const result = await getSkyMovieApi().clearLocalLibraryData();
+      const result = await queries.clearLocalLibraryData();
       setMovies([]);
       setShows([]);
       setSelectedMovie(null);
@@ -450,7 +446,7 @@ export function useLibraryController() {
 
   async function createBackup() {
     try {
-      const result = await getSkyMovieApi().createBackup();
+      const result = await queries.createBackup();
       if (result) {
         setStatus(`Backup saved with ${result.rowCount} rows`);
       } else {
@@ -464,7 +460,7 @@ export function useLibraryController() {
   async function restoreBackup() {
     setBusy(true);
     try {
-      const result = await getSkyMovieApi().restoreBackup();
+      const result = await queries.restoreBackup();
       if (result) {
         await refreshAll();
         setStatus(`Restored backup with ${result.rowCount} rows`);
@@ -482,7 +478,7 @@ export function useLibraryController() {
     setBusy(true);
     setStatus('Preparing local download...');
     try {
-      const result = await getSkyMovieApi().exportLibrary({
+      const result = await queries.exportLibrary({
         type: 'files',
         includeMediaFiles: true,
         preserveFolderStructure: true,
@@ -509,7 +505,7 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const results = await getSkyMovieApi().searchMovieMetadata({
+      const results = await queries.searchMovieMetadata({
         query: metadataQuery || selectedMovie.title,
         year: selectedMovie.releaseYear
       });
@@ -530,7 +526,7 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const updatedMovie = await getSkyMovieApi().applyMovieMetadata({
+      const updatedMovie = await queries.applyMovieMetadata({
         movieId: selectedMovie.id,
         provider: result.provider,
         providerId: result.providerId
@@ -556,16 +552,15 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
       if (selectedMovie) {
-        const results = await api.searchMovieMetadata({
+        const results = await queries.searchMovieMetadata({
           query: metadataQuery || selectedMovie.title,
           year: selectedMovie.releaseYear
         });
         setMetadataResults(results);
         setStatus(results.length ? `Found ${results.length} movie metadata matches` : 'No movie metadata matches found');
       } else if (selectedShow) {
-        const results = await api.searchTvMetadata({
+        const results = await queries.searchTvMetadata({
           query: metadataQuery || selectedShow.title,
           year: selectedShow.firstAirYear
         });
@@ -587,9 +582,8 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
       if (selectedMovie) {
-        const updatedMovie = await api.applyMovieMetadata({
+        const updatedMovie = await queries.applyMovieMetadata({
           movieId: selectedMovie.id,
           provider: result.provider,
           providerId: result.providerId
@@ -599,7 +593,7 @@ export function useLibraryController() {
         setMetadataQuery(`${updatedMovie.title}${updatedMovie.releaseYear ? ` ${updatedMovie.releaseYear}` : ''}`);
         setStatus(`Applied metadata for ${updatedMovie.title}`);
       } else if (selectedShow) {
-        const updatedShow = await api.applyTvMetadata({
+        const updatedShow = await queries.applyTvMetadata({
           showId: selectedShow.id,
           provider: result.provider,
           providerId: result.providerId
@@ -620,11 +614,10 @@ export function useLibraryController() {
 
   async function searchUnmatchedFileMetadata(file: MediaFile, query: string, year?: number): Promise<Array<MovieMetadataSearchResult | TvMetadataSearchResult>> {
     try {
-      const api = getSkyMovieApi();
       if (file.mediaKind === 'movie') {
-        return await api.searchMovieMetadata({ query, year: year ?? null });
+        return await queries.searchMovieMetadata({ query, year: year ?? null });
       } else {
-        return await api.searchTvMetadata({ query, year: year ?? null });
+        return await queries.searchTvMetadata({ query, year: year ?? null });
       }
     } catch (error) {
       console.error('Search unmatched file metadata failed:', error);
@@ -634,28 +627,27 @@ export function useLibraryController() {
 
   async function applyUnmatchedFileMetadata(file: MediaFile, result: MovieMetadataSearchResult | TvMetadataSearchResult): Promise<void> {
     try {
-      const api = getSkyMovieApi();
       
       if (file.mediaKind === 'movie' && 'releaseYear' in result) {
         // Apply movie metadata - this will create a new movie entry
-        const movie = await api.applyMovieMetadata({
+        const movie = await queries.applyMovieMetadata({
           movieId: 0, // 0 means create new
           provider: result.provider,
           providerId: result.providerId
         });
         
         // Update file to link to this movie
-        await api.updateFileMatch(file.id, movie.id, null);
+        await queries.updateFileMatch(file.id, movie.id, null);
       } else if (file.mediaKind === 'show' && 'firstAirYear' in result) {
         // Apply show metadata - this will create a new show entry
-        const show = await api.applyTvMetadata({
+        const show = await queries.applyTvMetadata({
           showId: 0, // 0 means create new
           provider: result.provider,
           providerId: result.providerId
         });
         
         // Update file to link to this show
-        await api.updateFileMatch(file.id, null, show.id);
+        await queries.updateFileMatch(file.id, null, show.id);
       }
       
       // Refresh the unmatched files list
@@ -670,8 +662,7 @@ export function useLibraryController() {
 
   async function markFileAsIgnored(fileId: number): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.markFileAsIgnored(fileId);
+      await queries.markFileAsIgnored(fileId);
       await refreshUnmatchedFiles();
       setStatus('File marked as ignored');
     } catch (error) {
@@ -682,8 +673,7 @@ export function useLibraryController() {
 
   async function unmarkFileAsIgnored(fileId: number): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.unmarkFileAsIgnored(fileId);
+      await queries.unmarkFileAsIgnored(fileId);
       await refreshUnmatchedFiles();
       setStatus('File unmarked as ignored');
     } catch (error) {
@@ -703,19 +693,18 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
-      await api.deleteMediaFile(file.id);
+      await queries.deleteMediaFile(file.id);
       
       // Refresh the current view
       if (selectedMovie) {
-        const details = await api.getMovieById(selectedMovie.id);
+        const details = await queries.getMovieById(selectedMovie.id);
         setSelectedFiles(details.files);
         // If movie has no more files, go back to library
         if (details.files.length === 0) {
           backToLibrary();
         }
       } else if (selectedShow) {
-        const details = await api.getShowById(selectedShow.id);
+        const details = await queries.getShowById(selectedShow.id);
         setSelectedFiles(details.files);
         setSelectedEpisodes(details.episodes ?? []);
         // If show has no more files, go back to library
@@ -736,8 +725,7 @@ export function useLibraryController() {
 
   async function showItemInFolder(file: MediaFile): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.showItemInFolder(file.id);
+      await queries.showItemInFolder(file.id);
       setStatus(`Opened file manager for ${file.fileName}`);
     } catch (error) {
       setStatus(`Failed to open file manager: ${formatError(error)}`);
@@ -748,8 +736,7 @@ export function useLibraryController() {
   async function createPlaylist(request: CreatePlaylistRequest): Promise<void> {
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
-      const newPlaylist = await api.createPlaylist(request);
+      const newPlaylist = await queries.createPlaylist(request);
       setPlaylists((prev) => [...prev, newPlaylist]);
       setStatus(`Created playlist "${newPlaylist.name}"`);
     } catch (error) {
@@ -763,8 +750,7 @@ export function useLibraryController() {
   async function updatePlaylist(request: UpdatePlaylistRequest): Promise<void> {
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
-      const updatedPlaylist = await api.updatePlaylist(request);
+      const updatedPlaylist = await queries.updatePlaylist(request);
       setPlaylists((prev) => prev.map((p) => (p.id === updatedPlaylist.id ? updatedPlaylist : p)));
       if (selectedPlaylist?.id === updatedPlaylist.id) {
         setSelectedPlaylist(updatedPlaylist);
@@ -786,8 +772,7 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const api = getSkyMovieApi();
-      await api.deletePlaylist(id);
+      await queries.deletePlaylist(id);
       setPlaylists((prev) => prev.filter((p) => p.id !== id));
       if (selectedPlaylist?.id === id) {
         setSelectedPlaylist(null);
@@ -805,8 +790,7 @@ export function useLibraryController() {
   async function selectPlaylist(playlist: Playlist): Promise<void> {
     setSelectedPlaylist(playlist);
     try {
-      const api = getSkyMovieApi();
-      const items = await api.getPlaylistById(playlist.id);
+      const items = await queries.getPlaylistById(playlist.id);
       setPlaylistItems(items);
       setSelectedTitle(playlist.name);
     } catch (error) {
@@ -816,8 +800,7 @@ export function useLibraryController() {
 
   async function addToPlaylist(request: AddToPlaylistRequest): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.addToPlaylist(request);
+      await queries.addToPlaylist(request);
       setStatus('Added to playlist');
       await refreshPlaylists();
       if (selectedPlaylist?.id === request.playlistId) {
@@ -831,8 +814,7 @@ export function useLibraryController() {
 
   async function removeFromPlaylist(request: RemoveFromPlaylistRequest): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.removeFromPlaylist(request);
+      await queries.removeFromPlaylist(request);
       setStatus('Removed from playlist');
       if (selectedPlaylist?.id === request.playlistId) {
         await selectPlaylist(selectedPlaylist);
@@ -846,8 +828,7 @@ export function useLibraryController() {
 
   async function reorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      await api.reorderPlaylistItem(playlistId, itemId, newSortOrder);
+      await queries.reorderPlaylistItem(playlistId, itemId, newSortOrder);
       if (selectedPlaylist?.id === playlistId) {
         await selectPlaylist(selectedPlaylist);
       }
@@ -859,8 +840,7 @@ export function useLibraryController() {
 
   async function refreshPlaylists(): Promise<void> {
     try {
-      const api = getSkyMovieApi();
-      const nextPlaylists = await api.getPlaylists();
+      const nextPlaylists = await queries.getPlaylists();
       setPlaylists(nextPlaylists);
     } catch (error) {
       console.error('Failed to refresh playlists:', error);
@@ -873,8 +853,7 @@ export function useLibraryController() {
       return null;
     }
 
-    const api = getSkyMovieApi();
-    const currentSettings = await api.getSettings();
+    const currentSettings = await queries.getSettings();
     if (!currentSettings.tmdbApiKey.trim()) {
       return null;
     }
@@ -884,7 +863,7 @@ export function useLibraryController() {
 
     // Fetch all movie details in parallel, then process concurrently with a
     // cap of 4 simultaneous searches to avoid saturating the TMDB rate limit.
-    const details = await Promise.all(uniqueMovieIds.map((id) => api.getMovieById(id)));
+    const details = await Promise.all(uniqueMovieIds.map((id) => queries.getMovieById(id)));
     const moviesNeedingLookup = details
       .map((d) => d.item)
       .filter((movie): movie is NonNullable<typeof movie> => {
@@ -899,9 +878,9 @@ export function useLibraryController() {
       await Promise.all(
         batch.map(async (movie) => {
           try {
-            const results = await api.searchMovieMetadata({ query: movie.title, year: movie.releaseYear });
+            const results = await queries.searchMovieMetadata({ query: movie.title, year: movie.releaseYear });
             if (results.length === 1) {
-              await api.applyMovieMetadata({ movieId: movie.id, provider: results[0].provider, providerId: results[0].providerId });
+              await queries.applyMovieMetadata({ movieId: movie.id, provider: results[0].provider, providerId: results[0].providerId });
               summary.applied += 1;
             } else if (results.length > 1) {
               prompts.push({ movie, results });
@@ -929,7 +908,7 @@ export function useLibraryController() {
 
     setBusy(true);
     try {
-      const updatedMovie = await getSkyMovieApi().applyMovieMetadata({
+      const updatedMovie = await queries.applyMovieMetadata({
         movieId: prompt.movie.id,
         provider: result.provider,
         providerId: result.providerId
@@ -1032,13 +1011,6 @@ export function useLibraryController() {
   };
 }
 
-function getSkyMovieApi(): SkyMovieApi {
-  if (!window.skyMovie) {
-    throw new Error('Sky Movie desktop bridge is unavailable. Restart the Electron app so the preload script can load.');
-  }
-
-  return window.skyMovie;
-}
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -1056,7 +1028,7 @@ async function findSeriesResumeFile(
   files: MediaFile[]
 ): Promise<MediaFile | null> {
   try {
-    const history = await getSkyMovieApi().getWatchHistory();
+    const history = await queries.getWatchHistory();
     const fileIds = new Set(files.map((file) => file.id));
     const showHistory = history
       .filter((item) => fileIds.has(item.mediaFileId))

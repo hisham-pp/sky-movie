@@ -1,16 +1,17 @@
+import * as queries from '@renderer/queries';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { MetadataMatchDialog } from './components/MetadataMatchDialog';
-import { KeyboardShortcutsOverlay } from './components/KeyboardShortcutsOverlay';
-import { SearchModal } from './components/SearchModal';
-import { UnrecognizedDrawer } from './components/UnrecognizedDrawer';
-import { Sidebar } from './components/Sidebar';
-import { Toolbar } from './components/Toolbar';
+import { MetadataMatchDialog } from './components/scan/MetadataMatchDialog';
+import { KeyboardShortcutsOverlay } from './components/layout/KeyboardShortcutsOverlay';
+import { SearchModal } from './components/layout/SearchModal';
+import { UnrecognizedDrawer } from './components/scan/UnrecognizedDrawer';
+import { Sidebar } from './components/layout/Sidebar';
+import { Toolbar } from './components/layout/Toolbar';
 import { LibraryControllerProvider, useLibraryControllerContext } from './hooks/LibraryControllerContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
-import { LoadingScreen } from './components/LoadingScreen';
-import { WindowControls } from './components/WindowControls';
-import { LastWatchedButton } from './components/LastWatchedButton';
+import { LoadingScreen } from './components/layout/LoadingScreen';
+import { WindowControls } from './components/layout/WindowControls';
+import { LastWatchedButton } from './components/library/LastWatchedButton';
 import { useResumePlayback } from './hooks/useResumePlayback';
 import type { LastWatchedInfo, Movie, TvShow, Playlist } from '@shared/ipc';
 import type { ViewMode } from './types';
@@ -86,7 +87,7 @@ function AppLayoutInner() {
   const handlePlaylists = useCallback(() => navigate('/playlists'), [navigate]);
   const handleShows = useCallback(() => navigate('/shows'), [navigate]);
   const handlePlayLastWatched = useCallback(async () => {
-    const result = await window.skyMovie?.getLastWatched();
+    const result = await queries.getLastWatched();
     if (!result) return;
     window.dispatchEvent(new CustomEvent('sky-movie:play-last-watched', { detail: result }));
   }, []);

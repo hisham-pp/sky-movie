@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Clapperboard, Play, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
-import { PlayerPanel } from '../PlayerPanel';
+import { PlayerPanel } from '../player/PlayerPanel';
 import { FileList } from './FileList';
 import { MetadataTools } from './MetadataTools';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';

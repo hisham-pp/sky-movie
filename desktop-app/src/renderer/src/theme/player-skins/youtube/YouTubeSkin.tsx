@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import React, { useEffect, useRef, useState } from 'react';
 import './YouTubeSkin.css';
 import {
@@ -199,7 +200,7 @@ function YouTubeControls({
     const af = buildMpvAudioFilter({
       bassBoost, trebleBoost, voiceBoost, stableVolume: stableVol, aiAudio: aiAudioOn
     });
-    window.skyMovie.mpvSetAudioFilter(af).catch(() => {});
+    queries.mpvSetAudioFilter(af).catch(() => {});
   }, [bassBoost, trebleBoost, voiceBoost, stableVol, aiAudioOn]);
 
   // Sync audio enhancement params

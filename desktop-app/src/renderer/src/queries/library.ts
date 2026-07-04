@@ -1,0 +1,22 @@
+import { bind } from './client';
+
+export const chooseFolder = bind('chooseFolder');
+export const chooseFolders = bind('chooseFolders');
+export const scanLibrary = bind('scanLibrary');
+export const scanLibraries = bind('scanLibraries');
+export const getMovies = bind('getMovies');
+export const getMovieById = bind('getMovieById');
+export const getShows = bind('getShows');
+export const getShowById = bind('getShowById');
+export const getUnmatchedFiles = bind('getUnmatchedFiles');
+export const getLibrarySummary = bind('getLibrarySummary');
+export const updateMetadata = bind('updateMetadata');
+export const searchMovieMetadata = bind('searchMovieMetadata');
+export const applyMovieMetadata = bind('applyMovieMetadata');
+export const searchTvMetadata = bind('searchTvMetadata');
+export const applyTvMetadata = bind('applyTvMetadata');
+export const markFileAsIgnored = bind('markFileAsIgnored');
+export const unmarkFileAsIgnored = bind('unmarkFileAsIgnored');
+export const updateFileMatch = bind('updateFileMatch');
+export const deleteMediaFile = bind('deleteMediaFile');
+export const showItemInFolder = bind('showItemInFolder');

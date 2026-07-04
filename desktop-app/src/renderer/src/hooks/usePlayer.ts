@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 /**
  * Custom hook for managing player lifecycle and media playback
  */
@@ -91,7 +92,7 @@ export function usePlayer(
         return;
       }
 
-      await window.skyMovie.updateWatchProgress({
+      await queries.updateWatchProgress({
         mediaFileId: player.mediaFileId,
         positionSeconds,
         durationSeconds: Math.floor(video.duration),
@@ -151,8 +152,8 @@ export function usePlayer(
     };
 
     // === Playback throttle — slow downloads while video is playing ===
-    const enableThrottle  = () => void window.skyMovie.torrentSetPlaybackThrottle(true).catch(() => {});
-    const disableThrottle = () => void window.skyMovie.torrentSetPlaybackThrottle(false).catch(() => {});
+    const enableThrottle  = () => void queries.torrentSetPlaybackThrottle(true).catch(() => {});
+    const disableThrottle = () => void queries.torrentSetPlaybackThrottle(false).catch(() => {});
 
     // === Event Listeners ===
     art.on('video:pause',  () => { disableThrottle(); void updateProgress(true); });

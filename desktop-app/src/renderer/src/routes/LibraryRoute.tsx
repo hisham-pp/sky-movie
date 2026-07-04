@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LibraryView } from '../components/LibraryView';
+import { LibraryView } from '../components/library/LibraryView';
 import { useLibraryControllerContext as useLibraryController } from '../hooks/LibraryControllerContext';
 import { useLatest } from '../hooks/useLatest';
 

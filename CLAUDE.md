@@ -60,7 +60,7 @@ Cached poster/backdrop images are served to the sandboxed renderer via the `sky-
 
 ### Renderer (`src/renderer/src/`)
 
-React Router routes in `routes/` (Library, Scan, Settings, Torrent, WatchHistory) inside `AppLayout.tsx`. Path aliases: `@renderer` → `src/renderer/src`, `@shared` → `src/shared`. Theming (10 app themes, player skins) lives in `theme/`; the theme names are typed in `shared/ipc.ts` (`AppTheme`, `PlayerStyle`).
+React Router routes in `routes/` (Library, Scan, Settings, Torrent, WatchHistory) inside `AppLayout.tsx`. Components are grouped by feature under `components/`: `layout/` (app shell: sidebar, toolbar, window controls, search modal), `library/`, `player/`, `playlist/`, `scan/`, `settings/`, `torrents/`, `history/`, and `common/` (shared primitives: Button, Modal, Switch, GlassSelect) — new components go in the matching feature folder, not at the `components/` root. All IPC calls go through the typed data-access layer in `queries/` (one module per domain: `library`, `player`, `history`, `playlists`, `settings`, `torrents`, `appWindow`) — import from `@renderer/queries`, never touch `window.skyMovie` directly. Path aliases: `@renderer` → `src/renderer/src`, `@shared` → `src/shared`. Theming (10 app themes, player skins) lives in `theme/`; the theme names are typed in `shared/ipc.ts` (`AppTheme`, `PlayerStyle`).
 
 ## Gotchas
 

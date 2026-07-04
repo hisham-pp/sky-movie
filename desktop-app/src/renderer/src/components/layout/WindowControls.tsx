@@ -1,25 +1,25 @@
-export function WindowControls() {
-  const api = (window as any).skyMovie;
+import { windowMinimize, windowMaximize, windowClose } from '@renderer/queries';
 
+export function WindowControls() {
   return (
     <div className="window-controls">
       <button
         className="window-control window-control--minimize"
-        onClick={() => api.windowMinimize()}
+        onClick={() => windowMinimize()}
         aria-label="Minimize"
       >
         <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor" /></svg>
       </button>
       <button
         className="window-control window-control--maximize"
-        onClick={() => api.windowMaximize()}
+        onClick={() => windowMaximize()}
         aria-label="Maximize"
       >
         <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="1" /></svg>
       </button>
       <button
         className="window-control window-control--close"
-        onClick={() => api.windowClose()}
+        onClick={() => windowClose()}
         aria-label="Close"
       >
         <svg width="10" height="10" viewBox="0 0 10 10">

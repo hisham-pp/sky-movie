@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
-import { PlayerPanel } from '../PlayerPanel';
+import { PlayerPanel } from '../player/PlayerPanel';
 
 export const BannerHero = memo(function BannerHero({
   backdropPath,

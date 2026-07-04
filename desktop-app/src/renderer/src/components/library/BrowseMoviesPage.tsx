@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Clapperboard, ChevronDown } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
 import { usePagedList } from '../../hooks/usePagedList';
-import { MovieTile } from '../LibraryTile';
+import { MovieTile } from './LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';

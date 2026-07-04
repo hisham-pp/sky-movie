@@ -1,0 +1,20 @@
+import { bind } from './client';
+
+export const playMedia = bind('playMedia');
+export const openMediaExternally = bind('openMediaExternally');
+export const mpvIsAvailable = bind('mpvIsAvailable');
+export const mpvOpen = bind('mpvOpen');
+export const mpvClose = bind('mpvClose');
+export const mpvPlay = bind('mpvPlay');
+export const mpvPause = bind('mpvPause');
+export const mpvSeek = bind('mpvSeek');
+export const mpvSetVolume = bind('mpvSetVolume');
+export const mpvSetAudioTrack = bind('mpvSetAudioTrack');
+export const mpvSetSubTrack = bind('mpvSetSubTrack');
+export const mpvSetSpeed = bind('mpvSetSpeed');
+export const mpvSetRenderSize = bind('mpvSetRenderSize');
+export const mpvSetSubFile = bind('mpvSetSubFile');
+export const mpvSetAudioFilter = bind('mpvSetAudioFilter');
+export const onMpvFrame = bind('onMpvFrame');
+export const onMpvEvent = bind('onMpvEvent');
+export const onMpvTracks = bind('onMpvTracks');

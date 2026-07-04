@@ -1,8 +1,8 @@
 import { memo, useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { Search, Film, Tv, ListMusic, X, Download, Settings, ChevronRight } from 'lucide-react';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
-import { Modal } from './common';
-import { ALL_NAV_ITEMS } from '../config/navItems';
+import { Modal } from '../common';
+import { ALL_NAV_ITEMS } from '../../config/navItems';
 
 interface SearchModalProps {
   isOpen: boolean;
