@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { Clapperboard, ChevronRight } from 'lucide-react';
 import type { LibrarySummary } from '@shared/ipc';
-import type { ViewMode } from '../types';
-import { NAV_MAIN, NAV_BOTTOM } from '../config/navItems';
+import type { ViewMode } from '../../types';
+import { NAV_MAIN, NAV_BOTTOM } from '../../config/navItems';
 
 const NavGroup = memo(function NavGroup({ items, view, onViewChange }: {
   items: typeof NAV_MAIN;

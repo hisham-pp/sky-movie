@@ -6,7 +6,7 @@ import { SettingsRoute } from './routes/SettingsRoute';
 import { ScanRoute } from './routes/ScanRoute';
 import { WatchHistoryRoute } from './routes/WatchHistoryRoute';
 import { TorrentRoute } from './routes/TorrentRoute';
-import { RouteError } from './components/RouteError';
+import { RouteError } from './components/layout/RouteError';
 
 const STORAGE_KEY = 'sky-movie-router-history';
 const MAX_HISTORY_SIZE = 100;

@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import React, { useEffect, useRef, useState } from 'react';
 import './DefaultSkin.css';
 import {
@@ -127,7 +128,7 @@ function DefaultControls({
     const af = buildMpvAudioFilter({
       bassBoost, trebleBoost, voiceBoost, stableVolume: stableVol, aiAudio: aiAudioOn
     });
-    window.skyMovie.mpvSetAudioFilter(af).catch(() => {});
+    queries.mpvSetAudioFilter(af).catch(() => {});
   }, [bassBoost, trebleBoost, voiceBoost, stableVol, aiAudioOn]);
 
   useEffect(() => { if (audioRef.current) { audioRef.current.ctx.resume(); audioRef.current.bass.gain.value = bassBoost ? 8 : 0; } }, [bassBoost]);

@@ -1,6 +1,7 @@
+import * as queries from '@renderer/queries';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import type { LastWatchedInfo } from '@shared/ipc';
-import { formatPosition } from '../utils/dateUtils';
+import { formatPosition } from '../../utils/dateUtils';
 
 interface LastWatchedButtonProps {
   onPlay: (info: LastWatchedInfo) => void;
@@ -15,7 +16,7 @@ export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activ
 
   const refresh = useCallback(async () => {
     try {
-      const result = await window.skyMovie.getLastWatched();
+      const result = await queries.getLastWatched();
       setInfo(result);
       setDismissed(false);
     } catch {

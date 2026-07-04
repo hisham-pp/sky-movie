@@ -1,3 +1,4 @@
+import * as torrentApi from '@renderer/queries/torrents';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   AddMagnetRequest,
@@ -9,7 +10,6 @@ import type {
   TorrentSettings,
 } from '@shared/ipc';
 
-const api = () => window.skyMovie;
 
 // ── Active downloads hook ──────────────────────────────────────────────────
 
@@ -20,8 +20,8 @@ export function useTorrentDownloads() {
 
   const refresh = useCallback(async () => {
     const [list, globalStats] = await Promise.all([
-      api().torrentList(),
-      api().torrentStats(),
+      torrentApi.torrentList(),
+      torrentApi.torrentStats(),
     ]);
     setTorrents(list);
     setStats(globalStats);
@@ -31,7 +31,7 @@ export function useTorrentDownloads() {
     setLoading(true);
     refresh().finally(() => setLoading(false));
 
-    const unsub = api().onTorrentProgress((ev: TorrentProgressEvent) => {
+    const unsub = torrentApi.onTorrentProgress((ev: TorrentProgressEvent) => {
       setTorrents((prev) =>
         prev.map((t) =>
           t.id === ev.id
@@ -61,14 +61,14 @@ export function useTorrentDownloads() {
     };
   }, [refresh]);
 
-  const pause         = useCallback((id: string) => api().torrentPause(id).then(refresh), [refresh]);
-  const resume        = useCallback((id: string) => api().torrentResume(id).then(refresh), [refresh]);
-  const remove        = useCallback((id: string) => api().torrentRemove(id).then(refresh), [refresh]);
-  const deleteFiles   = useCallback((id: string) => api().torrentDeleteFiles(id).then(refresh), [refresh]);
-  const openFolder    = useCallback((id: string) => api().torrentOpenFolder(id), []);
-  const recheck       = useCallback((id: string) => api().torrentRecheck(id).then(refresh), [refresh]);
+  const pause         = useCallback((id: string) => torrentApi.torrentPause(id).then(refresh), [refresh]);
+  const resume        = useCallback((id: string) => torrentApi.torrentResume(id).then(refresh), [refresh]);
+  const remove        = useCallback((id: string) => torrentApi.torrentRemove(id).then(refresh), [refresh]);
+  const deleteFiles   = useCallback((id: string) => torrentApi.torrentDeleteFiles(id).then(refresh), [refresh]);
+  const openFolder    = useCallback((id: string) => torrentApi.torrentOpenFolder(id), []);
+  const recheck       = useCallback((id: string) => torrentApi.torrentRecheck(id).then(refresh), [refresh]);
   const addMagnet     = useCallback(async (req: AddMagnetRequest) => {
-    const info = await api().torrentAddMagnet(req);
+    const info = await torrentApi.torrentAddMagnet(req);
     await refresh();
     return info;
   }, [refresh]);
@@ -91,7 +91,7 @@ export function useTorrentSearch() {
       setLoading(true);
       setError(null);
       try {
-        const res = await api().torrentSearch(req);
+        const res = await torrentApi.torrentSearch(req);
         setResults(res);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Search failed');
@@ -111,13 +111,13 @@ export function useTorrentSettings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api().torrentGetSettings().then(setSettings);
+    torrentApi.torrentGetSettings().then(setSettings);
   }, []);
 
   const update = useCallback(async (patch: Partial<TorrentSettings>) => {
     setSaving(true);
     try {
-      const updated = await api().torrentUpdateSettings(patch);
+      const updated = await torrentApi.torrentUpdateSettings(patch);
       setSettings(updated);
     } finally {
       setSaving(false);

@@ -1,9 +1,10 @@
+import * as queries from '@renderer/queries';
 import { ExternalLink, HardDrive } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 import { MpvPlayer } from './MpvPlayer';
-import { useLibraryControllerContext } from '../hooks/LibraryControllerContext';
+import { useLibraryControllerContext } from '../../hooks/LibraryControllerContext';
 
 const RESUME_START_THRESHOLD = 5;
 const RESUME_END_BUFFER = 10;
@@ -22,7 +23,7 @@ export function PlayerPanel({
   const handleEnded = () => { void advancePlayback(); };
 
   useEffect(() => {
-    window.skyMovie.mpvIsAvailable()
+    queries.mpvIsAvailable()
       .then(v => setMpvAvailable(v))
       .catch(() => setMpvAvailable(false));
   }, []);
@@ -177,7 +178,7 @@ function ArtplayerFallback({
       const positionSeconds = Math.floor(video.currentTime);
       const now = Date.now();
       if (!force && (positionSeconds === lastSavedPosition || now - lastSavedAt < SAVE_INTERVAL_MS)) return;
-      await window.skyMovie.updateWatchProgress({
+      await queries.updateWatchProgress({
         mediaFileId: player.mediaFileId,
         positionSeconds,
         durationSeconds: Math.floor(video.duration),

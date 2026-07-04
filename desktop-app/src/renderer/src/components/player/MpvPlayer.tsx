@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import React, {
   useCallback,
   useEffect,
@@ -8,7 +9,7 @@ import React, {
 import { RotateCcw, RotateCw } from 'lucide-react';
 import type { MpvTrack, PlayerStyle } from '@shared/ipc';
 import type { PlayMediaResult } from '@shared/ipc';
-import { getSkin } from '../theme/player-skins';
+import { getSkin } from '../../theme/player-skins';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -113,7 +114,7 @@ export function MpvPlayer({
       const { width, height } = entries[0].contentRect;
       const w = Math.round(width);
       const h = Math.round(height);
-      if (w > 0 && h > 0) window.skyMovie.mpvSetRenderSize(w, h).catch(() => {});
+      if (w > 0 && h > 0) queries.mpvSetRenderSize(w, h).catch(() => {});
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -131,22 +132,22 @@ export function MpvPlayer({
 
     const { width, height } = container.getBoundingClientRect();
 
-    window.skyMovie.mpvOpen({
+    queries.mpvOpen({
       filePath:     player.absolutePath ?? (player as any).mediaUrl,
       mediaFileId:  player.mediaFileId,
       renderWidth:  Math.round(width)  || 1280,
       renderHeight: Math.round(height) || 720
     }).catch(err => setError(String(err)));
 
-    window.skyMovie.mpvSetVolume(stateRef.current.volume).catch(() => {});
+    queries.mpvSetVolume(stateRef.current.volume).catch(() => {});
 
     const savedPos = player.watchProgress?.positionSeconds ?? 0;
     const savedDur = player.watchProgress?.durationSeconds ?? 0;
     let posRestored = false;
     let eofFired = false;
 
-    const unsubFrame  = window.skyMovie.onMpvFrame(drawFrame);
-    const unsubEvent  = window.skyMovie.onMpvEvent(ev => {
+    const unsubFrame  = queries.onMpvFrame(drawFrame);
+    const unsubEvent  = queries.onMpvEvent(ev => {
       if (ev.type === 'property') {
         if (ev.name === 'time-pos'  && typeof ev.value === 'number') {
           if (!seeking.current) updateState({ position: ev.value });
@@ -161,7 +162,7 @@ export function MpvPlayer({
             eofFired = true;
             const s = stateRef.current;
             if (s.duration > 0) {
-              window.skyMovie.updateWatchProgress({
+              queries.updateWatchProgress({
                 mediaFileId:     player.mediaFileId,
                 positionSeconds: Math.floor(s.duration),
                 durationSeconds: Math.floor(s.duration),
@@ -178,12 +179,12 @@ export function MpvPlayer({
         updateState({ buffering: false });
         if (!posRestored && savedPos > 5 && !player.watchProgress?.completed) {
           const dur = stateRef.current.duration || savedDur;
-          if (dur - savedPos > 10) window.skyMovie.mpvSeek(savedPos).catch(() => {});
+          if (dur - savedPos > 10) queries.mpvSeek(savedPos).catch(() => {});
         }
         posRestored = true;
       }
     });
-    const unsubTracks = window.skyMovie.onMpvTracks(ts => {
+    const unsubTracks = queries.onMpvTracks(ts => {
       tracksRef.current = ts;
       setTracks(ts);
     });
@@ -191,7 +192,7 @@ export function MpvPlayer({
     const progressTimer = setInterval(() => {
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
-        window.skyMovie.updateWatchProgress({
+        queries.updateWatchProgress({
           mediaFileId:     player.mediaFileId,
           positionSeconds: Math.floor(s.position),
           durationSeconds: Math.floor(s.duration),
@@ -207,14 +208,14 @@ export function MpvPlayer({
       unsubTracks();
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
-        window.skyMovie.updateWatchProgress({
+        queries.updateWatchProgress({
           mediaFileId:     player.mediaFileId,
           positionSeconds: Math.floor(s.position),
           durationSeconds: Math.floor(s.duration),
           completed:       s.position / s.duration > 0.92
         }).catch(() => {});
       }
-      window.skyMovie.mpvClose().catch(() => {});
+      queries.mpvClose().catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player.mediaFileId]);
@@ -239,7 +240,7 @@ export function MpvPlayer({
     tracksRef.current = tracksRef.current.map(t =>
       t.type === 'audio' ? { ...t, selected: t.id === next.id } : t
     );
-    window.skyMovie.mpvSetAudioTrack(next.id).catch(() => {});
+    queries.mpvSetAudioTrack(next.id).catch(() => {});
     showTrackOsd(`Audio · ${trackLabel(next)}`);
   };
 
@@ -252,7 +253,7 @@ export function MpvPlayer({
     tracksRef.current = tracksRef.current.map(t =>
       t.type === 'sub' ? { ...t, selected: next !== null && t.id === next.id } : t
     );
-    window.skyMovie.mpvSetSubTrack(next?.id ?? 0).catch(() => {});
+    queries.mpvSetSubTrack(next?.id ?? 0).catch(() => {});
     showTrackOsd(next ? `Subtitles · ${trackLabel(next)}` : 'Subtitles · Off');
   };
 
@@ -278,19 +279,19 @@ export function MpvPlayer({
       } else if (keyMap.seekBackLarge.includes(k)) {
         e.preventDefault();
         showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
-        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
+        queries.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
       } else if (keyMap.seekForwardLarge.includes(k)) {
         e.preventDefault();
         showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
-        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
+        queries.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
       } else if (keyMap.seekBack.includes(k)) {
         e.preventDefault();
         showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
-        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackSeconds)).catch(() => {});
+        queries.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackSeconds)).catch(() => {});
       } else if (keyMap.seekForward.includes(k)) {
         e.preventDefault();
         showControlsRef.current ? resetHideTimer() : triggerSeekOsd();
-        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardSeconds).catch(() => {});
+        queries.mpvSeek(stateRef.current.position + keyMap.seekForwardSeconds).catch(() => {});
       } else if (keyMap.volumeUp.includes(k)) {
         e.preventDefault(); resetHideTimer();
         changeVolume(Math.min(skin.volumeMax + skin.volumeBoostMax, stateRef.current.volume + 5));
@@ -335,8 +336,8 @@ export function MpvPlayer({
 
   const togglePlay = () => {
     stateRef.current.playing
-      ? window.skyMovie.mpvPause().catch(() => {})
-      : window.skyMovie.mpvPlay().catch(() => {});
+      ? queries.mpvPause().catch(() => {})
+      : queries.mpvPlay().catch(() => {});
   };
 
   const toggleMute = () => {
@@ -344,17 +345,17 @@ export function MpvPlayer({
     if (muted) {
       preMuteVolume.current = stateRef.current.volume || skin.volumeMax;
       updateState({ muted });
-      window.skyMovie.mpvSetVolume(0).catch(() => {});
+      queries.mpvSetVolume(0).catch(() => {});
     } else {
       const restoreVol = preMuteVolume.current || skin.volumeMax;
       updateState({ muted, volume: restoreVol });
-      window.skyMovie.mpvSetVolume(restoreVol).catch(() => {});
+      queries.mpvSetVolume(restoreVol).catch(() => {});
     }
   };
 
   const changeVolume = (v: number) => {
     updateState({ volume: v, muted: v === 0 });
-    window.skyMovie.mpvSetVolume(v).catch(() => {});
+    queries.mpvSetVolume(v).catch(() => {});
   };
 
   const toggleFullscreen = () => {
@@ -386,7 +387,7 @@ export function MpvPlayer({
     if (!seeking.current) return;
     seeking.current = false;
     doSeek(e);
-    window.skyMovie.mpvSeek(stateRef.current.position).catch(() => {});
+    queries.mpvSeek(stateRef.current.position).catch(() => {});
   };
   const doSeek = (e: ReactPointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -411,10 +412,10 @@ export function MpvPlayer({
       const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
       const isLeft = e.clientX - rect.left < rect.width / 2;
       if (isLeft) {
-        window.skyMovie.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
+        queries.mpvSeek(Math.max(0, stateRef.current.position - keyMap.seekBackLargeSeconds)).catch(() => {});
         showRipple('left');
       } else {
-        window.skyMovie.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
+        queries.mpvSeek(stateRef.current.position + keyMap.seekForwardLargeSeconds).catch(() => {});
         showRipple('right');
       }
     }
@@ -482,11 +483,11 @@ export function MpvPlayer({
         onToggleMute:     toggleMute,
         onChangeVolume:   changeVolume,
         onToggleFullscreen: toggleFullscreen,
-        onSeekTo:         (s) => window.skyMovie.mpvSeek(s).catch(() => {}),
-        onSetSpeed:       (s) => { updateState({ speed: s }); window.skyMovie.mpvSetSpeed(s).catch(() => {}); },
-        onSetAudioTrack:  (id) => window.skyMovie.mpvSetAudioTrack(id).catch(() => {}),
-        onSetSubTrack:    (id) => window.skyMovie.mpvSetSubTrack(id).catch(() => {}),
-        onSetSubFile:     (path) => window.skyMovie.mpvSetSubFile(path).catch(() => {}),
+        onSeekTo:         (s) => queries.mpvSeek(s).catch(() => {}),
+        onSetSpeed:       (s) => { updateState({ speed: s }); queries.mpvSetSpeed(s).catch(() => {}); },
+        onSetAudioTrack:  (id) => queries.mpvSetAudioTrack(id).catch(() => {}),
+        onSetSubTrack:    (id) => queries.mpvSetSubTrack(id).catch(() => {}),
+        onSetSubFile:     (path) => queries.mpvSetSubFile(path).catch(() => {}),
         onSetShowMenu:    setShowMenu,
         onSeekBarDown,
         onSeekBarMove,

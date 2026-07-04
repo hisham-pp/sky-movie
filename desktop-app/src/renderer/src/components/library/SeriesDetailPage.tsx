@@ -1,11 +1,11 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Calendar, Play, Star, Tv2, FolderSearch, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
-import { PlayerPanel } from '../PlayerPanel';
+import { PlayerPanel } from '../player/PlayerPanel';
 import { FileList } from './FileList';
 import { MetadataTools } from './MetadataTools';
 import { DetailStat } from './DetailStat';
-import { groupEpisodesBySeason } from '../utils/groupEpisodesBySeason';
+import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { Button } from '../common';
 

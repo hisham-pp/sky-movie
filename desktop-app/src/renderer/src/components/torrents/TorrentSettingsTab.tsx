@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import { useState, useEffect } from 'react';
 import { Switch } from '../common';
 import { useTorrentSettings } from '../../hooks/useTorrent';
@@ -23,7 +24,7 @@ export function TorrentSettingsTab() {
     setLocal((prev) => prev ? { ...prev, [key]: value } : prev);
 
   const chooseFolder = async (key: 'downloadPath' | 'completedPath') => {
-    const chosen = await window.skyMovie.chooseFolder('Choose directory');
+    const chosen = await queries.chooseFolder('Choose directory');
     if (chosen) patch(key, chosen);
   };
 

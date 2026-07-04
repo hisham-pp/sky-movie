@@ -1,4 +1,4 @@
-import { SettingsPanel } from '../components/SettingsPanel';
+import { SettingsPanel } from '../components/settings/SettingsPanel';
 import { useLibraryControllerContext as useLibraryController } from '../hooks/LibraryControllerContext';
 
 export function SettingsRoute() {

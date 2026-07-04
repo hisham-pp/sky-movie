@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import { memo, useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -18,8 +19,8 @@ import {
   Zap
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
-import { GlassSelect, Switch } from './common';
-import { formatBytes } from '../utils/format';
+import { GlassSelect, Switch } from '../common';
+import { formatBytes } from '../../utils/format';
 
 type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
 
@@ -119,11 +120,9 @@ export const SettingsPanel = memo(function SettingsPanel({
 
   // Sync initial status and listen for progress events
   useEffect(() => {
-    const skyMovie = (window as any).skyMovie;
-    skyMovie?.getUpdateStatus?.().then((s: UpdateStatus) => setUpdateStatus(s)).catch(() => {});
+    queries.getUpdateStatus().then((s: UpdateStatus) => setUpdateStatus(s)).catch(() => {});
 
-    if (!skyMovie?.onUpdateProgress) return;
-    return skyMovie.onUpdateProgress((event: UpdateProgressEvent) => {
+    return queries.onUpdateProgress((event: UpdateProgressEvent) => {
       if (event.type === 'status') {
         setUpdateStatus(event.status);
         if (event.status !== 'downloading') setDownloadProgress(null);
@@ -137,7 +136,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const handleCheckForUpdates = useCallback(async () => {
     setUpdateStatus('checking');
     try {
-      const result = await window.skyMovie.checkForUpdates();
+      const result = await queries.checkForUpdates();
       setUpdateCheckResult(result);
     } catch {
       setUpdateStatus('error');
@@ -146,7 +145,7 @@ export const SettingsPanel = memo(function SettingsPanel({
 
   const handleDownloadUpdate = useCallback(async () => {
     try {
-      await window.skyMovie.downloadUpdate();
+      await queries.downloadUpdate();
     } catch {
       // status is set via IPC event
     }
@@ -154,7 +153,7 @@ export const SettingsPanel = memo(function SettingsPanel({
 
   const handleInstallUpdate = useCallback(async () => {
     try {
-      await window.skyMovie.installUpdate();
+      await queries.installUpdate();
     } catch {
       // status is set via IPC event
     }

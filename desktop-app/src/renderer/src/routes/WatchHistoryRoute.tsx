@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import { useState, useEffect, useCallback } from 'react';
 import type { WatchHistoryItem } from '@shared/ipc';
 import { WatchHistoryPage } from '../components/history/WatchHistoryPage';
@@ -13,7 +14,7 @@ export function WatchHistoryRoute() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await window.skyMovie.getWatchHistory();
+      const result = await queries.getWatchHistory();
       setItems(result);
     } finally {
       setLoading(false);
@@ -27,7 +28,7 @@ export function WatchHistoryRoute() {
   }, [resumePlayback]);
 
   const handleClear = useCallback(async () => {
-    await window.skyMovie.clearWatchHistory();
+    await queries.clearWatchHistory();
     setItems([]);
   }, []);
 

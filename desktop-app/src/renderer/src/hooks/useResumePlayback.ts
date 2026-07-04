@@ -1,3 +1,4 @@
+import * as queries from '@renderer/queries';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLibraryControllerContext } from './LibraryControllerContext';
@@ -22,7 +23,7 @@ export function useResumePlayback() {
       if (target.matchedMovieId != null) {
         const movie =
           library.movies.find((m) => m.id === target.matchedMovieId) ??
-          (await window.skyMovie.getMovieById(target.matchedMovieId)).item;
+          (await queries.getMovieById(target.matchedMovieId)).item;
         if (movie) {
           await library.selectMovie(movie, target.mediaFileId);
           navigate(`/movies/${movie.id}`);
@@ -33,7 +34,7 @@ export function useResumePlayback() {
       if (target.matchedShowId != null) {
         const show =
           library.shows.find((s) => s.id === target.matchedShowId) ??
-          (await window.skyMovie.getShowById(target.matchedShowId)).item;
+          (await queries.getShowById(target.matchedShowId)).item;
         if (show) {
           await library.selectShow(show, target.mediaFileId);
           navigate(`/shows/${show.id}`);
