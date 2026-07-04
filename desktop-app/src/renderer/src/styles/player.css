@@ -78,7 +78,7 @@
 }
 
 .player .artplayer-app .artplayer-setting-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--control-bg-hover);
 }
 
 .player .artplayer-app .artplayer-setting-item-right-icon {
@@ -149,12 +149,12 @@
   transform: translateX(-50%) translateY(-6px);
   z-index: 15;
   padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(12, 14, 20, 0.6);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
+  border: 1px solid var(--control-border);
+  background: var(--overlay-bg-strong);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
+  box-shadow: var(--overlay-shadow), var(--overlay-highlight);
+  border-radius: var(--radius-pill);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -213,7 +213,7 @@
 .mpv-error button {
   min-height: 30px;
   padding: 0 10px;
-  background: rgba(255,255,255,0.1);
+  background: var(--control-bg-hover);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -241,7 +241,7 @@
   pointer-events: none;
   z-index: 12;
   opacity: 0;
-  background: rgba(255,255,255,0.12);
+  background: var(--control-border);
   backdrop-filter: blur(4px);
   transition: opacity 0.15s ease;
 }
@@ -298,7 +298,7 @@
   justify-content: center;
   gap: 7px;
   min-height: 32px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--control-bg-hover);
   color: #fff;
   padding: 0 10px;
   white-space: nowrap;
@@ -321,9 +321,9 @@
   right: 12px;
   z-index: 3;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(12, 14, 20, 0.45);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  background: var(--overlay-bg);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }

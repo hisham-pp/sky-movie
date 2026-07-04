@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Switch } from '../ui/Switch';
+import { Switch } from '../common';
 import { useTorrentSettings } from '../../hooks/useTorrent';
 import type { TorrentSettings } from '@shared/ipc';
 

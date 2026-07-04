@@ -18,8 +18,7 @@ import {
   Zap
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
-import { Select } from './ui/Select';
-import { Switch } from './ui/Switch';
+import { GlassSelect, Switch } from './common';
 import { formatBytes } from '../utils/format';
 
 type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
@@ -282,26 +281,30 @@ export const SettingsPanel = memo(function SettingsPanel({
               <div className="settings-form-grid">
                 <label>
                   Scan mode
-                  <Select
+                  <GlassSelect<LibraryScanMode>
+                    ariaLabel="Scan mode"
+                    options={[
+                      { value: 'mixed', label: 'Mixed' },
+                      { value: 'movie', label: 'Movies only' },
+                      { value: 'show', label: 'TV shows only' }
+                    ]}
                     value={settings?.defaultScanMode ?? scanMode}
-                    onChange={(value) => onSave({ defaultScanMode: value as LibraryScanMode })}
-                  >
-                    <option value="mixed">Mixed</option>
-                    <option value="movie">Movies only</option>
-                    <option value="show">TV shows only</option>
-                  </Select>
+                    onChange={(value) => onSave({ defaultScanMode: value })}
+                  />
                 </label>
                 <label>
                   Finder strategy
-                  <Select
+                  <GlassSelect<MatcherStrategy>
+                    ariaLabel="Finder strategy"
+                    options={[
+                      { value: 'auto', label: 'Auto finder' },
+                      { value: 'movie-title-year', label: 'Movie title + year' },
+                      { value: 'show-season-episode', label: 'Show SxxEyy' },
+                      { value: 'folder-name', label: 'Folder name' }
+                    ]}
                     value={settings?.defaultMatcherStrategy ?? matcherStrategy}
-                    onChange={(value) => onSave({ defaultMatcherStrategy: value as MatcherStrategy })}
-                  >
-                    <option value="auto">Auto finder</option>
-                    <option value="movie-title-year">Movie title + year</option>
-                    <option value="show-season-episode">Show SxxEyy</option>
-                    <option value="folder-name">Folder name</option>
-                  </Select>
+                    onChange={(value) => onSave({ defaultMatcherStrategy: value })}
+                  />
                 </label>
                 <Switch
                   id="setting-extract-metadata"
