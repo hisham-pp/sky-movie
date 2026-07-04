@@ -238,8 +238,8 @@
   font-size: 13px;
 }
 
-.settings-section label:not(.switch-row) select,
-.settings-section label:not(.switch-row) input {
+.settings-section label:not(.switch-row) input,
+.settings-section label:not(.switch-row) .glass-select {
   width: 100%;
 }
 
@@ -370,9 +370,10 @@
 .switch-thumb {
   position: absolute;
   inset: 0;
-  border-radius: 999px;
-  background: var(--border, #333);
-  transition: background 0.2s;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .switch-thumb::after {
@@ -397,8 +398,8 @@
 }
 
 .switch-track input:focus-visible ~ .switch-thumb {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+  border-color: var(--focus-border);
+  box-shadow: var(--focus-ring);
 }
 
 /* ── Update progress ── */
