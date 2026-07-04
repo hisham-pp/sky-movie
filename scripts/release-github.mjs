@@ -96,7 +96,7 @@ async function main() {
   manifest.releases = [
     nextRelease,
     ...(manifest.releases ?? []).filter((r) => r.version !== version)
-  ].slice(0, 30);
+  ].slice(0, 20);
 
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`\nUpdated website release manifest: ${manifestPath}`);

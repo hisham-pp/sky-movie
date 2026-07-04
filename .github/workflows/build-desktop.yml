@@ -17,27 +17,27 @@ jobs:
           - os: windows-latest
             platform: windows
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --x64
           - os: windows-latest
             platform: windows
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --arm64
           - os: macos-latest
             platform: macos
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64
           - os: macos-latest
             platform: macos
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64
           - os: ubuntu-latest
             platform: linux
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64
           - os: ubuntu-latest
             platform: linux
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64
 
     steps:
       - name: Checkout
@@ -68,7 +68,7 @@ jobs:
         run: |
           sudo apt-get update
           # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
-          sudo apt-get install -y libarchive-tools rpm libmpv-dev
+          sudo apt-get install -y --no-install-recommends libarchive-tools rpm libmpv-dev
 
       - name: Cache Homebrew Cellar
         if: runner.os == 'macOS'

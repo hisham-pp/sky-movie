@@ -54,6 +54,13 @@ pnpm run release:github
 node scripts/release-github.mjs --version 0.1.0 --skip-sha
 ```
 
+### `update-release-manifest.sh`
+CI-only bash + curl + jq equivalent of `release-github.mjs --skip-sha --no-commit`. Used by the release job in `.github/workflows/release.yml` so it doesn't need a Node/pnpm install. Keep its output format in sync with `release-github.mjs` if the manifest schema changes.
+
+```bash
+GITHUB_TOKEN=... GITHUB_REPOSITORY=owner/repo scripts/update-release-manifest.sh v0.1.0
+```
+
 ### `release-google-drive.mjs`
 (Deprecated) Upload releases to Google Drive. R2 is the current release target.
 

@@ -22,27 +22,27 @@ jobs:
           - os: windows-latest
             platform: windows
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --x64
           - os: windows-latest
             platform: windows
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --arm64
           - os: macos-latest
             platform: macos
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64
           - os: macos-latest
             platform: macos
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64
           - os: ubuntu-latest
             platform: linux
             arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64
           - os: ubuntu-latest
             platform: linux
             arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci -- --arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64
 
     steps:
       - name: Checkout
@@ -73,7 +73,7 @@ jobs:
         run: |
           sudo apt-get update
           # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
-          sudo apt-get install -y libarchive-tools rpm libmpv-dev
+          sudo apt-get install -y --no-install-recommends libarchive-tools rpm libmpv-dev
 
       - name: Cache Homebrew Cellar
         if: runner.os == 'macOS'
@@ -238,20 +238,7 @@ jobs:
           echo "Release artifacts:"
           ls -lh artifacts/
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
+      # No Node/pnpm setup needed: the manifest update is plain bash + curl + jq
       - name: Update website release manifest
         run: |
           git config user.name  "Sky Movie"
@@ -259,7 +246,7 @@ jobs:
           git fetch origin main
           git checkout main
           git pull --ff-only origin main
-          pnpm release:github --skip-sha --no-commit
+          bash scripts/update-release-manifest.sh "${{ steps.version.outputs.TAG }}"
           git add website/public/releases.json
           git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
           git push origin main
