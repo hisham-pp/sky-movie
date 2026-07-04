@@ -1,6 +1,6 @@
 {
   "name": "@sky-movie/desktop-app",
-  "version": "0.7.15",
+  "version": "0.7.16",
   "description": "Local-first desktop movie and TV library manager.",
   "homepage": "https://github.com/hisham-pp/sky-movie",
   "main": "out/main/index.js",
