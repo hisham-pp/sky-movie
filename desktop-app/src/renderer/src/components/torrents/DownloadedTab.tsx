@@ -3,6 +3,7 @@ import { Search, FolderOpen, Trash2, CheckCircle2, HardDrive } from 'lucide-reac
 import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatBytes } from './utils';
+import { GlassSelect } from '../common';
 
 export function DownloadedTab() {
   const { torrents, remove, deleteFiles, openFolder } = useTorrentDownloads();
@@ -36,15 +37,17 @@ export function DownloadedTab() {
             className="w-full bg-white/5 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white/70 placeholder-white/25 focus:outline-none focus:border-white/20"
           />
         </div>
-        <select
+        <GlassSelect
+          size="sm"
+          ariaLabel="Sort downloads"
+          options={[
+            { value: 'date' as const, label: 'Recent first' },
+            { value: 'name' as const, label: 'Name' },
+            { value: 'size' as const, label: 'Size' },
+          ]}
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="bg-white/5 border border-white/10 rounded-lg text-xs text-white/50 px-2 py-1.5 focus:outline-none"
-        >
-          <option value="date">Recent first</option>
-          <option value="name">Name</option>
-          <option value="size">Size</option>
-        </select>
+          onChange={setSortBy}
+        />
         <span className="text-xs text-white/30 flex-shrink-0">
           <HardDrive size={12} className="inline mr-1" />{formatBytes(totalSize)}
         </span>

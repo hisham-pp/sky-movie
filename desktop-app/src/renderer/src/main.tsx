@@ -8,6 +8,7 @@ import './styles/modal.css';
 import './styles/layout.css';
 import './styles/sidebar.css';
 import './styles/library.css';
+import './styles/glass-select.css';
 import './styles/detail.css';
 import './styles/dialog.css';
 import './styles/player.css';
