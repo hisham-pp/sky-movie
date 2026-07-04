@@ -265,12 +265,16 @@ export function useLibraryController() {
     
     // Clear player when selecting a different show
     setPlayer(null);
-    
-    // Auto-play the requested file if given, else first episode (S01E01) or first file
+
+    // Auto-play the requested file if given, else resume from watch history
+    // (partially watched episode, or the next unwatched one), else first
+    // episode (S01E01) or first file
     if (details.files.length > 0) {
       const requestedFile =
         playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
-      const firstEpisodeFile = requestedFile ?? details.files.find((file) => {
+      const resumeFile =
+        requestedFile ?? (await findSeriesResumeFile(details.episodes ?? [], details.files));
+      const firstEpisodeFile = resumeFile ?? details.files.find((file) => {
         const fileName = file.fileName.toLowerCase();
         return /s0*1e0*1|1x0*1/i.test(fileName);
       }) ?? details.files[0];
@@ -927,6 +931,50 @@ function getSkyMovieApi(): SkyMovieApi {
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Pick the file a series should resume with, based on watch history:
+ * the most recently watched episode when it is only partially watched,
+ * otherwise the first not-yet-completed episode after it (season order).
+ * Returns null when there is no usable history or the series is fully
+ * watched, so the caller falls back to the first episode.
+ */
+async function findSeriesResumeFile(
+  episodes: Episode[],
+  files: MediaFile[]
+): Promise<MediaFile | null> {
+  try {
+    const history = await getSkyMovieApi().getWatchHistory();
+    const fileIds = new Set(files.map((file) => file.id));
+    const showHistory = history
+      .filter((item) => fileIds.has(item.mediaFileId))
+      .sort((a, b) => b.lastWatchedAt.localeCompare(a.lastWatchedAt));
+    const lastWatched = showHistory[0];
+    if (!lastWatched) return null;
+
+    const lastFile = files.find((file) => file.id === lastWatched.mediaFileId);
+    if (!lastFile) return null;
+    if (!lastWatched.completed) return lastFile;
+
+    if (lastFile.matchedEpisodeId == null || episodes.length === 0) return null;
+    const ordered = [...episodes].sort(
+      (a, b) => a.seasonNumber - b.seasonNumber || a.episodeNumber - b.episodeNumber
+    );
+    const currentIndex = ordered.findIndex((ep) => ep.id === lastFile.matchedEpisodeId);
+    if (currentIndex < 0) return null;
+
+    const completedFileIds = new Set(
+      history.filter((item) => item.completed).map((item) => item.mediaFileId)
+    );
+    for (let i = currentIndex + 1; i < ordered.length; i++) {
+      const file = files.find((f) => f.matchedEpisodeId === ordered[i].id);
+      if (file && !completedFileIds.has(file.id)) return file;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function hasLocalMovieMetadata(movie: Movie): boolean {
