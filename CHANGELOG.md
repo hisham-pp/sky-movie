@@ -5,6 +5,17 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.20] - 2026-07-04
+
+### Fixed
+
+- update package installation commands and improve caching for Electron builds (Hisham)
+
+### Other
+
+- style: enhance button and modal styles with glass effects and color-mix adjustments (Hisham)
+- chore(release): publish Sky Movie 0.7.19 downloads from GitHub (Sky Movie)
+
 ## [0.7.19] - 2026-07-04
 
 ### Added
@@ -693,3 +704,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.17]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.17
 [0.7.18]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.18
 [0.7.19]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.19
+[0.7.20]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.20
