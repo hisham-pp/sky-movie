@@ -4,12 +4,13 @@
   flex-direction: column;
   width: 60px;
   min-width: 60px;
-  border-right: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel-solid) 90%, transparent);
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg);
   padding: 38px 0 12px;
-  backdrop-filter: blur(24px);
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--ink) 5%, transparent);
+  transition: width 0.3s var(--ease-fluid),
+              min-width 0.3s var(--ease-fluid);
   overflow: hidden;
 }
 
@@ -27,9 +28,9 @@
   opacity: 0;
   max-width: 0;
   transform: translateX(-6px);
-  transition: opacity 0.18s ease,
-              max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.18s ease;
+  transition: opacity 0.2s var(--ease-fluid),
+              max-width 0.3s var(--ease-fluid),
+              transform 0.25s var(--ease-spring);
   pointer-events: none;
 }
 

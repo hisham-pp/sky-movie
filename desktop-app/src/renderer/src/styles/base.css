@@ -46,17 +46,22 @@ button {
   color: var(--ink);
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    box-shadow 0.22s var(--ease-fluid),
+    transform 0.22s var(--ease-spring);
 }
 
 button:hover {
   border-color: var(--line-strong);
   background: rgba(137, 206, 255, 0.08);
   box-shadow: var(--glow);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
 }
 
 button:disabled {
@@ -112,5 +117,16 @@ select option {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Respect the OS accessibility setting — also skips animation work entirely */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 

@@ -7,12 +7,13 @@
 .search-modal {
   width: 90%;
   max-width: 520px;
-  background: var(--panel-solid);
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-light);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: var(--glass-shine), 0 20px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  animation: searchModalSlideDown 0.3s ease;
+  animation: searchModalSlideDown 0.3s var(--ease-spring);
 }
 
 @keyframes searchModalSlideDown {

@@ -14,6 +14,22 @@
   position: relative;
 }
 
+/* Soft fade when a route mounts. Opacity only — a transform here would turn
+   the scroller into the containing block for .hero-backdrop-fixed. */
+.library-list,
+.settings-page {
+  animation: routeFadeIn 0.28s var(--ease-fluid);
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .browse-hero {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -492,7 +508,11 @@
   text-align: left;
   box-shadow: none;
   cursor: pointer;
-  transition: transform 0.22s ease;
+  transition: transform 0.28s var(--ease-spring);
+  /* Skip layout/paint for offscreen tiles — keeps large libraries scrolling smoothly.
+     The intrinsic size approximates poster (2:3) + caption so the scrollbar stays stable. */
+  content-visibility: auto;
+  contain-intrinsic-size: 180px 340px;
 }
 
 .tile:hover {
@@ -536,7 +556,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.36s ease;
+  transition: transform 0.45s var(--ease-fluid);
 }
 
 .tile:hover .poster img {
@@ -584,8 +604,8 @@
   opacity: 0;
   transform: translateY(6px);
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity 0.22s var(--ease-fluid),
+    transform 0.25s var(--ease-spring);
 }
 
 .tile:hover .tile-overlay {
