@@ -68,7 +68,7 @@ jobs:
         run: |
           sudo apt-get update
           # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
-          sudo apt-get install -y --no-install-recommends libarchive-tools rpm libmpv-dev
+          sudo apt-get install -y --no-install-recommends libarchive-tools libmpv-dev
 
       - name: Cache Homebrew Cellar
         if: runner.os == 'macOS'
@@ -108,6 +108,19 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Cache Electron and electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: electron-cache-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: electron-cache-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Cache libmpv artifacts
         if: runner.os == 'Windows'

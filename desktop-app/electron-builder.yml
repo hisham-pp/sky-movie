@@ -27,15 +27,11 @@ buildDependenciesFromSource: false
 
 win:
   icon: build/favicon.ico
+  # Arch is intentionally not pinned here: CI passes --x64/--arm64 per job,
+  # and pinning arch in config makes electron-builder ignore those CLI flags.
   target:
-    - target: nsis
-      arch:
-        - x64
-        - arm64
-    - target: dir
-      arch:
-        - x64
-        - arm64
+    - nsis
+    - dir
   artifactName: 'Sky-Movie-${version}-${arch}-Setup.${ext}'
   # Code signing configuration (requires certificate)
   # Uncomment and configure when you have a code signing certificate
@@ -51,14 +47,8 @@ mac:
   icon: build/favicon.png
   category: public.app-category.video
   target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
-      arch:
-        - x64
-        - arm64
+    - dmg
+    - zip
   artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
   # Code signing for macOS (requires Apple Developer account)
   # Uncomment and configure when you have signing credentials
@@ -79,18 +69,9 @@ linux:
   maintainer: Sky Movie
   syncDesktopName: true
   target:
-    - target: AppImage
-      arch:
-        - x64
-        - arm64
-    - target: deb
-      arch:
-        - x64
-        - arm64
-    - target: tar.gz
-      arch:
-        - x64
-        - arm64
+    - AppImage
+    - deb
+    - tar.gz
   artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
 
 deb:
