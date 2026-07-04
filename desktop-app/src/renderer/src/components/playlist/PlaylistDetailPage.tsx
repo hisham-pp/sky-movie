@@ -1,6 +1,6 @@
 import { memo, useState, useCallback } from 'react';
 import { ArrowLeft, ListMusic, Edit2, Trash2, Film, Tv, GripVertical, X, Plus, Grid3x3, List, Play, ExternalLink } from 'lucide-react';
-import type { Playlist, PlaylistItem, Movie, TvShow, MediaFile } from '@shared/ipc';
+import type { Playlist, PlaylistItem, Movie, TvShow } from '@shared/ipc';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
 import { Button } from '../common';
 
@@ -10,18 +10,15 @@ interface PlaylistDetailPageProps {
   busy: boolean;
   movies: Movie[];
   shows: TvShow[];
-  selectedFiles: MediaFile[];
   onBack(): void;
   onEdit(): void;
   onDelete(): void;
   onRemoveItem(itemId: number): void;
   onReorderItem(playlistId: number, itemId: number, newSortOrder: number): void;
-  onSelectMovie(movie: Movie): void;
-  onSelectShow(show: TvShow): void;
   onAddToPlaylist(playlistId: number, mediaKind: 'movie' | 'show', itemId: number): void;
   onViewMovieDetails(movie: Movie): void;
   onViewShowDetails(show: TvShow): void;
-  onPlay(file: MediaFile): void;
+  onPlayAll(): void;
 }
 
 type ViewMode = 'list' | 'grid';
@@ -32,37 +29,25 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
   busy,
   movies,
   shows,
-  selectedFiles,
   onBack,
   onEdit,
   onDelete,
   onRemoveItem,
   onReorderItem,
-  onSelectMovie,
-  onSelectShow,
   onAddToPlaylist,
   onViewMovieDetails,
   onViewShowDetails,
-  onPlay
+  onPlayAll
 }: PlaylistDetailPageProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [draggedItemId, setDraggedItemId] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handlePlayAll = useCallback(async () => {
+  const handlePlayAll = useCallback(() => {
     if (items.length === 0) return;
-    const firstItem = items[0];
-    let filesForFirstItem: MediaFile[] = [];
-    if (firstItem.mediaKind === 'movie' && firstItem.movie) {
-      await onSelectMovie(firstItem.movie);
-      filesForFirstItem = selectedFiles;
-    } else if (firstItem.mediaKind === 'show' && firstItem.show) {
-      await onSelectShow(firstItem.show);
-      filesForFirstItem = selectedFiles;
-    }
-    if (filesForFirstItem.length > 0) onPlay(filesForFirstItem[0]);
-  }, [items, onSelectMovie, onSelectShow, selectedFiles, onPlay]);
+    onPlayAll();
+  }, [items.length, onPlayAll]);
 
   const handleItemClick = useCallback((item: PlaylistItem) => {
     if (item.mediaKind === 'movie' && item.movie) onViewMovieDetails(item.movie);

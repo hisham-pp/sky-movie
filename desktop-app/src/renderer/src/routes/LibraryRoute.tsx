@@ -77,6 +77,11 @@ export function LibraryRoute(props: LibraryRouteProps) {
     [library],
   );
 
+  const handlePlayAllPlaylist = useCallback(
+    () => { void library.playPlaylist(library.playlistItems); },
+    [library],
+  );
+
   return (
     <LibraryView
       view={view}
@@ -115,6 +120,7 @@ export function LibraryRoute(props: LibraryRouteProps) {
       onDeletePlaylist={library.deletePlaylist}
       onRemoveFromPlaylist={handleRemoveFromPlaylist}
       onReorderPlaylistItem={library.reorderPlaylistItem}
+      onPlayAllPlaylist={handlePlayAllPlaylist}
     />
   );
 }

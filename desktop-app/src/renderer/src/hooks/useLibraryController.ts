@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type {
   AddToPlaylistRequest,
   AppSettings,
@@ -59,6 +60,12 @@ export function useLibraryController() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
+  const navigate = useNavigate();
+  // Active "Play All" queue. Kept in a ref so async end-of-playback chains
+  // always see the current queue. queueNavigationRef marks selects initiated
+  // by the queue itself, so manual selections cancel the queue instead.
+  const playlistQueueRef = useRef<{ items: PlaylistItem[]; index: number } | null>(null);
+  const queueNavigationRef = useRef(false);
 
   useEffect(() => {
     void refreshAll().catch((error) => {
@@ -213,6 +220,7 @@ export function useLibraryController() {
   }
 
   function backToLibrary() {
+    playlistQueueRef.current = null;
     setSelectedMovie(null);
     setSelectedShow(null);
     setSelectedEpisodes([]);
@@ -223,7 +231,8 @@ export function useLibraryController() {
     setPlayer(null);
   }
 
-  async function selectMovie(movie: Movie, playFileId?: number) {
+  async function selectMovie(movie: Movie, playFileId?: number): Promise<boolean> {
+    if (!queueNavigationRef.current) playlistQueueRef.current = null;
     const details = await getSkyMovieApi().getMovieById(movie.id);
     const selected = details.item ?? movie;
     setSelectedMovie(selected);
@@ -245,14 +254,17 @@ export function useLibraryController() {
       const result = await getSkyMovieApi().playMedia(targetFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);
+      return true;
     }
+    return false;
   }
 
   async function viewMovieDetails(movie: Movie) {
     await selectMovie(movie);
   }
 
-  async function selectShow(show: TvShow, playFileId?: number) {
+  async function selectShow(show: TvShow, playFileId?: number): Promise<boolean> {
+    if (!queueNavigationRef.current) playlistQueueRef.current = null;
     const details = await getSkyMovieApi().getShowById(show.id);
     const selected = details.item ?? show;
     setSelectedShow(selected);
@@ -282,7 +294,9 @@ export function useLibraryController() {
       const result = await getSkyMovieApi().playMedia(firstEpisodeFile.id);
       setPlayer(result);
       setStatus(`Playing ${result.title}`);
+      return true;
     }
+    return false;
   }
 
   async function viewShowDetails(show: TvShow) {
@@ -334,6 +348,65 @@ export function useLibraryController() {
 
     setStatus('Finished the last available episode');
     return false;
+  }
+
+  /**
+   * Start a queue item: select its movie/show (which auto-plays) and navigate
+   * to the matching detail page so the player is visible. Returns whether
+   * playback actually started (items without local files return false).
+   */
+  async function startQueueItem(item: PlaylistItem): Promise<boolean> {
+    queueNavigationRef.current = true;
+    try {
+      if (item.mediaKind === 'movie' && item.movie) {
+        const started = await selectMovie(item.movie);
+        navigate(`/movies/${item.movie.id}`);
+        return started;
+      }
+      if (item.mediaKind === 'show' && item.show) {
+        const started = await selectShow(item.show);
+        navigate(`/shows/${item.show.id}`);
+        return started;
+      }
+      return false;
+    } catch (error) {
+      setStatus(`Playback failed: ${formatError(error)}`);
+      return false;
+    } finally {
+      queueNavigationRef.current = false;
+    }
+  }
+
+  /** "Play All": queue up the playlist items and start the first playable one. */
+  async function playPlaylist(items: PlaylistItem[]) {
+    if (items.length === 0) {
+      setStatus('Playlist is empty');
+      return;
+    }
+    playlistQueueRef.current = { items, index: 0 };
+    for (let i = 0; i < items.length; i++) {
+      playlistQueueRef.current.index = i;
+      if (await startQueueItem(items[i])) return;
+    }
+    playlistQueueRef.current = null;
+    setStatus('No playable files in this playlist');
+  }
+
+  /**
+   * Called when the current file reaches its natural end: first try the next
+   * episode of the current show, then fall back to the next playlist item
+   * when a "Play All" queue is active.
+   */
+  async function advancePlayback() {
+    if (await playNextEpisode()) return;
+    const queue = playlistQueueRef.current;
+    if (!queue) return;
+    for (let i = queue.index + 1; i < queue.items.length; i++) {
+      queue.index = i;
+      if (await startQueueItem(queue.items[i])) return;
+    }
+    playlistQueueRef.current = null;
+    setStatus('Playlist finished');
   }
 
   async function openExternal(mediaFileId: number) {
@@ -930,6 +1003,8 @@ export function useLibraryController() {
     play,
     playById,
     playNextEpisode,
+    playPlaylist,
+    advancePlayback,
     openExternal,
     saveSettings,
     clearLocalData,
