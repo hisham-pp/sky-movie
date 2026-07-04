@@ -6,12 +6,12 @@
 
 .search-modal {
   width: 90%;
-  max-width: 520px;
-  background: var(--glass-bg-strong);
+  max-width: 560px;
+  background: var(--glass-sheen), var(--glass-bg-strong);
   backdrop-filter: var(--glass-blur-light);
   border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  box-shadow: var(--glass-shine), 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  box-shadow: var(--glass-shine), 0 24px 80px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   animation: searchModalSlideDown 0.3s var(--ease-spring);
 }
@@ -32,7 +32,15 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+/* Any inputs rendered inside the glass header stay frameless and frosted */
+.search-modal-header input {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .search-modal-header svg {
@@ -111,20 +119,20 @@
   padding: 8px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.2s;
+  transition: background 0.18s var(--ease-fluid), box-shadow 0.18s var(--ease-fluid);
   width: 100%;
 }
 
-.search-modal-item:hover,
-.search-modal-item--active {
+.search-modal-item:hover {
   background: var(--hover);
 }
 
 .search-modal-item--active {
-  outline: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .search-modal-item-playlist-icon {
@@ -207,17 +215,19 @@
   justify-content: center;
   gap: 4px;
   padding: 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
   font-size: 12px;
   color: var(--muted);
 }
 
 .search-modal-footer kbd {
   background: var(--hover);
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: 5px;
   padding: 2px 6px;
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
 }

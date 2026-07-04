@@ -504,7 +504,7 @@
   border-color: var(--primary);
   border-width: 2px;
   padding: 13px;
-  background: rgba(var(--primary-rgb), 0.05);
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
 }
 
 .playlist-grid-item-drag-handle {
@@ -1076,7 +1076,7 @@
 }
 
 .modal-actions button.primary:hover {
-  background: var(--primary-hover);
+  background: var(--primary-strong);
 }
 
 .modal-actions button:disabled {

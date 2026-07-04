@@ -21,20 +21,22 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px 10px 10px;
-  background: var(--panel-solid);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-light);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: var(--glass-shine), var(--shadow);
   cursor: pointer;
   color: var(--ink);
   text-align: left;
   font-family: inherit;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  transition: background 0.18s var(--ease-fluid), border-color 0.18s var(--ease-fluid),
+              transform 0.22s var(--ease-spring);
   max-width: 260px;
 }
 
 .last-watched-body:hover {
-  background: var(--surface-low);
+  background: var(--glass-sheen), color-mix(in srgb, var(--panel-solid) 75%, transparent);
   border-color: var(--line-strong);
   transform: translateY(-2px);
 }

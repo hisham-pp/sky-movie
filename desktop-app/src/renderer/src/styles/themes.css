@@ -38,15 +38,25 @@
    (sidebar, panels, modals), never to scrolling grid items. */
 :root,
 .app-shell {
-  --glass-bg: color-mix(in srgb, var(--panel-solid) 55%, transparent);
-  --glass-bg-strong: color-mix(in srgb, var(--panel-solid) 74%, transparent);
-  --glass-border: color-mix(in srgb, var(--ink) 13%, transparent);
-  --glass-blur: blur(28px) saturate(160%);
-  --glass-blur-light: blur(14px) saturate(150%);
-  /* top-edge light catch + soft depth, like backlit frosted glass */
+  --glass-bg: color-mix(in srgb, var(--panel-solid) 42%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--panel-solid) 60%, transparent);
+  --glass-border: color-mix(in srgb, var(--ink) 18%, transparent);
+  --glass-blur: blur(36px) saturate(180%);
+  --glass-blur-light: blur(20px) saturate(160%);
+  /* light-catch gradient layered over the translucent bg — the "liquid" sheen */
+  --glass-sheen: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ink) 7%, transparent) 0%,
+    transparent 45%
+  );
+  /* crisp inner ring + top-edge highlight + soft depth, like backlit frosted glass */
   --glass-shine:
-    inset 0 1px 0 color-mix(in srgb, var(--ink) 9%, transparent),
-    0 12px 40px rgba(0, 0, 0, 0.28);
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 14%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--ink) 4%, transparent),
+    0 16px 48px rgba(0, 0, 0, 0.35);
+  /* interaction wash for hover/active rows on glass surfaces */
+  --hover: color-mix(in srgb, var(--ink) 7%, transparent);
+  --text: var(--ink);
   /* fluid motion curves — decelerating glide + gentle overshoot */
   --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.34, 1.28, 0.44, 1);

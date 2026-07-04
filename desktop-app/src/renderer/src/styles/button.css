@@ -74,14 +74,14 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--primary-strong);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 /* Secondary Button */

@@ -5,7 +5,7 @@
   width: 60px;
   min-width: 60px;
   border-right: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  background: var(--glass-sheen), var(--glass-bg);
   padding: 38px 0 12px;
   backdrop-filter: var(--glass-blur);
   box-shadow: inset -1px 0 0 color-mix(in srgb, var(--ink) 5%, transparent);

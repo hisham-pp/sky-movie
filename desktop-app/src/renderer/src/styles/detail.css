@@ -152,7 +152,7 @@
   color: var(--on-primary);
   border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .add-to-playlist-button:disabled {
