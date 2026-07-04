@@ -1,0 +1,138 @@
+/* ── Keyboard shortcuts help overlay ────────────────────────────────────── */
+
+.shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 8, 12, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: shortcuts-fade 0.16s ease;
+}
+
+@keyframes shortcuts-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.shortcuts-modal {
+  width: min(680px, calc(100vw - 48px));
+  max-height: min(78vh, 640px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: var(--panel, rgba(16, 18, 27, 0.9));
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  animation: shortcuts-pop 0.18s var(--ease-spring, ease);
+}
+
+@keyframes shortcuts-pop {
+  from { transform: translateY(10px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ink, #fff);
+}
+
+.shortcuts-header svg {
+  color: var(--primary, #89ceff);
+}
+
+.shortcuts-header h3 {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.shortcuts-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--soft, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.shortcuts-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.shortcuts-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 6px 28px;
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}
+
+.shortcuts-sections::-webkit-scrollbar {
+  width: 5px;
+}
+
+.shortcuts-sections::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+}
+
+.shortcuts-section h4 {
+  padding: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, rgba(255, 255, 255, 0.45));
+}
+
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 0;
+}
+
+.shortcuts-desc {
+  font-size: 13px;
+  color: var(--soft, rgba(255, 255, 255, 0.75));
+}
+
+.shortcuts-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.shortcuts-keys kbd {
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: var(--ink, #fff);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1;
+}
