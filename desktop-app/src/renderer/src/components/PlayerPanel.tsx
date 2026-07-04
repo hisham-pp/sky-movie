@@ -16,9 +16,10 @@ export function PlayerPanel({
   player: PlayMediaResult | null;
   onOpenExternal(mediaFileId: number): void;
 }) {
-  const { settings } = useLibraryControllerContext();
+  const { settings, playNextEpisode } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
+  const handleEnded = () => { void playNextEpisode(); };
 
   useEffect(() => {
     window.skyMovie.mpvIsAvailable()
@@ -42,7 +43,7 @@ export function PlayerPanel({
   if (mpvAvailable) {
     return (
       <div className="player">
-        <MpvPlayer player={player} playerStyle={playerStyle} onOpenExternal={onOpenExternal} />
+        <MpvPlayer player={player} playerStyle={playerStyle} onOpenExternal={onOpenExternal} onEnded={handleEnded} />
         <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
           <ExternalLink size={15} />
           Open in system player
@@ -51,21 +52,25 @@ export function PlayerPanel({
     );
   }
 
-  return <ArtplayerFallback player={player} onOpenExternal={onOpenExternal} />;
+  return <ArtplayerFallback player={player} onOpenExternal={onOpenExternal} onEnded={handleEnded} />;
 }
 
 // ── Artplayer fallback ───────────────────────────────────────────────────────
 
 function ArtplayerFallback({
   player,
-  onOpenExternal
+  onOpenExternal,
+  onEnded
 }: {
   player: PlayMediaResult;
   onOpenExternal(mediaFileId: number): void;
+  onEnded?(): void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const artRef = useRef<Artplayer | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
 
   const mediaFileId = player?.mediaFileId ?? null;
   const mediaUrl = player?.mediaUrl ?? null;
@@ -207,7 +212,10 @@ function ArtplayerFallback({
     art.on('video:pause', () => void updateProgress(true));
     art.on('video:seeked', () => void updateProgress(true));
     art.on('video:timeupdate', () => void updateProgress());
-    art.on('video:ended', () => void updateProgress(true));
+    art.on('video:ended', () => {
+      void updateProgress(true);
+      onEndedRef.current?.();
+    });
     art.on('video:error', () => setPlaybackError('The built-in player cannot decode this file. Try opening with system player.'));
     art.on('video:loadedmetadata', () => {
       window.clearTimeout(loadTimer);
