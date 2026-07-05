@@ -2,7 +2,7 @@ import { memo, useState, useCallback } from 'react';
 import { ArrowLeft, ListMusic, Edit2, Trash2, Film, Tv, GripVertical, X, Plus, Grid3x3, List, Play, ExternalLink } from 'lucide-react';
 import type { Playlist, PlaylistItem, Movie, TvShow } from '@shared/ipc';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
-import { Button } from '../common';
+import { Button, Tooltip } from '../common';
 
 interface PlaylistDetailPageProps {
   playlist: Playlist;
@@ -170,12 +170,16 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
             <span>{items.length} items</span>
           </div>
           <div className="view-mode-toggle">
-            <button className={viewMode === 'list' ? 'active' : ''} onClick={handleSetListView} title="List view">
-              <List size={18} />
-            </button>
-            <button className={viewMode === 'grid' ? 'active' : ''} onClick={handleSetGridView} title="Grid view">
-              <Grid3x3 size={18} />
-            </button>
+            <Tooltip content="List view">
+              <button className={viewMode === 'list' ? 'active' : ''} onClick={handleSetListView} aria-label="List view">
+                <List size={18} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Grid view">
+              <button className={viewMode === 'grid' ? 'active' : ''} onClick={handleSetGridView} aria-label="Grid view">
+                <Grid3x3 size={18} />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -211,12 +215,16 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
                         : `TV Show • ${item.show?.firstAirYear || 'Unknown year'}`}
                     </small>
                   </div>
-                  <button className="playlist-item-view" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }} title="View details">
-                    <ExternalLink size={16} />
-                  </button>
-                  <button className="playlist-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} title="Remove from playlist">
-                    <X size={16} />
-                  </button>
+                  <Tooltip content="View details">
+                    <button className="playlist-item-view" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }} aria-label="View details">
+                      <ExternalLink size={16} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Remove from playlist">
+                    <button className="playlist-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} aria-label="Remove from playlist">
+                      <X size={16} />
+                    </button>
+                  </Tooltip>
                 </div>
               ))}
             </div>
@@ -236,9 +244,11 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="playlist-grid-item-drag-handle"><GripVertical size={14} /></div>
-                  <button className="playlist-grid-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} title="Remove from playlist">
-                    <X size={14} />
-                  </button>
+                  <Tooltip content="Remove from playlist">
+                    <button className="playlist-grid-item-remove" onClick={(e) => { e.stopPropagation(); onRemoveItem(item.id); }} disabled={busy} aria-label="Remove from playlist">
+                      <X size={14} />
+                    </button>
+                  </Tooltip>
                   <div className="playlist-grid-item-poster">
                     {item.movie?.posterPath || item.show?.posterPath ? (
                       <img src={(item.movie?.posterPath || item.show?.posterPath)!} alt="" />

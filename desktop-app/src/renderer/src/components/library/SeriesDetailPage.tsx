@@ -7,7 +7,7 @@ import { MetadataTools } from './MetadataTools';
 import { DetailStat } from './DetailStat';
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
-import { Button } from '../common';
+import { Button, Tooltip } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
@@ -95,14 +95,15 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             <span className="detail-kicker">Series detail</span>
             <div className="detail-title-row">
               <h2>{show.title}</h2>
-              <button
-                className={`detail-fav-btn${show.favorite ? ' active' : ''}`}
-                title={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
-                aria-label={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
-                onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
-              >
-                <Heart size={17} fill={show.favorite ? 'currentColor' : 'none'} />
-              </button>
+              <Tooltip content={show.favorite ? 'Remove from favorites' : 'Add to favorites'}>
+                <button
+                  className={`detail-fav-btn${show.favorite ? ' active' : ''}`}
+                  aria-label={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
+                >
+                  <Heart size={17} fill={show.favorite ? 'currentColor' : 'none'} />
+                </button>
+              </Tooltip>
             </div>
             <p>{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
           </div>
@@ -122,16 +123,17 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             <span>{playingFile.fileName}</span>
           </div>
         ) : null}
-        <Button
-          variant="secondary"
-          size="medium"
-          icon={<ListMusic />}
-          onClick={handleOpenPlaylistDialog}
-          disabled={busy || playlists.length === 0}
-          title={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
-        >
-          Add to Playlist
-        </Button>
+        <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
+          <Button
+            variant="secondary"
+            size="medium"
+            icon={<ListMusic />}
+            onClick={handleOpenPlaylistDialog}
+            disabled={busy || playlists.length === 0}
+          >
+            Add to Playlist
+          </Button>
+        </Tooltip>
       </div>
 
       <div className="series-detail-grid">

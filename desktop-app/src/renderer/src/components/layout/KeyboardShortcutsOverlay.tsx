@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Keyboard, X } from 'lucide-react';
 import { KEYBOARD_SHORTCUTS } from '../../config/keyboardShortcuts';
+import { Tooltip } from '../common';
 
 export function KeyboardShortcutsOverlay({
   isOpen,
@@ -29,9 +30,11 @@ export function KeyboardShortcutsOverlay({
         <header className="shortcuts-header">
           <Keyboard size={18} />
           <h3>Keyboard Shortcuts</h3>
-          <button className="shortcuts-close" onClick={onClose} title="Close (Esc)">
-            <X size={16} />
-          </button>
+          <Tooltip content="Close (Esc)">
+            <button className="shortcuts-close" onClick={onClose} aria-label="Close">
+              <X size={16} />
+            </button>
+          </Tooltip>
         </header>
 
         <div className="shortcuts-sections">

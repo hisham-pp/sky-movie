@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
+import { Tooltip } from '../common';
 import { formatBytes, formatSpeed, formatEta, statusLabel, statusColor } from './utils';
 
 export function DownloadsTab() {
@@ -192,16 +193,18 @@ function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete,
 
 function ActionBtn({ children, onClick, title, danger }: { children: React.ReactNode; onClick(): void; title: string; danger?: boolean }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      className={`p-1.5 rounded-lg transition-colors ${
-        danger
-          ? 'text-red-400/50 hover:text-red-400 hover:bg-red-500/10'
-          : 'text-white/40 hover:text-white/75 hover:bg-white/8'
-      }`}
-    >
-      {children}
-    </button>
+    <Tooltip content={title}>
+      <button
+        onClick={onClick}
+        aria-label={title}
+        className={`p-1.5 rounded-lg transition-colors ${
+          danger
+            ? 'text-red-400/50 hover:text-red-400 hover:bg-red-500/10'
+            : 'text-white/40 hover:text-white/75 hover:bg-white/8'
+        }`}
+      >
+        {children}
+      </button>
+    </Tooltip>
   );
 }

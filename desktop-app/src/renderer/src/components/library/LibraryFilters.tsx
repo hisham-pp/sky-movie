@@ -1,5 +1,5 @@
 import { Search, Star, Heart, ArrowUpDown, Calendar, X } from 'lucide-react';
-import { GlassSelect } from '../common';
+import { GlassSelect, Tooltip } from '../common';
 import type { GlassSelectOption } from '../common';
 
 export type SortBy = 'default' | 'title' | 'year' | 'rating';
@@ -91,20 +91,23 @@ export function LibraryFilters({
         onChange={onSortChange}
       />
 
-      <button
-        className={`filter-toggle-btn${favoritesOnly ? ' active' : ''}`}
-        onClick={() => onFavoritesChange(!favoritesOnly)}
-        title="Favorites only"
-      >
-        <Heart size={14} fill={favoritesOnly ? 'currentColor' : 'none'} />
-        Favorites
-      </button>
+      <Tooltip content="Show favorites only">
+        <button
+          className={`filter-toggle-btn${favoritesOnly ? ' active' : ''}`}
+          onClick={() => onFavoritesChange(!favoritesOnly)}
+        >
+          <Heart size={14} fill={favoritesOnly ? 'currentColor' : 'none'} />
+          Favorites
+        </button>
+      </Tooltip>
 
       {isFiltered && (
-        <button className="filter-clear-btn" onClick={onClear} title="Clear all filters">
-          <X size={13} />
-          Clear
-        </button>
+        <Tooltip content="Clear all filters">
+          <button className="filter-clear-btn" onClick={onClear}>
+            <X size={13} />
+            Clear
+          </button>
+        </Tooltip>
       )}
     </div>
   );

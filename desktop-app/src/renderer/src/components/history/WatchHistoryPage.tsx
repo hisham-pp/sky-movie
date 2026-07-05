@@ -1,6 +1,7 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { Film, Tv, Clock, CheckCircle2, RotateCcw, Trash2, Play, History } from 'lucide-react';
 import type { WatchHistoryItem } from '@shared/ipc';
+import { Tooltip } from '../common';
 import { formatDuration, formatPosition, formatRelativeDate } from '../../utils/dateUtils';
 
 interface Props {
@@ -84,13 +85,15 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay }: Histo
         )}
       </div>
 
-      <button
-        className="wh-play-btn"
-        onClick={handlePlayClick}
-        title={item.completed ? 'Play again' : 'Resume'}
-      >
-        <Play size={16} fill="currentColor" />
-      </button>
+      <Tooltip content={item.completed ? 'Play again' : 'Resume'}>
+        <button
+          className="wh-play-btn"
+          onClick={handlePlayClick}
+          aria-label={item.completed ? 'Play again' : 'Resume'}
+        >
+          <Play size={16} fill="currentColor" />
+        </button>
+      </Tooltip>
     </div>
   );
 });
