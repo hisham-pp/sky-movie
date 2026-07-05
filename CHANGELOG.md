@@ -5,6 +5,16 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.28] - 2026-07-05
+
+### Fixed
+
+- modal size classes never applied, leaving dialogs at 90vw (Hisham)
+
+### Other
+
+- chore(release): publish Sky Movie 0.7.27 downloads from GitHub (Sky Movie)
+
 ## [0.7.27] - 2026-07-04
 
 ### Added
@@ -798,3 +808,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.25]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.25
 [0.7.26]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.26
 [0.7.27]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.27
+[0.7.28]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.7.28
