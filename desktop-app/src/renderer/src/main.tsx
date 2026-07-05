@@ -22,6 +22,7 @@ import './styles/last-watched.css';
 import './styles/watch-history.css';
 import './styles/route-error.css';
 import './styles/shortcuts-overlay.css';
+import './styles/tooltip.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
