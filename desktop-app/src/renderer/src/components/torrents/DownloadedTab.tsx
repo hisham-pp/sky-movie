@@ -3,7 +3,7 @@ import { Search, FolderOpen, Trash2, CheckCircle2, HardDrive } from 'lucide-reac
 import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatBytes } from './utils';
-import { GlassSelect } from '../common';
+import { GlassSelect, Tooltip } from '../common';
 
 export function DownloadedTab() {
   const { torrents, remove, deleteFiles, openFolder } = useTorrentDownloads();
@@ -105,12 +105,16 @@ function CompletedCard({ torrent, onOpen, onRemove }: { torrent: TorrentInfo; on
         </p>
       </div>
       <div className="flex gap-1 flex-shrink-0">
-        <button onClick={onOpen} title="Open folder" className="p-1.5 rounded-lg text-white/35 hover:text-white/70 hover:bg-white/8 transition-colors">
-          <FolderOpen size={14} />
-        </button>
-        <button onClick={onRemove} title="Remove" className="p-1.5 rounded-lg text-red-400/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-          <Trash2 size={14} />
-        </button>
+        <Tooltip content="Open folder">
+          <button onClick={onOpen} aria-label="Open folder" className="p-1.5 rounded-lg text-white/35 hover:text-white/70 hover:bg-white/8 transition-colors">
+            <FolderOpen size={14} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Remove">
+          <button onClick={onRemove} aria-label="Remove" className="p-1.5 rounded-lg text-red-400/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+            <Trash2 size={14} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

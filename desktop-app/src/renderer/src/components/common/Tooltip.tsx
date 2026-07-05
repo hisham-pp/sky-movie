@@ -1,6 +1,8 @@
 import {
+  memo,
   useCallback,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode
@@ -11,6 +13,10 @@ export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 const GAP = 8;           // distance between trigger and tooltip
 const VIEWPORT_PAD = 8;  // minimum distance from viewport edges
+
+const OPPOSITE: Record<TooltipPlacement, TooltipPlacement> = {
+  top: 'bottom', bottom: 'top', left: 'right', right: 'left'
+};
 
 interface TooltipProps {
   /** Anything renderable: plain text, formatted spans, icons, a component. */
@@ -23,7 +29,7 @@ interface TooltipProps {
   disabled?: boolean;
 }
 
-export function Tooltip({
+function TooltipImpl({
   content,
   children,
   placement = 'top',
@@ -81,10 +87,7 @@ export function Tooltip({
       left:   t.left - w - GAP >= VIEWPORT_PAD,
       right:  t.right + w + GAP <= window.innerWidth - VIEWPORT_PAD
     };
-    const opposite: Record<TooltipPlacement, TooltipPlacement> = {
-      top: 'bottom', bottom: 'top', left: 'right', right: 'left'
-    };
-    const side = fits[placement] || !fits[opposite[placement]] ? placement : opposite[placement];
+    const side = fits[placement] || !fits[OPPOSITE[placement]] ? placement : OPPOSITE[placement];
 
     let top: number;
     let left: number;
@@ -101,17 +104,26 @@ export function Tooltip({
     setPos({ top, left, placement: side });
   }, [open, placement, content]);
 
-  if (disabled || content == null || content === '') return <>{children}</>;
+  // Identity-stable so wrapping a hot list item never re-creates these on the
+  // trigger. `onPointerDown` hides immediately so the tip never covers a menu
+  // or dialog the click opens.
+  const triggerProps = useMemo(
+    () => ({
+      onMouseEnter: show,
+      onMouseLeave: hide,
+      onFocus: show,
+      onBlur: hide,
+      onPointerDown: hide
+    }),
+    [show, hide]
+  );
 
-  const triggerProps = {
-    onMouseEnter: show,
-    onMouseLeave: hide,
-    onFocus: show,
-    onBlur: hide,
-    // Hide as soon as the trigger is used so the tooltip never covers menus
-    // or dialogs the click opens.
-    onPointerDown: hide
-  };
+  const tipStyle = useMemo(
+    () => (pos ? { top: pos.top, left: pos.left } : { top: 0, left: 0, visibility: 'hidden' as const }),
+    [pos]
+  );
+
+  if (disabled || content == null || content === '') return <>{children}</>;
 
   return (
     <>
@@ -123,7 +135,7 @@ export function Tooltip({
           <div
             ref={tipRef}
             className={`tooltip tooltip-${pos?.placement ?? placement}${pos ? ' tooltip-visible' : ''}`}
-            style={pos ? { top: pos.top, left: pos.left } : { top: 0, left: 0, visibility: 'hidden' }}
+            style={tipStyle}
             role="tooltip"
           >
             {content}
@@ -133,3 +145,5 @@ export function Tooltip({
     </>
   );
 }
+
+export const Tooltip = memo(TooltipImpl);

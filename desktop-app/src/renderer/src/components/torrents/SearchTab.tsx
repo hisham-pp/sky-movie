@@ -3,7 +3,7 @@ import { Search, Download, Copy, Filter, X, ChevronDown } from 'lucide-react';
 import type { TorrentCategory, TorrentSearchResult } from '@shared/ipc';
 import { useTorrentSearch, useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatBytes } from './utils';
-import { GlassSelect } from '../common';
+import { GlassSelect, Tooltip } from '../common';
 
 const QUALITY_OPTIONS = ['all', '2160p', '1080p', '720p', '480p', 'HDR', 'x265', 'x264', 'HEVC', 'BluRay', 'WEBRip'];
 const CATEGORY_OPTIONS: { value: TorrentCategory | 'all'; label: string }[] = [
@@ -224,13 +224,15 @@ function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: Se
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm text-white/85 font-medium leading-tight truncate pr-2">{result.title}</p>
           <div className="flex gap-1.5 flex-shrink-0">
-            <button
-              onClick={() => onCopy(result)}
-              title="Copy magnet"
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors"
-            >
-              <Copy size={13} />
-            </button>
+            <Tooltip content="Copy magnet">
+              <button
+                onClick={() => onCopy(result)}
+                aria-label="Copy magnet"
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors"
+              >
+                <Copy size={13} />
+              </button>
+            </Tooltip>
             <button
               onClick={() => onDownload(result)}
               disabled={isAdding}
