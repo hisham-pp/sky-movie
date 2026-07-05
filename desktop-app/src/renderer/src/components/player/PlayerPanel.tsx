@@ -19,6 +19,7 @@ export function PlayerPanel({
 }) {
   const { settings, advancePlayback } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
+  const resumePlayback = settings?.resumePlayback ?? true;
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
   const handleEnded = () => { void advancePlayback(); };
 
@@ -44,7 +45,7 @@ export function PlayerPanel({
   if (mpvAvailable) {
     return (
       <div className="player">
-        <MpvPlayer player={player} playerStyle={playerStyle} onOpenExternal={onOpenExternal} onEnded={handleEnded} />
+        <MpvPlayer player={player} playerStyle={playerStyle} resumePlayback={resumePlayback} onOpenExternal={onOpenExternal} onEnded={handleEnded} />
         <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
           <ExternalLink size={15} />
           Open in system player
@@ -53,17 +54,19 @@ export function PlayerPanel({
     );
   }
 
-  return <ArtplayerFallback player={player} onOpenExternal={onOpenExternal} onEnded={handleEnded} />;
+  return <ArtplayerFallback player={player} resumePlayback={resumePlayback} onOpenExternal={onOpenExternal} onEnded={handleEnded} />;
 }
 
 // ── Artplayer fallback ───────────────────────────────────────────────────────
 
 function ArtplayerFallback({
   player,
+  resumePlayback = true,
   onOpenExternal,
   onEnded
 }: {
   player: PlayMediaResult;
+  resumePlayback?: boolean;
   onOpenExternal(mediaFileId: number): void;
   onEnded?(): void;
 }) {
@@ -190,11 +193,12 @@ function ArtplayerFallback({
 
     const restorePosition = () => {
       if (restoredPosition) return;
+      restoredPosition = true;
+      if (!resumePlayback) return;
       const video = art.video;
       const savedPosition = player.watchProgress?.positionSeconds ?? 0;
       const savedDuration = player.watchProgress?.durationSeconds ?? 0;
       const duration = Number.isFinite(video?.duration) && video.duration > 0 ? video.duration : savedDuration;
-      restoredPosition = true;
       if (player.watchProgress?.completed || savedPosition < RESUME_START_THRESHOLD || duration - savedPosition < RESUME_END_BUFFER) return;
       if (video) video.currentTime = Math.min(savedPosition, Math.max(duration - RESUME_END_BUFFER, 0));
     };

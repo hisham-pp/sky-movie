@@ -25,6 +25,15 @@ function sanitize(update: Partial<AppSettings>): Partial<AppSettings> {
   if (out.autoDownloadUpdates !== undefined) out.autoDownloadUpdates = Boolean(out.autoDownloadUpdates);
   if (out.hideSidebar         !== undefined) out.hideSidebar         = Boolean(out.hideSidebar);
   if (out.defaultSyncIncludesFiles !== undefined) out.defaultSyncIncludesFiles = Boolean(out.defaultSyncIncludesFiles);
+  if (out.hardwareAcceleration !== undefined) out.hardwareAcceleration = Boolean(out.hardwareAcceleration);
+  if (out.resumePlayback       !== undefined) out.resumePlayback       = Boolean(out.resumePlayback);
+  if (out.autoPlayNextEpisode  !== undefined) out.autoPlayNextEpisode  = Boolean(out.autoPlayNextEpisode);
+  if (out.onboardingCompleted  !== undefined) out.onboardingCompleted  = Boolean(out.onboardingCompleted);
+  // onboardingStep: clamp to the six-step flow (0–5)
+  if (out.onboardingStep !== undefined) {
+    const step = Number(out.onboardingStep);
+    out.onboardingStep = Number.isFinite(step) ? Math.min(5, Math.max(0, Math.trunc(step))) : 0;
+  }
   // libraryFolders must be a string array
   if (out.libraryFolders !== undefined) {
     out.libraryFolders = Array.isArray(out.libraryFolders)
