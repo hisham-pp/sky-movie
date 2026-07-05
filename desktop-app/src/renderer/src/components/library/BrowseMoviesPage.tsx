@@ -2,6 +2,7 @@ import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Clapperboard, ChevronDown } from 'lucide-react';
 import type { Movie, PlayMediaResult } from '@shared/ipc';
 import { usePagedList } from '../../hooks/usePagedList';
+import { useSessionState, useSessionScroll } from '../../hooks/useSessionState';
 import { MovieTile } from './LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
@@ -25,11 +26,14 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   onOpenExternal(mediaFileId: number): void;
   onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
-  const [search, setSearch] = useState('');
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [minRating, setMinRating] = useState<number | null>(null);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<SortBy>('default');
+  // Session-scoped so the page comes back exactly as left after visiting a
+  // detail page or another route (#43).
+  const [search, setSearch] = useSessionState('movies.search', '');
+  const [selectedYear, setSelectedYear] = useSessionState<number | null>('movies.year', null);
+  const [minRating, setMinRating] = useSessionState<number | null>('movies.minRating', null);
+  const [favoritesOnly, setFavoritesOnly] = useSessionState('movies.favoritesOnly', false);
+  const [sortBy, setSortBy] = useSessionState<SortBy>('movies.sortBy', 'default');
+  const scrollRef = useSessionScroll('movies.scrollTop');
 
   const clearFilters = useCallback(() => {
     setSearch('');
@@ -92,13 +96,13 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
     remaining,
     loadMore,
     sentinelRef
-  } = usePagedList(filteredMovies);
+  } = usePagedList(filteredMovies, 'movies.visibleCount');
 
   const movieCount = filteredMovies.length;
 
   return (
     <div className="browse-grid">
-      <section className="library-list">
+      <section className="library-list" ref={scrollRef}>
         <BannerHero
           backdropPath={bannerMovie?.backdropPath || null}
           posterContent={
