@@ -2,6 +2,7 @@ import { memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Tv2, ChevronDown } from 'lucide-react';
 import type { TvShow, PlayMediaResult } from '@shared/ipc';
 import { usePagedList } from '../../hooks/usePagedList';
+import { useSessionState, useSessionScroll } from '../../hooks/useSessionState';
 import { ShowTile } from './LibraryTile';
 import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
@@ -25,11 +26,14 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   onOpenExternal(mediaFileId: number): void;
   onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
-  const [search, setSearch] = useState('');
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [minRating, setMinRating] = useState<number | null>(null);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<SortBy>('default');
+  // Session-scoped so the page comes back exactly as left after visiting a
+  // detail page or another route (#43).
+  const [search, setSearch] = useSessionState('shows.search', '');
+  const [selectedYear, setSelectedYear] = useSessionState<number | null>('shows.year', null);
+  const [minRating, setMinRating] = useSessionState<number | null>('shows.minRating', null);
+  const [favoritesOnly, setFavoritesOnly] = useSessionState('shows.favoritesOnly', false);
+  const [sortBy, setSortBy] = useSessionState<SortBy>('shows.sortBy', 'default');
+  const scrollRef = useSessionScroll('shows.scrollTop');
 
   const clearFilters = useCallback(() => {
     setSearch('');
@@ -92,13 +96,13 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
     remaining,
     loadMore,
     sentinelRef
-  } = usePagedList(filteredShows);
+  } = usePagedList(filteredShows, 'shows.visibleCount');
 
   const showCount = filteredShows.length;
 
   return (
     <div className="browse-grid">
-      <section className="library-list">
+      <section className="library-list" ref={scrollRef}>
         <BannerHero
           backdropPath={bannerShow?.backdropPath || null}
           posterContent={
