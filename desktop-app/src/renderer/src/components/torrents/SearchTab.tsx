@@ -7,10 +7,12 @@ import { GlassSelect, Tooltip } from '../common';
 
 const QUALITY_OPTIONS = ['all', '2160p', '1080p', '720p', '480p', 'HDR', 'x265', 'x264', 'HEVC', 'BluRay', 'WEBRip'];
 const CATEGORY_OPTIONS: { value: TorrentCategory | 'all'; label: string }[] = [
-  { value: 'all',   label: 'All' },
-  { value: 'movie', label: 'Movies' },
-  { value: 'tv',    label: 'TV Shows' },
-  { value: 'anime', label: 'Anime' },
+  { value: 'all',       label: 'All' },
+  { value: 'movie',     label: 'Movies' },
+  { value: 'tv',        label: 'TV Shows' },
+  { value: 'anime',     label: 'Anime' },
+  { value: 'hindi',     label: 'Hindi' },
+  { value: 'malayalam', label: 'Malayalam' },
 ];
 const SORT_OPTIONS = [
   { value: 'seeds', label: 'Seeds' },

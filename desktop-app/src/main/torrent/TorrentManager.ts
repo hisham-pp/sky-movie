@@ -15,6 +15,7 @@ import { YtsProvider } from './providers/YtsProvider';
 import { TpbProvider } from './providers/TpbProvider';
 import { EztvProvider } from './providers/EztvProvider';
 import { MalayalamProvider } from './providers/MalayalamProvider';
+import { HindiProvider } from './providers/HindiProvider';
 import type { TorrentProvider } from './providers/TorrentProvider';
 import type { TorrentService } from './TorrentService';
 
@@ -56,7 +57,7 @@ export class TorrentManager {
     this.stateDir  = stateDir;
     mkdirSync(stateDir, { recursive: true });
     this.settings  = this.loadSettings();
-    this.providers = [new YtsProvider(), new TpbProvider(), new EztvProvider(), new MalayalamProvider()];
+    this.providers = [new YtsProvider(), new TpbProvider(), new EztvProvider(), new HindiProvider(), new MalayalamProvider()];
     this.loadState();
     console.log('[TorrentManager] created — engine not started yet');
 
