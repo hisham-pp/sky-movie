@@ -27,8 +27,9 @@ export class HindiProvider implements TorrentProvider {
   private readonly baseUrl = 'https://apibay.org';
 
   async search(req: TorrentSearchRequest): Promise<TorrentSearchResult[]> {
-    // Only run for broad searches or when the Hindi category is selected.
-    if (req.category && req.category !== 'all' && req.category !== 'hindi') {
+    // No dedicated filter: run quietly in the background on general searches so
+    // Hindi releases surface alongside the normal results (same as Malayalam).
+    if (req.category && req.category !== 'all') {
       return [];
     }
 

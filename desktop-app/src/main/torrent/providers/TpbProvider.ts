@@ -28,11 +28,6 @@ export class TpbProvider implements TorrentProvider {
   private readonly baseUrl = 'https://apibay.org';
 
   async search(req: TorrentSearchRequest): Promise<TorrentSearchResult[]> {
-    // Language-specific categories are served by their dedicated providers
-    // (HindiProvider / MalayalamProvider), which scope the query by language.
-    // Skip them here so the general index doesn't dilute those chips with
-    // unscoped matches.
-    if (req.category === 'hindi' || req.category === 'malayalam') return [];
 
     const cat = req.category && req.category !== 'all' ? (CATEGORY_MAP[req.category] ?? '0') : '0';
 
