@@ -52,21 +52,22 @@
   }
 }
 
-/* Modal Sizes */
-.modal-small {
-  max-width: 200px;
+/* Modal Sizes — doubled selectors so they beat the later `.modal-content`
+   override in playlist.css (max-width: 90vw) */
+.modal-content.modal-small {
+  max-width: 480px;
 }
 
-.modal-medium {
-  max-width: 300px;
+.modal-content.modal-medium {
+  max-width: 640px;
 }
 
-.modal-large {
-  max-width: 400px;
+.modal-content.modal-large {
+  max-width: 800px;
 }
 
-.modal-xlarge {
-  max-width: 500px;
+.modal-content.modal-xlarge {
+  max-width: 960px;
 }
 
 /* ===== Modal Header ===== */
