@@ -38,15 +38,19 @@ const DEFAULT_STATE: PlayerState = {
 export function MpvPlayer({
   player,
   playerStyle = 'default',
+  resumePlayback = true,
   onOpenExternal,
   onEnded
 }: {
   player: PlayMediaResult;
   playerStyle?: PlayerStyle;
+  resumePlayback?: boolean;
   onOpenExternal(mediaFileId: number): void;
   onEnded?(): void;
 }) {
   const skin = getSkin(playerStyle);
+  const resumeRef = useRef(resumePlayback);
+  resumeRef.current = resumePlayback;
   const { keyMap } = skin;
 
   const canvasRef    = useRef<HTMLCanvasElement>(null);
@@ -177,7 +181,7 @@ export function MpvPlayer({
       }
       if (ev.type === 'file-loaded') {
         updateState({ buffering: false });
-        if (!posRestored && savedPos > 5 && !player.watchProgress?.completed) {
+        if (!posRestored && resumeRef.current && savedPos > 5 && !player.watchProgress?.completed) {
           const dur = stateRef.current.duration || savedDur;
           if (dur - savedPos > 10) queries.mpvSeek(savedPos).catch(() => {});
         }

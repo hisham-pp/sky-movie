@@ -328,6 +328,16 @@ export interface AppSettings {
   deviceId: string;
   autoDownloadUpdates: boolean;
   hideSidebar: boolean;
+  // Playback preferences (surfaced in the onboarding "Player Configuration" step)
+  hardwareAcceleration: boolean;
+  preferredAudioLanguage: string;
+  preferredSubtitleLanguage: string;
+  resumePlayback: boolean;
+  autoPlayNextEpisode: boolean;
+  // First-time onboarding: completion gate + last-viewed step so progress
+  // survives the app being closed mid-tour.
+  onboardingCompleted: boolean;
+  onboardingStep: number;
 }
 
 export interface ClearLocalDataResult {

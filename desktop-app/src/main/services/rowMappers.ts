@@ -127,6 +127,13 @@ export function defaultSettings(deviceId: string): AppSettings {
     libraryFolders: [],
     deviceId,
     autoDownloadUpdates: false,
-    hideSidebar: false
+    hideSidebar: false,
+    hardwareAcceleration: true,
+    preferredAudioLanguage: '',
+    preferredSubtitleLanguage: '',
+    resumePlayback: true,
+    autoPlayNextEpisode: true,
+    onboardingCompleted: false,
+    onboardingStep: 0
   };
 }

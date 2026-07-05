@@ -1,5 +1,5 @@
 import * as queries from '@renderer/queries';
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { MetadataMatchDialog } from './components/scan/MetadataMatchDialog';
 import { KeyboardShortcutsOverlay } from './components/layout/KeyboardShortcutsOverlay';
@@ -12,6 +12,8 @@ import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/layout/LoadingScreen';
 import { WindowControls } from './components/layout/WindowControls';
 import { LastWatchedButton } from './components/library/LastWatchedButton';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
+import { LAUNCH_ONBOARDING_EVENT } from './config/events';
 import { useResumePlayback } from './hooks/useResumePlayback';
 import type { LastWatchedInfo, Movie, TvShow, Playlist } from '@shared/ipc';
 import type { ViewMode } from './types';
@@ -35,6 +37,30 @@ function AppLayoutInner() {
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const settings = library.settings;
+
+  // Auto-open the welcome tour once, the first time settings load for a user
+  // who has not completed onboarding. The ref guards against re-opening after
+  // the user finishes or skips within the same session.
+  const onboardingAutoChecked = useRef(false);
+  useEffect(() => {
+    if (!settings || onboardingAutoChecked.current) return;
+    onboardingAutoChecked.current = true;
+    if (!settings.onboardingCompleted) setIsOnboardingOpen(true);
+  }, [settings]);
+
+  // Relaunch from Settings → Help → Welcome Tour (different React subtree).
+  useEffect(() => {
+    const onLaunch = () => {
+      navigate('/movies');
+      setIsOnboardingOpen(true);
+    };
+    window.addEventListener(LAUNCH_ONBOARDING_EVENT, onLaunch);
+    return () => window.removeEventListener(LAUNCH_ONBOARDING_EVENT, onLaunch);
+  }, [navigate]);
+
+  const handleOnboardingClose = useCallback(() => setIsOnboardingOpen(false), []);
 
   // Global toggle for the shortcuts overlay: Ctrl+/ anywhere, or ? outside inputs
   useEffect(() => {
@@ -192,6 +218,19 @@ function AppLayoutInner() {
             isOpen={isShortcutsOpen}
             onClose={() => setIsShortcutsOpen(false)}
           />
+
+          {isOnboardingOpen && settings && (
+            <OnboardingFlow
+              settings={settings}
+              libraryFolders={library.libraryFolders}
+              busy={library.busy}
+              onSave={library.saveSettings}
+              onChooseFolders={library.chooseLibraryFolders}
+              onRemoveFolder={library.removeLibraryFolder}
+              onScan={library.scanLibraries}
+              onClose={handleOnboardingClose}
+            />
+          )}
 
           <SearchModal
             isOpen={isSearchOpen}

@@ -16,13 +16,16 @@ import {
   HardDrive,
   FolderDown,
   Database,
-  Zap
+  Zap,
+  LifeBuoy,
+  Sparkles
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
 import { GlassSelect, Switch } from '../common';
 import { formatBytes } from '../../utils/format';
+import { LAUNCH_ONBOARDING_EVENT } from '../../config/events';
 
-type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates';
+type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates' | 'help';
 
 const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
   { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
@@ -32,6 +35,7 @@ const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
   { id: 'downloads',  label: 'Downloads',  icon: <FolderDown size={16} /> },
   { id: 'local-data', label: 'Local Data', icon: <Database size={16} /> },
   { id: 'updates',    label: 'Updates',    icon: <Zap size={16} /> },
+  { id: 'help',       label: 'Help',       icon: <LifeBuoy size={16} /> },
 ];
 
 const themePresets: Array<{
@@ -161,6 +165,9 @@ export const SettingsPanel = memo(function SettingsPanel({
 
   const handleTmdbApiKeyBlur = useCallback(() => onSave({ tmdbApiKey }), [tmdbApiKey, onSave]);
   const handleTmdbLanguageBlur = useCallback(() => onSave({ tmdbLanguage }), [tmdbLanguage, onSave]);
+  const handleLaunchTour = useCallback(() => {
+    window.dispatchEvent(new CustomEvent(LAUNCH_ONBOARDING_EVENT));
+  }, []);
 
   return (
     <div className="settings-page">
@@ -547,6 +554,28 @@ export const SettingsPanel = memo(function SettingsPanel({
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'help' && (
+          <div className="settings-sections">
+            <div className="settings-section">
+              <div className="settings-section-heading">
+                <div>
+                  <h3>Welcome Tour</h3>
+                  <p>Replay the guided setup that introduces media folders, player settings, and app features.</p>
+                </div>
+              </div>
+              <div className="settings-actions left">
+                <button onClick={handleLaunchTour}>
+                  <Sparkles size={16} />
+                  Launch Welcome Tour
+                </button>
+              </div>
+              <p className="settings-hint">
+                The tour opens over your library. You can skip or exit it at any time.
+              </p>
             </div>
           </div>
         )}

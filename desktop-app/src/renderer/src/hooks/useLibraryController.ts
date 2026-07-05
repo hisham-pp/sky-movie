@@ -394,7 +394,9 @@ export function useLibraryController() {
    * when a "Play All" queue is active.
    */
   async function advancePlayback() {
-    if (await playNextEpisode()) return;
+    // Auto-advance to the next episode only when enabled (default on). A "Play
+    // All" playlist queue is an explicit user action, so it still advances.
+    if (settings?.autoPlayNextEpisode !== false && (await playNextEpisode())) return;
     const queue = playlistQueueRef.current;
     if (!queue) return;
     for (let i = queue.index + 1; i < queue.items.length; i++) {
