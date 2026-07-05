@@ -56,6 +56,7 @@ function YouTubeControls({
   const [stableVol,      setStableVol]    = useState(false);
   const [voiceBoost,     setVoiceBoost]   = useState(false);
   const [sleepMin,       setSleepMin]     = useState<number | null>(null);
+  const [sleepDeadline,  setSleepDeadline] = useState<number | null>(null);
   const [showRemaining,  setShowRemaining] = useState(false);
   const [seekOsdDir,     setSeekOsdDir]   = useState<'back' | 'forward' | null>(null);
   const [seekOsdAmt,     setSeekOsdAmt]   = useState(0);
@@ -73,11 +74,11 @@ function YouTubeControls({
   const [aiDenoise,      setAiDenoise]    = useState(35);
   const [aiColorBoost,   setAiColorBoost] = useState(30);
 
-  const volOsdTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const seekOsdTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sleepTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestPlaying = useRef(state.playing);
-  const didMount      = useRef(false);
+  const volOsdTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seekOsdTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestPlaying  = useRef(state.playing);
+  const onTogglePlayRef = useRef(onTogglePlay);
+  const didMount       = useRef(false);
 
   // VideoEnhancer instance (WebGL overlay)
   const videoEnhancerRef = useRef<VideoEnhancer | null>(null);
@@ -92,6 +93,24 @@ function YouTubeControls({
   } | null>(null);
 
   useEffect(() => { latestPlaying.current = state.playing; }, [state.playing]);
+  useEffect(() => { onTogglePlayRef.current = onTogglePlay; });
+
+  // Sleep timer — a wall-clock deadline polled every second instead of one
+  // long setTimeout: Chromium throttles long timers in occluded windows, and
+  // the interval is torn down with the component so a pending timer can never
+  // pause a later playback session.
+  useEffect(() => {
+    if (sleepDeadline === null) return;
+    const check = () => {
+      if (Date.now() < sleepDeadline) return;
+      if (latestPlaying.current) onTogglePlayRef.current();
+      setSleepMin(null);
+      setSleepDeadline(null);
+    };
+    check();
+    const id = setInterval(check, 1000);
+    return () => clearInterval(id);
+  }, [sleepDeadline]);
 
   useEffect(() => {
     if (!didMount.current) { didMount.current = true; return; }
@@ -236,14 +255,8 @@ function YouTubeControls({
   };
 
   const applySleep = (m: number | null) => {
-    if (sleepTimer.current) clearTimeout(sleepTimer.current);
     setSleepMin(m);
-    if (m !== null) {
-      sleepTimer.current = setTimeout(() => {
-        if (latestPlaying.current) onTogglePlay();
-        setSleepMin(null);
-      }, m * 60 * 1000);
-    }
+    setSleepDeadline(m === null ? null : Date.now() + m * 60_000);
   };
 
   const totalMax   = volumeMax + volumeBoostMax;
@@ -269,6 +282,9 @@ function YouTubeControls({
   };
 
   const speedLabel = state.speed === 1 ? 'Normal' : `${state.speed}×`;
+  const sleepLabel = sleepDeadline === null
+    ? 'Off'
+    : `${Math.max(1, Math.ceil((sleepDeadline - Date.now()) / 60_000))}m left`;
   const subLabel   = selectedSid === null ? 'Off' : activeSub?.title || activeSub?.lang || 'On';
 
   const VolumeIcon = state.muted || displayVol === 0 ? VolumeX
@@ -351,7 +367,7 @@ function YouTubeControls({
                   <span className="yt-settings-item-icon"><Moon size={17} /></span>
                   <span className="yt-settings-item-label">Sleep timer</span>
                   <span className="yt-settings-item-value">
-                    {sleepMin === null ? 'Off' : `${sleepMin}m`}
+                    {sleepLabel}
                     <ChevronRight size={14} />
                   </span>
                 </button>
