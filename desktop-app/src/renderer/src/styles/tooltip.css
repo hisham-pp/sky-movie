@@ -1,0 +1,46 @@
+/* ── Shared glassmorphism tooltip (components/common/Tooltip.tsx) ─────────── */
+
+.tooltip-trigger {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 300;
+  max-width: 320px;
+  padding: 7px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-panel);
+  -webkit-backdrop-filter: var(--glass-blur-panel);
+  box-shadow: var(--glass-shine), 0 12px 32px rgba(0, 0, 0, 0.4);
+  color: var(--ink, #fff);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.tooltip-visible {
+  opacity: 1;
+  animation: tooltip-pop 0.16s var(--ease-spring, ease);
+}
+
+.tooltip-top    { transform-origin: bottom center; }
+.tooltip-bottom { transform-origin: top center; }
+.tooltip-left   { transform-origin: center right; }
+.tooltip-right  { transform-origin: center left; }
+
+@keyframes tooltip-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
