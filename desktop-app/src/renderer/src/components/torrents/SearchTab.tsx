@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Search, Download, Copy, Filter, X, ChevronDown, Film, Tv, Clock } from 'lucide-react';
+import { Search, Download, Copy, Filter, X, ChevronDown, Film, Tv, Clock, Trash2 } from 'lucide-react';
 import type { TorrentCategory, TorrentSearchResult } from '@shared/ipc';
 import { useTorrentSearch, useTorrentDownloads } from '../../hooks/useTorrent';
 import { useTmdbSuggestions, type TmdbSuggestion } from '../../hooks/useTmdbSuggestions';
@@ -27,6 +27,9 @@ function getRecentSearches(): string[] {
 function addRecentSearch(q: string) {
   const prev = getRecentSearches().filter((s) => s !== q);
   localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify([q, ...prev].slice(0, 8)));
+}
+function clearRecentSearches() {
+  localStorage.removeItem(RECENT_SEARCHES_KEY);
 }
 
 type Category = TorrentCategory | 'all';
@@ -109,6 +112,12 @@ export function SearchTab() {
     if (cat) setCategory(cat);
     setSubmitted(trimmed);
     setOpen(false);
+    setHighlighted(-1);
+  }, []);
+
+  const handleClearHistory = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
     setHighlighted(-1);
   }, []);
 
@@ -201,8 +210,17 @@ export function SearchTab() {
               className="absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-xl z-20 overflow-hidden max-h-80 overflow-y-auto"
               style={dropdownStyle}
             >
-              <div className="px-3 py-2 text-xs text-white/40 font-medium">
-                {inSuggestMode ? 'Suggestions' : 'Recent'}
+              <div className="px-3 py-2 text-xs text-white/40 font-medium flex items-center justify-between">
+                <span>{inSuggestMode ? 'Suggestions' : 'Recent'}</span>
+                {!inSuggestMode && recentSearches.length > 0 && (
+                  <button
+                    onMouseDown={(e) => { e.preventDefault(); handleClearHistory(); }}
+                    className="flex items-center gap-1 text-white/40 hover:text-white/80 transition-colors"
+                    aria-label="Clear search history"
+                  >
+                    <Trash2 size={12} /> Clear
+                  </button>
+                )}
               </div>
 
               {inSuggestMode && suggestLoading && items.length === 0 && (
