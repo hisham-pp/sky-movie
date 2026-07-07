@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ExpandableImage } from "./ExpandableImage";
 import { PlayerCarousel } from "./PlayerCarousel";
 import { AppShowcase } from "./AppShowcase";
+import { SmartDownload } from "./SmartDownload";
 
 const repoUrl = "https://github.com/hisham-pp/sky-movie";
 
@@ -18,6 +19,7 @@ interface ReleaseManifest {
     changes?: string[];
     artifacts: Array<{
       platform: string;
+      arch: string;
       kind: string;
       fileName: string;
       downloadUrl: string;
@@ -30,20 +32,6 @@ const releaseManifest = releaseManifestJson as ReleaseManifest;
 export default function Home() {
   const latestRelease = releaseManifest.releases[0];
   const secondRelease = releaseManifest.releases[1];
-
-  const getDmgArtifact = (release: typeof latestRelease) =>
-    release?.artifacts.find(a => a.kind === 'dmg');
-  const getExeArtifact = (release: typeof latestRelease) =>
-    release?.artifacts.find(a => a.kind === 'installer');
-  const getDebArtifact = (release: typeof latestRelease) =>
-    release?.artifacts.find(a => a.kind === 'deb' && a.fileName.includes('amd64'));
-  const getAppImageArtifact = (release: typeof latestRelease) =>
-    release?.artifacts.find(a => a.kind === 'appimage');
-
-  const latestDmg = getDmgArtifact(latestRelease);
-  const latestExe = getExeArtifact(latestRelease);
-  const latestDeb = getDebArtifact(latestRelease);
-  const latestAppImage = getAppImageArtifact(latestRelease);
 
   const formatReleaseDate = (dateStr: string | null) => {
     if (!dateStr) return 'Not released yet';
@@ -386,32 +374,7 @@ export default function Home() {
                     <p className="text-secondary text-sm">Released {formatReleaseDate(latestRelease?.releasedAt)} • macOS, Windows, Linux</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
-                  {latestDmg && (
-                    <a href={latestDmg.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base">desktop_mac</span>
-                      .dmg
-                    </a>
-                  )}
-                  {latestExe && (
-                    <a href={latestExe.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base">window</span>
-                      .exe
-                    </a>
-                  )}
-                  {latestDeb && (
-                    <a href={latestDeb.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base">terminal</span>
-                      .deb
-                    </a>
-                  )}
-                  {latestAppImage && (
-                    <a href={latestAppImage.downloadUrl} download className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base">terminal</span>
-                      .AppImage
-                    </a>
-                  )}
-                </div>
+                <SmartDownload artifacts={latestRelease?.artifacts ?? []} />
               </div>
 
               {secondRelease && (
