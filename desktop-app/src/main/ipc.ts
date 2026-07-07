@@ -194,6 +194,10 @@ export function registerIpcHandlers(services: IpcServices): void {
   h(ipcChannels.installUpdate,             () => safe(ipcChannels.installUpdate,             () => services.update.installUpdate()));
   h(ipcChannels.getUpdateStatus,           () => safe(ipcChannels.getUpdateStatus,           () => services.update.getStatus()));
   h(ipcChannels.dismissUpdateNotification, () => safe(ipcChannels.dismissUpdateNotification, () => services.update.dismissUpdateNotification()));
+  h(ipcChannels.openExternalUrl, (_e, url: string) => safe(ipcChannels.openExternalUrl, async () => {
+    // Only allow web URLs — never let the renderer open arbitrary file:// or app schemes.
+    if (/^https?:\/\//i.test(url)) await shell.openExternal(url);
+  }));
 
   // Playlist handlers
   h(ipcChannels.getPlaylists,       ()               => safe(ipcChannels.getPlaylists,       () => services.playlist.getPlaylists()));

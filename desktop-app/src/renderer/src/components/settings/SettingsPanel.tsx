@@ -18,7 +18,8 @@ import {
   Database,
   Zap,
   LifeBuoy,
-  Sparkles
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
 import { GlassSelect, Switch } from '../common';
@@ -162,6 +163,11 @@ export const SettingsPanel = memo(function SettingsPanel({
       // status is set via IPC event
     }
   }, []);
+
+  const handleOpenReleasePage = useCallback(() => {
+    const url = updateCheckResult?.releaseInfo?.webViewUrl;
+    if (url) void queries.openExternalUrl(url);
+  }, [updateCheckResult]);
 
   const handleTmdbApiKeyBlur = useCallback(() => onSave({ tmdbApiKey }), [tmdbApiKey, onSave]);
   const handleTmdbLanguageBlur = useCallback(() => onSave({ tmdbLanguage }), [tmdbLanguage, onSave]);
@@ -478,10 +484,17 @@ export const SettingsPanel = memo(function SettingsPanel({
                   {updateStatus === 'checking' ? 'Checking…' : 'Check for updates'}
                 </button>
 
-                {updateCheckResult?.hasUpdate && updateStatus !== 'downloading' && updateStatus !== 'downloaded' && updateStatus !== 'installing' && (
+                {updateCheckResult?.hasUpdate && updateCheckResult.releaseInfo?.directDownload !== false && updateStatus !== 'downloading' && updateStatus !== 'downloaded' && updateStatus !== 'installing' && (
                   <button disabled={busy} onClick={handleDownloadUpdate} className="update-download-btn">
                     <Download size={18} />
                     Download {updateCheckResult.latestVersion}
+                  </button>
+                )}
+
+                {updateCheckResult?.hasUpdate && updateCheckResult.releaseInfo?.directDownload === false && (
+                  <button disabled={busy} onClick={handleOpenReleasePage} className="update-download-btn">
+                    <ExternalLink size={18} />
+                    View {updateCheckResult.latestVersion} on the web
                   </button>
                 )}
 
@@ -536,6 +549,9 @@ export const SettingsPanel = memo(function SettingsPanel({
                     <div className="update-available">
                       <strong>New version available: {updateCheckResult.latestVersion}</strong>
                       <p>Current version: {updateCheckResult.currentVersion}</p>
+                      {updateCheckResult.releaseInfo?.directDownload === false && (
+                        <p className="update-note">No in-app installer is published for your platform — use “View on the web” to download it from the release page.</p>
+                      )}
                       {updateCheckResult.releaseInfo && (
                         <div className="release-notes">
                           <p>{updateCheckResult.releaseInfo.notes}</p>
