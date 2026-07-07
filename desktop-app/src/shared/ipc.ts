@@ -360,6 +360,12 @@ export interface ReleaseInfo {
   downloadUrl: string;
   webViewUrl: string;
   size: number;
+  /**
+   * Whether a directly-installable artifact exists for the current
+   * platform/arch. When false the update still exists but must be fetched
+   * from the release page (webViewUrl) rather than downloaded in-app.
+   */
+  directDownload: boolean;
 }
 
 export interface UpdateCheckResult {
@@ -471,6 +477,7 @@ export interface SkyMovieApi extends TorrentApi {
   installUpdate(): Promise<void>;
   getUpdateStatus(): Promise<UpdateStatus>;
   dismissUpdateNotification(): Promise<void>;
+  openExternalUrl(url: string): Promise<void>;
   getPlaylists(): Promise<Playlist[]>;
   getPlaylistById(id: number): Promise<PlaylistItem[]>;
   createPlaylist(request: CreatePlaylistRequest): Promise<Playlist>;
@@ -522,6 +529,7 @@ export const ipcChannels = {
   checkForUpdates: 'update:check',
   downloadUpdate: 'update:download',
   installUpdate: 'update:install',
+  openExternalUrl: 'app:open-external-url',
   getUpdateStatus: 'update:status',
   dismissUpdateNotification: 'update:dismiss-notification',
   updateProgress: 'update:progress',

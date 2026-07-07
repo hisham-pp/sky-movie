@@ -9,24 +9,38 @@ import type { SettingsService } from './settingsService';
 const RELEASES_URL = 'https://sky-movie-website.vercel.app/releases.json';
 const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
+interface ReleaseArtifact {
+  platform: string;
+  arch: string;
+  kind: string;
+  fileName: string;
+  size: number;
+  downloadUrl: string;
+  webViewUrl: string;
+}
+
+interface ReleaseEntry {
+  version: string;
+  releasedAt: string;
+  notes: string;
+  changes: string[];
+  storageFolderUrl?: string;
+  artifacts: ReleaseArtifact[];
+}
+
 interface ReleasesJson {
   latestVersion: string;
-  releases: Array<{
-    version: string;
-    releasedAt: string;
-    notes: string;
-    changes: string[];
-    artifacts: Array<{
-      platform: string;
-      arch: string;
-      kind: string;
-      fileName: string;
-      size: number;
-      downloadUrl: string;
-      webViewUrl: string;
-    }>;
-  }>;
+  releases: ReleaseEntry[];
 }
+
+// Preferred artifact kind per platform, most desirable first. Linux ships a
+// mix (AppImage / deb / tar.gz / rpm) and a given release+arch may only carry
+// some of them, so we fall through the list rather than demanding one kind.
+const KIND_PREFERENCE: Record<string, string[]> = {
+  windows: ['installer', 'nsis', 'exe'],
+  macos: ['dmg', 'zip'],
+  linux: ['appimage', 'deb', 'rpm', 'tar.gz'],
+};
 
 export class UpdateService {
   private status: UpdateStatus = 'idle';
@@ -167,6 +181,9 @@ export class UpdateService {
     if (!this.currentReleaseInfo) {
       throw new Error('No update available to download');
     }
+    if (!this.currentReleaseInfo.directDownload || !this.currentReleaseInfo.downloadUrl) {
+      throw new Error('No installable build for this platform — open the release page to download it manually.');
+    }
     if (this.status === 'downloading') return;
     // Re-download if what we have on disk is not the release we're offering now
     if (this.status === 'downloaded' && this.downloadedVersion === this.currentReleaseInfo.version) return;
@@ -217,6 +234,23 @@ export class UpdateService {
     }
   }
 
+  /**
+   * Pick the best installable artifact for this platform/arch. Matches the
+   * exact arch and walks the platform's kind preference order; if none of the
+   * preferred kinds are present it accepts any remaining artifact for the arch.
+   * Returns null when the platform/arch has no artifact at all.
+   */
+  private selectArtifact(release: ReleaseEntry, platform: string, arch: string): ReleaseArtifact | null {
+    const forArch = release.artifacts.filter((a) => a.platform === platform && a.arch === arch);
+    if (forArch.length === 0) return null;
+    const prefs = KIND_PREFERENCE[platform] ?? [];
+    for (const kind of prefs) {
+      const hit = forArch.find((a) => a.kind.toLowerCase() === kind);
+      if (hit) return hit;
+    }
+    return forArch[0];
+  }
+
   private async fetchLatestRelease(): Promise<ReleaseInfo | null> {
     return new Promise((resolve, reject) => {
       const request = net.request(RELEASES_URL);
@@ -237,31 +271,31 @@ export class UpdateService {
             const json: ReleasesJson = JSON.parse(data);
             const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
             const arch = process.arch === 'x64' ? 'x64' : process.arch === 'arm64' ? 'arm64' : 'ia32';
-            const kind = platform === 'windows' ? 'installer' : platform === 'macos' ? 'dmg' : 'appimage';
 
-            const latestRelease = json.releases.find((r) => r.version === json.latestVersion);
+            const latestRelease = json.releases.find((r) => r.version === json.latestVersion) ?? json.releases[0];
             if (!latestRelease) {
               resolve(null);
               return;
             }
 
-            const artifact = latestRelease.artifacts.find(
-              (a) => a.platform === platform && a.arch === arch && a.kind === kind
-            );
-
-            if (!artifact) {
-              resolve(null);
-              return;
-            }
+            // Resolve release metadata (and therefore the version comparison)
+            // independently of whether a matching artifact exists — a missing
+            // artifact for this platform must NOT masquerade as "up to date".
+            const artifact = this.selectArtifact(latestRelease, platform, arch);
+            const releasePageUrl =
+              latestRelease.storageFolderUrl ??
+              latestRelease.artifacts[0]?.webViewUrl ??
+              '';
 
             resolve({
               version: latestRelease.version,
               releasedAt: latestRelease.releasedAt,
               notes: latestRelease.notes,
               changes: latestRelease.changes,
-              downloadUrl: artifact.downloadUrl,
-              webViewUrl: artifact.webViewUrl,
-              size: artifact.size
+              downloadUrl: artifact?.downloadUrl ?? '',
+              webViewUrl: artifact?.webViewUrl ?? releasePageUrl,
+              size: artifact?.size ?? 0,
+              directDownload: Boolean(artifact)
             });
           } catch (error) {
             reject(error);
@@ -380,24 +414,12 @@ export class UpdateService {
       // before the process exits. Do NOT delete the file — the installer needs it.
       setTimeout(() => app.quit(), 1500);
     } else {
+      // macOS / Linux: reveal the downloaded installer so the user can run it
+      // (.dmg, .deb, .AppImage, …). Do NOT delete it — the user still needs to
+      // open it; it is cleaned up before the next download instead.
       const { shell } = await import('electron');
       shell.showItemInFolder(filePath);
-      // For non-Windows platforms, delete the file after a delay
-      // to give the user time to see it in the folder
-      setTimeout(() => {
-        this.deleteDownloadedFile(filePath);
-      }, 5000);
     }
-  }
-
-  private deleteDownloadedFile(filePath: string): void {
-    unlink(filePath, (error) => {
-      if (error) {
-        console.error('Failed to delete downloaded update file:', error);
-      } else {
-        console.log('Successfully deleted downloaded update file:', filePath);
-      }
-    });
   }
 
   private notifyUpdateAvailable(releaseInfo: ReleaseInfo): void {

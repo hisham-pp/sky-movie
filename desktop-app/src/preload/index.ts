@@ -63,6 +63,7 @@ const api: SkyMovieApi = {
   checkForUpdates: () => ipcRenderer.invoke(ipcChannels.checkForUpdates),
   downloadUpdate: () => ipcRenderer.invoke(ipcChannels.downloadUpdate),
   installUpdate: () => ipcRenderer.invoke(ipcChannels.installUpdate),
+  openExternalUrl: (url: string) => ipcRenderer.invoke(ipcChannels.openExternalUrl, url),
   getUpdateStatus: () => ipcRenderer.invoke(ipcChannels.getUpdateStatus),
   dismissUpdateNotification: () => ipcRenderer.invoke(ipcChannels.dismissUpdateNotification),
   getPlaylists: () => ipcRenderer.invoke(ipcChannels.getPlaylists),

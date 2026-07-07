@@ -455,6 +455,13 @@
   font-size: 13px;
 }
 
+.update-note {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .release-notes {
   margin-top: 10px;
   color: var(--soft);
