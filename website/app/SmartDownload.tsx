@@ -19,6 +19,14 @@ const OS_META: Record<OS, { label: string; icon: string; kinds: string[] }> = {
   linux:   { label: "Linux",   icon: "terminal",    kinds: ["appimage", "deb"] },
 };
 
+// Every user-facing build shown as a card, in display order.
+const CARD_DEFS: Array<{ os: OS; kind: string }> = [
+  { os: "macos",   kind: "dmg" },
+  { os: "windows", kind: "installer" },
+  { os: "linux",   kind: "appimage" },
+  { os: "linux",   kind: "deb" },
+];
+
 function kindLabel(kind: string): string {
   const k = kind.toLowerCase();
   if (k === "installer") return ".exe";
@@ -36,6 +44,14 @@ function normArch(arch: string): "x64" | "arm64" | "x86" | "other" {
   if (a === "arm64" || a === "aarch64") return "arm64";
   if (a === "ia32" || a === "x86") return "x86";
   return "other";
+}
+
+function archNote(arch: string): string {
+  const n = normArch(arch);
+  if (n === "arm64") return "Apple Silicon / ARM64";
+  if (n === "x64") return "64-bit";
+  if (n === "x86") return "32-bit";
+  return arch;
 }
 
 function detectOS(): OS | null {
@@ -66,59 +82,35 @@ async function detectArch(): Promise<Arch | null> {
   return null;
 }
 
-/** Pick the best artifact for an OS + target arch, walking the OS's kind order. */
-function pickRecommended(artifacts: DownloadArtifact[], os: OS, target: Arch): DownloadArtifact | null {
-  for (const kind of OS_META[os].kinds) {
-    const hit = artifacts.find(
-      (a) => a.platform === os && a.kind.toLowerCase() === kind && normArch(a.arch) === target,
-    );
-    if (hit) return hit;
+/** Best artifact for an (os, kind), preferring a target arch then x64 then anything. */
+function bestArtifact(
+  artifacts: DownloadArtifact[],
+  os: OS,
+  kind: string,
+  preferArch?: Arch,
+): DownloadArtifact | null {
+  const list = artifacts.filter((a) => a.platform === os && a.kind.toLowerCase() === kind);
+  if (list.length === 0) return null;
+  if (preferArch) {
+    const m = list.find((a) => normArch(a.arch) === preferArch);
+    if (m) return m;
   }
-  // No build for the target arch in any preferred kind — relax to any arch.
+  return list.find((a) => normArch(a.arch) === "x64") ?? list.find((a) => normArch(a.arch) === "arm64") ?? list[0];
+}
+
+/** The recommended (os, kind) for the visitor, walking the OS's kind order. */
+function pickRecommendedKind(artifacts: DownloadArtifact[], os: OS, arch: Arch): string | null {
   for (const kind of OS_META[os].kinds) {
-    const hit = artifacts.find((a) => a.platform === os && a.kind.toLowerCase() === kind);
-    if (hit) return hit;
+    if (bestArtifact(artifacts, os, kind, arch)) return kind;
   }
   return null;
 }
 
-function DownloadLink({
-  artifact,
-  primary,
-}: {
+interface Card {
+  os: OS;
+  kind: string;
   artifact: DownloadArtifact;
-  primary?: boolean;
-}) {
-  const os = artifact.platform as OS;
-  const icon = OS_META[os]?.icon ?? "download";
-  if (primary) {
-    return (
-      <a
-        href={artifact.downloadUrl}
-        download
-        className="w-full sm:w-auto px-8 py-4 bg-primary text-on-primary font-label-md text-base rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
-      >
-        <span className="material-symbols-outlined">download</span>
-        <span className="flex flex-col items-start leading-tight">
-          <span>Download for {OS_META[os]?.label ?? "your system"}</span>
-          <span className="text-xs font-normal opacity-80">
-            {kindLabel(artifact.kind)}
-            {normArch(artifact.arch) === "arm64" ? " · Apple Silicon / ARM64" : normArch(artifact.arch) === "x64" ? " · 64-bit" : ""}
-          </span>
-        </span>
-      </a>
-    );
-  }
-  return (
-    <a
-      href={artifact.downloadUrl}
-      download
-      className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white font-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2"
-    >
-      <span className="material-symbols-outlined text-base">{icon}</span>
-      {kindLabel(artifact.kind)}
-    </a>
-  );
+  recommended: boolean;
 }
 
 export function SmartDownload({ artifacts }: { artifacts: DownloadArtifact[] }) {
@@ -130,60 +122,63 @@ export function SmartDownload({ artifacts }: { artifacts: DownloadArtifact[] }) 
     void detectArch().then(setArch);
   }, []);
 
-  // The canonical flat list (one button per user-facing kind), matching the
-  // builds the site has always offered. Used for SSR / no-detection fallback
-  // and for the "other platforms" row.
-  const canonical: DownloadArtifact[] = [
-    artifacts.find((a) => a.kind.toLowerCase() === "dmg"),
-    artifacts.find((a) => a.kind.toLowerCase() === "installer"),
-    artifacts.find((a) => a.kind.toLowerCase() === "deb" && a.fileName.includes("amd64")),
-    artifacts.find((a) => a.kind.toLowerCase() === "appimage"),
-  ].filter((a): a is DownloadArtifact => Boolean(a));
+  // Build a card for every available build, then flag + hoist the one that
+  // matches the visitor's system. Everything stays listed either way.
+  const recommendedKind = detected ? pickRecommendedKind(artifacts, detected, arch ?? "x64") : null;
 
-  const recommended = detected ? pickRecommended(artifacts, detected, arch ?? "x64") : null;
+  const cards: Card[] = CARD_DEFS.map((def) => {
+    const isRec = detected === def.os && recommendedKind === def.kind;
+    const artifact = bestArtifact(artifacts, def.os, def.kind, isRec ? (arch ?? "x64") : undefined);
+    if (!artifact) return null;
+    return { os: def.os, kind: def.kind, artifact, recommended: isRec };
+  }).filter((c): c is Card => c !== null);
 
-  // Fallback: no OS detected (SSR or unknown) → original equal button row.
-  if (!recommended) {
-    return (
-      <div className="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
-        {canonical.map((a) => (
-          <DownloadLink key={a.downloadUrl} artifact={a} />
-        ))}
-      </div>
-    );
-  }
-
-  // Same-OS alternates (e.g. Linux .deb when we recommend .AppImage) shown as
-  // small chips; other operating systems shown as secondary buttons.
-  const sameOsAlternates = canonical.filter(
-    (a) => a.platform === recommended.platform && a.downloadUrl !== recommended.downloadUrl,
-  );
-  const otherOs = canonical.filter((a) => a.platform !== recommended.platform);
+  // Recommended first; original order otherwise preserved.
+  cards.sort((a, b) => Number(b.recommended) - Number(a.recommended));
 
   return (
-    <div className="flex flex-col items-center md:items-end gap-3 w-full md:w-auto">
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <DownloadLink artifact={recommended} primary />
-        {sameOsAlternates.map((a) => (
-          <DownloadLink key={a.downloadUrl} artifact={a} />
-        ))}
-      </div>
-      {otherOs.length > 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <span className="text-secondary text-xs mr-1">Other platforms:</span>
-          {otherOs.map((a) => (
-            <a
-              key={a.downloadUrl}
-              href={a.downloadUrl}
-              download
-              className="px-3.5 py-1.5 bg-white/5 border border-white/10 rounded-lg text-secondary text-sm hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5"
+    <div className="flex flex-wrap items-stretch justify-center md:justify-end gap-3 w-full md:max-w-md">
+      {cards.map((card) => {
+        const meta = OS_META[card.os];
+        return (
+          <a
+            key={card.artifact.downloadUrl}
+            href={card.artifact.downloadUrl}
+            download
+            className={`group relative flex items-center gap-3 rounded-2xl px-5 py-3.5 transition-all ${
+              card.recommended
+                ? "bg-primary/12 border border-primary/50 ring-1 ring-primary/40 shadow-lg shadow-primary/10 hover:bg-primary/20"
+                : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined ${card.recommended ? "text-primary" : "text-secondary group-hover:text-white"}`}
             >
-              <span className="material-symbols-outlined text-sm">{OS_META[a.platform as OS]?.icon ?? "download"}</span>
-              {OS_META[a.platform as OS]?.label ?? a.platform} ({kindLabel(a.kind)})
-            </a>
-          ))}
-        </div>
-      )}
+              {meta.icon}
+            </span>
+            <span className="flex flex-col leading-tight">
+              <span className="flex items-center gap-2 font-label-md text-white">
+                {meta.label}
+                {card.recommended && (
+                  <span className="text-[9px] uppercase font-bold tracking-wide text-primary bg-primary/15 border border-primary/30 px-1.5 py-0.5 rounded-full">
+                    Your system
+                  </span>
+                )}
+              </span>
+              <span className="text-xs text-secondary">
+                {kindLabel(card.kind)} · {archNote(card.artifact.arch)}
+              </span>
+            </span>
+            <span
+              className={`material-symbols-outlined text-base ml-1 ${
+                card.recommended ? "text-primary" : "text-secondary group-hover:text-white"
+              }`}
+            >
+              download
+            </span>
+          </a>
+        );
+      })}
     </div>
   );
 }
