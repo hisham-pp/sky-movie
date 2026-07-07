@@ -120,6 +120,23 @@ export function TorrentSettingsTab() {
           </div>
         </div>
 
+        {/* ── Content ───────────────────────────────────────────── */}
+        <div className="settings-section">
+          <div className="settings-section-heading">
+            <div><h3>Content</h3><p>Control which results appear in torrent search.</p></div>
+          </div>
+          <div className="settings-form-grid">
+            <div className="ts-toggle-grid">
+              <Switch
+                id="ts-adult"
+                label="Show adult content"
+                checked={local.showAdultContent}
+                onChange={(v) => patch('showAdultContent', v)}
+              />
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* ── Sticky save bar ───────────────────────────────────────── */}
