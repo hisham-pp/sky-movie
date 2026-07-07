@@ -22,6 +22,23 @@ import type { TorrentService } from './TorrentService';
 const SETTINGS_FILE = 'torrent-settings.json';
 const STATE_FILE    = 'torrent-state.json';
 
+// Strong adult/NSFW signal tokens — deliberately specific so mainstream
+// titles ("Sex Education", "Blackadder") are not caught. Matched case-
+// insensitively against a result's title / uploader / source.
+const ADULT_PATTERNS = [
+  /\bxxx\b/i, /\bporn/i, /\bhentai\b/i, /\bmilf\b/i, /\banal\b/i, /\bbdsm\b/i,
+  /\bgangbang\b/i, /\bcreampie\b/i, /\bcumshot\b/i, /\bdeepthroat\b/i,
+  /\bblowjob\b/i, /\bhardcore\b/i, /\bbrazzers\b/i, /\bnaughtyamerica\b/i,
+  /\bonlyfans\b/i, /\bpornhub\b/i, /\bxvideos\b/i, /\bxnxx\b/i, /\bredtube\b/i,
+  /\bblacked\b/i, /\btushy\b/i, /\bbangbros\b/i, /\bjav\b/i, /\bsextape\b/i,
+  /\bnsfw\b/i, /\b18\+/, /\berotica?\b/i,
+];
+
+function isAdultResult(r: TorrentSearchResult): boolean {
+  const haystack = `${r.title} ${r.uploader ?? ''} ${r.source ?? ''}`;
+  return ADULT_PATTERNS.some((re) => re.test(haystack));
+}
+
 /** Minimum info needed to restore an active torrent across restarts. */
 interface PersistedActiveTorrent {
   magnetUri: string;
@@ -160,8 +177,10 @@ export class TorrentManager {
     for (const s of settled) {
       if (s.status === 'fulfilled') results.push(...s.value);
     }
+    const hideAdult = !this.settings.showAdultContent;
     const seen = new Set<string>();
     return results.filter((r) => {
+      if (hideAdult && isAdultResult(r)) return false;
       const hash = this.extractHash(r.magnetUri);
       if (seen.has(hash)) return false;
       seen.add(hash);
@@ -380,6 +399,7 @@ export class TorrentManager {
       diskCacheSizeMb:          64,
       port:                     6881,
       maxConnections:           200,
+      showAdultContent:         false,
     };
     try {
       if (existsSync(this.settingsPath())) {

@@ -671,6 +671,8 @@ export interface TorrentSettings {
   diskCacheSizeMb: number;
   port: number;
   maxConnections: number;
+  /** When false (default) adult/NSFW results are filtered out of search. */
+  showAdultContent: boolean;
 }
 
 export interface TorrentGlobalStats {
