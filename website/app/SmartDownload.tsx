@@ -46,12 +46,23 @@ function normArch(arch: string): "x64" | "arm64" | "x86" | "other" {
   return "other";
 }
 
-function archNote(arch: string): string {
-  const n = normArch(arch);
-  if (n === "arm64") return "Apple Silicon / ARM64";
+/**
+ * Effective arch of a build. The release metadata mislabels the 64-bit Linux
+ * AppImage as `ia32`, so trust the filename when it disagrees.
+ */
+function effectiveArch(a: DownloadArtifact): "x64" | "arm64" | "x86" | "other" {
+  const fn = a.fileName.toLowerCase();
+  if (/x86_64|amd64|[-.]x64/.test(fn)) return "x64";
+  if (/aarch64|arm64/.test(fn)) return "arm64";
+  return normArch(a.arch);
+}
+
+function archNote(a: DownloadArtifact, os: OS): string {
+  const n = effectiveArch(a);
+  if (n === "arm64") return os === "macos" ? "Apple Silicon · ARM64" : "ARM64";
   if (n === "x64") return "64-bit";
   if (n === "x86") return "32-bit";
-  return arch;
+  return a.arch;
 }
 
 function detectOS(): OS | null {
@@ -92,10 +103,10 @@ function bestArtifact(
   const list = artifacts.filter((a) => a.platform === os && a.kind.toLowerCase() === kind);
   if (list.length === 0) return null;
   if (preferArch) {
-    const m = list.find((a) => normArch(a.arch) === preferArch);
+    const m = list.find((a) => effectiveArch(a) === preferArch);
     if (m) return m;
   }
-  return list.find((a) => normArch(a.arch) === "x64") ?? list.find((a) => normArch(a.arch) === "arm64") ?? list[0];
+  return list.find((a) => effectiveArch(a) === "x64") ?? list.find((a) => effectiveArch(a) === "arm64") ?? list[0];
 }
 
 /** The recommended (os, kind) for the visitor, walking the OS's kind order. */
@@ -137,7 +148,7 @@ export function SmartDownload({ artifacts }: { artifacts: DownloadArtifact[] }) 
   cards.sort((a, b) => Number(b.recommended) - Number(a.recommended));
 
   return (
-    <div className="flex flex-wrap items-stretch justify-center md:justify-end gap-3 w-full md:max-w-md">
+    <div className="flex flex-col gap-2.5 w-full md:w-80">
       {cards.map((card) => {
         const meta = OS_META[card.os];
         return (
@@ -145,18 +156,18 @@ export function SmartDownload({ artifacts }: { artifacts: DownloadArtifact[] }) 
             key={card.artifact.downloadUrl}
             href={card.artifact.downloadUrl}
             download
-            className={`group relative flex items-center gap-3 rounded-2xl px-5 py-3.5 transition-all ${
+            className={`group flex items-center gap-3.5 rounded-2xl px-5 py-3.5 transition-all ${
               card.recommended
-                ? "bg-primary/12 border border-primary/50 ring-1 ring-primary/40 shadow-lg shadow-primary/10 hover:bg-primary/20"
-                : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                ? "bg-primary/[0.12] border border-primary/50 ring-1 ring-primary/30 shadow-lg shadow-primary/10 hover:bg-primary/20"
+                : "bg-white/5 border border-white/10 hover:bg-white/[0.09] hover:border-white/20"
             }`}
           >
             <span
-              className={`material-symbols-outlined ${card.recommended ? "text-primary" : "text-secondary group-hover:text-white"}`}
+              className={`material-symbols-outlined shrink-0 ${card.recommended ? "text-primary" : "text-secondary group-hover:text-white"}`}
             >
               {meta.icon}
             </span>
-            <span className="flex flex-col leading-tight">
+            <span className="flex flex-col leading-tight flex-1 min-w-0">
               <span className="flex items-center gap-2 font-label-md text-white">
                 {meta.label}
                 {card.recommended && (
@@ -165,12 +176,12 @@ export function SmartDownload({ artifacts }: { artifacts: DownloadArtifact[] }) 
                   </span>
                 )}
               </span>
-              <span className="text-xs text-secondary">
-                {kindLabel(card.kind)} · {archNote(card.artifact.arch)}
+              <span className="text-xs text-secondary truncate">
+                {kindLabel(card.kind)} · {archNote(card.artifact, card.os)}
               </span>
             </span>
             <span
-              className={`material-symbols-outlined text-base ml-1 ${
+              className={`material-symbols-outlined text-lg shrink-0 transition-transform group-hover:translate-y-0.5 ${
                 card.recommended ? "text-primary" : "text-secondary group-hover:text-white"
               }`}
             >
