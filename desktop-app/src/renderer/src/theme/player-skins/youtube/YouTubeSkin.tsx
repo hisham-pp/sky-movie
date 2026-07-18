@@ -1,5 +1,5 @@
 import * as queries from '@renderer/queries';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './YouTubeSkin.css';
 import {
   Play, Pause,
@@ -249,46 +249,46 @@ function YouTubeControls({
     }
   }, [stableVol]);
 
-  const openMenu = (page: SettingsPage = 'main') => {
+  const openMenu = useCallback((page: SettingsPage = 'main') => {
     setPage(page);
     onSetShowMenu('settings');
-  };
+  }, [setPage, onSetShowMenu]);
 
-  const applySleep = (m: number | null) => {
+  const applySleep = useCallback((m: number | null) => {
     setSleepMin(m);
     setSleepDeadline(m === null ? null : Date.now() + m * 60_000);
-  };
+  }, [setSleepMin, setSleepDeadline]);
 
-  const totalMax   = volumeMax + volumeBoostMax;
-  const progress   = state.duration > 0 ? state.position / state.duration : 0;
-  const displayVol = state.muted ? 0 : Math.round(state.volume);
-  const boostAmt   = !state.muted && state.volume > volumeMax ? Math.round(state.volume - volumeMax) : 0;
+  const totalMax   = useMemo(() => volumeMax + volumeBoostMax, [volumeMax, volumeBoostMax]);
+  const progress   = useMemo(() => state.duration > 0 ? state.position / state.duration : 0, [state.duration, state.position]);
+  const displayVol = useMemo(() => state.muted ? 0 : Math.round(state.volume), [state.muted, state.volume]);
+  const boostAmt   = useMemo(() => !state.muted && state.volume > volumeMax ? Math.round(state.volume - volumeMax) : 0, [state.muted, state.volume, volumeMax]);
 
-  const audioTracks = tracks.filter(t => t.type === 'audio');
-  const subTracks   = tracks.filter(t => t.type === 'sub');
-  const selectedAid = tracks.find(t => t.type === 'audio' && t.selected)?.id ?? null;
-  const selectedSid = tracks.find(t => t.type === 'sub'   && t.selected)?.id ?? null;
-  const activeSub   = subTracks.find(t => t.id === selectedSid);
+  const audioTracks = useMemo(() => tracks.filter(t => t.type === 'audio'), [tracks]);
+  const subTracks   = useMemo(() => tracks.filter(t => t.type === 'sub'), [tracks]);
+  const selectedAid = useMemo(() => tracks.find(t => t.type === 'audio' && t.selected)?.id ?? null, [tracks]);
+  const selectedSid = useMemo(() => tracks.find(t => t.type === 'sub'   && t.selected)?.id ?? null, [tracks]);
+  const activeSub   = useMemo(() => subTracks.find(t => t.id === selectedSid), [subTracks, selectedSid]);
 
   const lastSubRef = useRef<number | null>(null);
   if (selectedSid !== null) lastSubRef.current = selectedSid;
 
-  const toggleSubtitles = () => {
+  const toggleSubtitles = useCallback(() => {
     if (selectedSid !== null) { onSetSubTrack(0); }
     else {
       const restore = lastSubRef.current ?? subTracks[0]?.id;
       if (restore != null) onSetSubTrack(restore);
     }
-  };
+  }, [selectedSid, onSetSubTrack, subTracks]);
 
-  const speedLabel = state.speed === 1 ? 'Normal' : `${state.speed}×`;
-  const sleepLabel = sleepDeadline === null
+  const speedLabel = useMemo(() => state.speed === 1 ? 'Normal' : `${state.speed}×`, [state.speed]);
+  const sleepLabel = useMemo(() => sleepDeadline === null
     ? 'Off'
-    : `${Math.max(1, Math.ceil((sleepDeadline - Date.now()) / 60_000))}m left`;
-  const subLabel   = selectedSid === null ? 'Off' : activeSub?.title || activeSub?.lang || 'On';
+    : `${Math.max(1, Math.ceil((sleepDeadline - Date.now()) / 60_000))}m left`, [sleepDeadline]);
+  const subLabel   = useMemo(() => selectedSid === null ? 'Off' : activeSub?.title || activeSub?.lang || 'On', [selectedSid, activeSub]);
 
-  const VolumeIcon = state.muted || displayVol === 0 ? VolumeX
-    : displayVol < 50 ? Volume1 : Volume2;
+  const VolumeIcon = useMemo(() => state.muted || displayVol === 0 ? VolumeX
+    : displayVol < 50 ? Volume1 : Volume2, [state.muted, displayVol]);
 
   return (
     <>
@@ -754,16 +754,18 @@ function YouTubeControls({
               </div>
             </div>
 
-            <div className="yt-time"
-              style={{ cursor: 'pointer' }}
-              onClick={e => { e.stopPropagation(); setShowRemaining(r => !r); }}
-              title="Toggle remaining time"
-            >
-              {showRemaining
-                ? <strong>−{formatTime(Math.max(0, state.duration - state.position))}</strong>
-                : <strong>{formatTime(state.position)}</strong>}
-              <span className="sep">/</span>
-              <span className="yt-time-duration" style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
+            <div className="yt-pill">
+              <div className="yt-time"
+                style={{ cursor: 'pointer' }}
+                onClick={e => { e.stopPropagation(); setShowRemaining(r => !r); }}
+                title="Toggle remaining time"
+              >
+                {showRemaining
+                  ? <strong>−{formatTime(Math.max(0, state.duration - state.position))}</strong>
+                  : <strong>{formatTime(state.position)}</strong>}
+                <span className="sep">/</span>
+                <span className="yt-time-duration" style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
+              </div>
             </div>
           </div>
 

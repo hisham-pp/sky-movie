@@ -146,15 +146,10 @@
 /* ── Time display ─────────────────────────────────────────────────────────── */
 
 .yt-time {
-  display: flex; align-items: center; gap: 4px;
-  padding: 0 12px;
+  display: inline-flex; align-items: center;
+  gap: 4px;
   height: 40px;
-  background: var(--overlay-bg);
-  backdrop-filter: var(--glass-blur-control);
-  -webkit-backdrop-filter: var(--glass-blur-control);
-  border: 1px solid var(--control-border);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.35), var(--overlay-highlight);
-  border-radius: var(--radius-pill);
+  padding: 0 12px;
   font-size: 14px; color: var(--ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap; user-select: none; line-height: 1;
