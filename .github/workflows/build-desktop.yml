@@ -2,42 +2,67 @@ name: Build Desktop Apps
 
 on:
   workflow_dispatch:
+    inputs:
+      build_target:
+        description: 'Runtime to build'
+        required: true
+        default: windows-x64
+        type: choice
+        options:
+          - windows-x64
+          - windows-arm64
+          - macos-x64
+          - macos-arm64
+          - linux-x64
+          - linux-arm64
+          - all
   push:
     tags:
       - 'desktop-v*'
 
 jobs:
+  select-builds:
+    name: Select build targets
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Build matrix
+        id: matrix
+        shell: bash
+        run: |
+          target="${{ github.event.inputs.build_target || 'windows-x64' }}"
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            target="windows-x64"
+          fi
+
+          windows_x64='{"os":"windows-latest","platform":"windows","arch":"x64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --x64"}'
+          windows_arm64='{"os":"windows-latest","platform":"windows","arch":"arm64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --arm64"}'
+          macos_x64='{"os":"macos-latest","platform":"macos","arch":"x64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64"}'
+          macos_arm64='{"os":"macos-latest","platform":"macos","arch":"arm64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64"}'
+          linux_x64='{"os":"ubuntu-latest","platform":"linux","arch":"x64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64"}'
+          linux_arm64='{"os":"ubuntu-latest","platform":"linux","arch":"arm64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64"}'
+
+          case "$target" in
+            windows-x64) matrix="{\"include\":[$windows_x64]}" ;;
+            windows-arm64) matrix="{\"include\":[$windows_arm64]}" ;;
+            macos-x64) matrix="{\"include\":[$macos_x64]}" ;;
+            macos-arm64) matrix="{\"include\":[$macos_arm64]}" ;;
+            linux-x64) matrix="{\"include\":[$linux_x64]}" ;;
+            linux-arm64) matrix="{\"include\":[$linux_arm64]}" ;;
+            all) matrix="{\"include\":[$windows_x64,$windows_arm64,$macos_x64,$macos_arm64,$linux_x64,$linux_arm64]}" ;;
+            *) echo "Unknown build target: $target" >&2; exit 1 ;;
+          esac
+
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.platform }}-${{ matrix.arch }}
+    needs: select-builds
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: windows
-            arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --x64
-          - os: windows-latest
-            platform: windows
-            arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --arm64
-          - os: macos-latest
-            platform: macos
-            arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64
-          - os: macos-latest
-            platform: macos
-            arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64
-          - os: ubuntu-latest
-            platform: linux
-            arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64
+      matrix: ${{ fromJSON(needs.select-builds.outputs.matrix) }}
 
     steps:
       - name: Checkout
