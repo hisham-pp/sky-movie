@@ -116,6 +116,14 @@
     grid-template-columns: 1fr;
   }
 
+  .detail-hero {
+    min-height: auto;
+  }
+
+  .movie-detail-page .detail-side-stack {
+    position: static;
+  }
+
   .detail-poster,
   .series-poster {
     width: 120px;
@@ -156,4 +164,3 @@
     font-size: 34px;
   }
 }
-
