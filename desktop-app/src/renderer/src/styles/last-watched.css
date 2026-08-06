@@ -30,15 +30,13 @@
   color: var(--ink);
   text-align: left;
   font-family: inherit;
-  transition: background 0.18s var(--ease-fluid), border-color 0.18s var(--ease-fluid),
-              transform 0.22s var(--ease-spring);
+  transition: background 0.18s var(--ease-fluid), border-color 0.18s var(--ease-fluid);
   max-width: 260px;
 }
 
 .last-watched-body:hover {
   background: var(--glass-sheen), color-mix(in srgb, var(--panel-solid) 75%, transparent);
   border-color: var(--line-strong);
-  transform: translateY(-2px);
 }
 
 /* ── play icon circle ───────────────────────────────────────── */
