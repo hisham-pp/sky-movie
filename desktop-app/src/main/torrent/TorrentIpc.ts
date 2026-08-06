@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { ipcChannels } from '../../shared/ipc';
-import type { AddMagnetRequest, TorrentMoveRequest, TorrentSearchRequest, TorrentSettings } from '../../shared/ipc';
+import type { AddMagnetRequest, TorrentMoveRequest, TorrentSearchRequest, TorrentSettings, TorrentStreamProgressUpdate } from '../../shared/ipc';
 import type { TorrentManager } from './TorrentManager';
 import type { BrowserWindow } from 'electron';
 
@@ -74,6 +74,18 @@ export function registerTorrentIpcHandlers(
 
   h(ipcChannels.torrentRecheck, (_e, id: string) =>
     safe(ipcChannels.torrentRecheck, () => manager.recheck(id))
+  );
+
+  h(ipcChannels.torrentPrepareStream, (_e, id: string) =>
+    safe(ipcChannels.torrentPrepareStream, () => manager.prepareStream(id))
+  );
+
+  h(ipcChannels.torrentCleanupStream, (_e, id: string) =>
+    safe(ipcChannels.torrentCleanupStream, () => manager.cleanupStream(id))
+  );
+
+  h(ipcChannels.torrentUpdateStreamProgress, (_e, update: TorrentStreamProgressUpdate) =>
+    safe(ipcChannels.torrentUpdateStreamProgress, () => manager.updateStreamProgress(update))
   );
 
   h(ipcChannels.torrentSetPlaybackThrottle, (_e, active: boolean) =>

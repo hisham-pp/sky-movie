@@ -17,6 +17,7 @@ import type {
   TorrentProgressEvent,
   TorrentSearchRequest,
   TorrentSettings,
+  TorrentStreamProgressUpdate,
   TvMetadataSearchRequest,
   UpdatePlaylistRequest,
   UpdateProgressEvent,
@@ -127,6 +128,10 @@ const api: SkyMovieApi = {
   torrentUpdateSettings: (s: Partial<TorrentSettings>) => ipcRenderer.invoke(ipcChannels.torrentUpdateSettings, s),
   torrentOpenFolder:     (id: string) => ipcRenderer.invoke(ipcChannels.torrentOpenFolder, id),
   torrentRecheck:              (id: string) => ipcRenderer.invoke(ipcChannels.torrentRecheck, id),
+  torrentPrepareStream:        (id: string) => ipcRenderer.invoke(ipcChannels.torrentPrepareStream, id),
+  torrentCleanupStream:        (id: string) => ipcRenderer.invoke(ipcChannels.torrentCleanupStream, id),
+  torrentUpdateStreamProgress: (update: TorrentStreamProgressUpdate) =>
+    ipcRenderer.invoke(ipcChannels.torrentUpdateStreamProgress, update),
   torrentSetPlaybackThrottle:  (active: boolean) => ipcRenderer.invoke(ipcChannels.torrentSetPlaybackThrottle, active),
   onTorrentProgress: (callback: (event: TorrentProgressEvent) => void) => {
     const listener = (_: Electron.IpcRendererEvent, event: TorrentProgressEvent) => callback(event);

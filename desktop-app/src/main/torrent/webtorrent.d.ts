@@ -1,11 +1,15 @@
 declare module 'webtorrent' {
   import { EventEmitter } from 'node:events';
+  import type { Readable } from 'node:stream';
 
   export interface TorrentFile {
     name: string;
     path: string;
     length: number;
     progress: number;
+    createReadStream(opts?: { start?: number; end?: number }): Readable;
+    select(priority?: number): void;
+    deselect(): void;
   }
 
   export interface Torrent extends EventEmitter {

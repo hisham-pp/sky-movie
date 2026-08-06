@@ -5,6 +5,7 @@ import Artplayer from 'artplayer';
 import type { PlayMediaResult } from '@shared/ipc';
 import { MpvPlayer } from './MpvPlayer';
 import { useLibraryControllerContext } from '../../hooks/LibraryControllerContext';
+import { savePlaybackProgress } from './progress';
 
 const RESUME_START_THRESHOLD = 5;
 const RESUME_END_BUFFER = 10;
@@ -15,7 +16,7 @@ export function PlayerPanel({
   onOpenExternal
 }: {
   player: PlayMediaResult | null;
-  onOpenExternal(mediaFileId: number): void;
+  onOpenExternal?(mediaFileId: number): void;
 }) {
   const { settings, advancePlayback } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
@@ -46,10 +47,12 @@ export function PlayerPanel({
     return (
       <div className="player">
         <MpvPlayer player={player} playerStyle={playerStyle} resumePlayback={resumePlayback} onOpenExternal={onOpenExternal} onEnded={handleEnded} />
-        <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
-          <ExternalLink size={15} />
-          Open in system player
-        </button>
+        {onOpenExternal && (
+          <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
+            <ExternalLink size={15} />
+            Open in system player
+          </button>
+        )}
       </div>
     );
   }
@@ -67,7 +70,7 @@ function ArtplayerFallback({
 }: {
   player: PlayMediaResult;
   resumePlayback?: boolean;
-  onOpenExternal(mediaFileId: number): void;
+  onOpenExternal?(mediaFileId: number): void;
   onEnded?(): void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -181,12 +184,7 @@ function ArtplayerFallback({
       const positionSeconds = Math.floor(video.currentTime);
       const now = Date.now();
       if (!force && (positionSeconds === lastSavedPosition || now - lastSavedAt < SAVE_INTERVAL_MS)) return;
-      await queries.updateWatchProgress({
-        mediaFileId: player.mediaFileId,
-        positionSeconds,
-        durationSeconds: Math.floor(video.duration),
-        completed: video.duration > 0 && video.currentTime / video.duration > 0.92
-      });
+      await savePlaybackProgress(player, positionSeconds, Math.floor(video.duration), video.duration > 0 && video.currentTime / video.duration > 0.92);
       lastSavedPosition = positionSeconds;
       lastSavedAt = now;
     };
@@ -254,14 +252,16 @@ function ArtplayerFallback({
   return (
     <div className="player">
       <div key={player.mediaFileId} ref={containerRef} className="artplayer-host" />
-      <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
-        <ExternalLink size={15} />
-        Open in system player
-      </button>
+      {onOpenExternal && (
+        <button className="player-external-button" onClick={() => onOpenExternal(player.mediaFileId)}>
+          <ExternalLink size={15} />
+          Open in system player
+        </button>
+      )}
       {playbackError && (
         <div className="player-error">
           <span>{playbackError}</span>
-          <button onClick={() => onOpenExternal(player.mediaFileId)}>Open externally</button>
+          {onOpenExternal && <button onClick={() => onOpenExternal(player.mediaFileId)}>Open externally</button>}
         </div>
       )}
     </div>

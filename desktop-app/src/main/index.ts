@@ -35,6 +35,15 @@ protocol.registerSchemesAsPrivileged([
     }
   },
   {
+    scheme: 'sky-torrent',
+    privileges: {
+      standard: true,
+      secure: true,
+      stream: true,
+      supportFetchAPI: true
+    }
+  },
+  {
     scheme: 'sky-image',
     privileges: {
       standard: true,
@@ -129,6 +138,7 @@ app.whenReady().then(async () => {
   const playlist = new PlaylistService(sqlite);
 
   player.registerMediaProtocol();
+  torrentManager.registerStreamProtocol();
 
   // Serve locally cached poster/backdrop images via sky-image:// so the
   // sandboxed renderer doesn't need file:// access.

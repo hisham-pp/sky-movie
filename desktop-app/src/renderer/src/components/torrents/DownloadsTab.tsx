@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  Pause, Play, Trash2, FolderOpen, RotateCcw, StopCircle,
+  Pause, Play, Trash2, FolderOpen, RotateCcw, StopCircle, CirclePlay,
   ArrowDownToLine, ArrowUpFromLine
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { Tooltip } from '../common';
@@ -10,6 +11,7 @@ import { formatBytes, formatSpeed, formatEta, statusLabel, statusColor } from '.
 
 export function DownloadsTab() {
   const { torrents, stats, loading, pause, resume, remove, deleteFiles, openFolder, recheck } = useTorrentDownloads();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; withFiles: boolean } | null>(null);
 
@@ -74,6 +76,7 @@ export function DownloadsTab() {
               onDeleteFiles={() => setConfirmDelete({ id: torrent.id, withFiles: true })}
               onOpenFolder={() => openFolder(torrent.id)}
               onRecheck={() => recheck(torrent.id)}
+              onStream={() => navigate(`/downloads/stream/${torrent.id}`)}
             />
           ))}
         </div>
@@ -120,9 +123,10 @@ interface TorrentCardProps {
   onDeleteFiles(): void;
   onOpenFolder(): void;
   onRecheck(): void;
+  onStream(): void;
 }
 
-function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete, onDeleteFiles, onOpenFolder, onRecheck }: TorrentCardProps) {
+function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete, onDeleteFiles, onOpenFolder, onRecheck, onStream }: TorrentCardProps) {
   const isPaused    = torrent.status === 'paused';
   const isCompleted = torrent.status === 'completed';
   const pct         = Math.round(torrent.progress * 100);
@@ -181,6 +185,7 @@ function TorrentCard({ torrent, selected, onSelect, onPause, onResume, onDelete,
         ) : (
           <ActionBtn onClick={onPause} title="Pause"><Pause size={13} /></ActionBtn>
         )}
+        <ActionBtn onClick={onStream} title="Stream now"><CirclePlay size={13} /></ActionBtn>
         <ActionBtn onClick={onRecheck} title="Recheck"><RotateCcw size={13} /></ActionBtn>
         <ActionBtn onClick={onOpenFolder} title="Open folder"><FolderOpen size={13} /></ActionBtn>
         <div className="flex-1" />

@@ -1,0 +1,93 @@
+.torrent-stream-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: #0f1217;
+}
+
+.torrent-stream-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.torrent-stream-back,
+.torrent-stream-error button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.torrent-stream-back:hover,
+.torrent-stream-error button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.torrent-stream-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.torrent-stream-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.torrent-stream-cleanup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 12px;
+}
+
+.torrent-stream-player {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.torrent-stream-player .player {
+  height: 100%;
+}
+
+.torrent-stream-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 14px;
+}
+
+.torrent-stream-error {
+  flex-direction: column;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+  padding: 24px;
+}

@@ -224,6 +224,9 @@ export interface PlayMediaResult {
   title: string;
   watchProgress: WatchProgressSnapshot | null;
   sidecarSubtitles?: SidecarSubtitle[];
+  playbackKind?: 'library' | 'torrent';
+  torrentId?: string;
+  torrentFilePath?: string;
 }
 
 export interface SidecarSubtitle {
@@ -579,6 +582,9 @@ export const ipcChannels = {
   torrentUpdateSettings:  'torrent:update-settings',
   torrentOpenFolder:      'torrent:open-folder',
   torrentRecheck:         'torrent:recheck',
+  torrentPrepareStream:   'torrent:prepare-stream',
+  torrentCleanupStream:   'torrent:cleanup-stream',
+  torrentUpdateStreamProgress: 'torrent:update-stream-progress',
   torrentProgress:        'torrent:progress',   // push: main → renderer
   torrentSetPlaybackThrottle: 'torrent:set-playback-throttle',
 } as const;
@@ -709,6 +715,22 @@ export interface TorrentMoveRequest {
   newPath: string;
 }
 
+export interface TorrentStreamProgressUpdate {
+  torrentId: string;
+  filePath: string;
+  positionSeconds: number;
+  durationSeconds: number;
+  completed?: boolean;
+}
+
+export interface TorrentStreamInfo extends PlayMediaResult {
+  playbackKind: 'torrent';
+  torrentId: string;
+  torrentFilePath: string;
+  fileSize: number;
+  cleanupOnClose: boolean;
+}
+
 export interface TorrentApi {
   torrentSearch(req: TorrentSearchRequest): Promise<TorrentSearchResult[]>;
   torrentAddMagnet(req: AddMagnetRequest): Promise<TorrentInfo>;
@@ -723,6 +745,9 @@ export interface TorrentApi {
   torrentUpdateSettings(settings: Partial<TorrentSettings>): Promise<TorrentSettings>;
   torrentOpenFolder(id: string): Promise<void>;
   torrentRecheck(id: string): Promise<void>;
+  torrentPrepareStream(id: string): Promise<TorrentStreamInfo>;
+  torrentCleanupStream(id: string): Promise<void>;
+  torrentUpdateStreamProgress(update: TorrentStreamProgressUpdate): Promise<void>;
   torrentSetPlaybackThrottle(active: boolean): Promise<void>;
   onTorrentProgress(callback: (event: TorrentProgressEvent) => void): () => void;
 }

@@ -6,6 +6,7 @@ import { SettingsRoute } from './routes/SettingsRoute';
 import { ScanRoute } from './routes/ScanRoute';
 import { WatchHistoryRoute } from './routes/WatchHistoryRoute';
 import { TorrentRoute } from './routes/TorrentRoute';
+import { TorrentStreamRoute } from './routes/TorrentStreamRoute';
 import { RouteError } from './components/layout/RouteError';
 
 const STORAGE_KEY = 'sky-movie-router-history';
@@ -110,6 +111,10 @@ export function createRouter() {
           {
             path: 'downloads',
             element: <TorrentRoute />,
+          },
+          {
+            path: 'downloads/stream/:id',
+            element: <TorrentStreamRoute />,
           },
         ],
       },

@@ -10,6 +10,7 @@ import { RotateCcw, RotateCw } from 'lucide-react';
 import type { MpvTrack, PlayerStyle } from '@shared/ipc';
 import type { PlayMediaResult } from '@shared/ipc';
 import { getSkin } from '../../theme/player-skins';
+import { savePlaybackProgress } from './progress';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ export function MpvPlayer({
   player: PlayMediaResult;
   playerStyle?: PlayerStyle;
   resumePlayback?: boolean;
-  onOpenExternal(mediaFileId: number): void;
+  onOpenExternal?(mediaFileId: number): void;
   onEnded?(): void;
 }) {
   const skin = getSkin(playerStyle);
@@ -137,7 +138,7 @@ export function MpvPlayer({
     const { width, height } = container.getBoundingClientRect();
 
     queries.mpvOpen({
-      filePath:     player.absolutePath ?? (player as any).mediaUrl,
+      filePath:     player.playbackKind === 'torrent' ? player.mediaUrl : player.absolutePath ?? player.mediaUrl,
       mediaFileId:  player.mediaFileId,
       renderWidth:  Math.round(width)  || 1280,
       renderHeight: Math.round(height) || 720
@@ -166,12 +167,7 @@ export function MpvPlayer({
             eofFired = true;
             const s = stateRef.current;
             if (s.duration > 0) {
-              queries.updateWatchProgress({
-                mediaFileId:     player.mediaFileId,
-                positionSeconds: Math.floor(s.duration),
-                durationSeconds: Math.floor(s.duration),
-                completed:       true
-              }).catch(() => {});
+              savePlaybackProgress(player, Math.floor(s.duration), Math.floor(s.duration), true).catch(() => {});
             }
             onEndedRef.current?.();
           } else if (!ev.value) {
@@ -196,12 +192,7 @@ export function MpvPlayer({
     const progressTimer = setInterval(() => {
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
-        queries.updateWatchProgress({
-          mediaFileId:     player.mediaFileId,
-          positionSeconds: Math.floor(s.position),
-          durationSeconds: Math.floor(s.duration),
-          completed:       s.position / s.duration > 0.92
-        }).catch(() => {});
+        savePlaybackProgress(player, Math.floor(s.position), Math.floor(s.duration), s.position / s.duration > 0.92).catch(() => {});
       }
     }, 10_000);
 
@@ -212,12 +203,7 @@ export function MpvPlayer({
       unsubTracks();
       const s = stateRef.current;
       if (s.duration > 0 && s.position > 0) {
-        queries.updateWatchProgress({
-          mediaFileId:     player.mediaFileId,
-          positionSeconds: Math.floor(s.position),
-          durationSeconds: Math.floor(s.duration),
-          completed:       s.position / s.duration > 0.92
-        }).catch(() => {});
+        savePlaybackProgress(player, Math.floor(s.position), Math.floor(s.duration), s.position / s.duration > 0.92).catch(() => {});
       }
       queries.mpvClose().catch(() => {});
     };
@@ -470,7 +456,7 @@ export function MpvPlayer({
       {error && (
         <div className="mpv-error">
           <p>{error}</p>
-          <button onClick={() => onOpenExternal(player.mediaFileId)}>Open in system player</button>
+          {onOpenExternal && <button onClick={() => onOpenExternal(player.mediaFileId)}>Open in system player</button>}
         </div>
       )}
 

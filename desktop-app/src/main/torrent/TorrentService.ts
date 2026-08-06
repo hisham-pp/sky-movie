@@ -1,11 +1,21 @@
 import { EventEmitter } from 'node:events';
 import { mkdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { Readable } from 'node:stream';
 import WebTorrent, { type Torrent, type TorrentFile } from 'webtorrent';
 import type { TorrentFileInfo, TorrentInfo, TorrentSettings, TorrentStatus } from '../../shared/ipc';
 import { EXTRA_TRACKERS_QUERY } from './trackers';
 
 function injectTrackers(magnetUri: string): string {
   return magnetUri + EXTRA_TRACKERS_QUERY;
+}
+
+const VIDEO_EXTENSIONS = new Set(['.mkv', '.mp4', '.avi', '.mov', '.wmv', '.m4v', '.webm', '.flv', '.ts', '.m2ts']);
+
+export interface PreparedTorrentStream {
+  torrent: TorrentInfo;
+  file: TorrentFileInfo;
+  absolutePath: string;
 }
 
 export class TorrentService extends EventEmitter {
@@ -202,6 +212,65 @@ export class TorrentService extends EventEmitter {
     });
   }
 
+  async prepareStream(id: string): Promise<PreparedTorrentStream> {
+    const torrent = this.findTorrent(id);
+    if (!torrent) throw new Error('Torrent is not active. Resume or re-add it before streaming.');
+
+    if ((torrent.files?.length ?? 0) === 0) {
+      await this.waitForFiles(torrent);
+    }
+
+    const selected = this.pickMainVideoFile(torrent.files ?? []);
+    if (!selected) throw new Error('No video file was found in this torrent.');
+
+    torrent.resume();
+    for (const file of torrent.files ?? []) {
+      try {
+        if (file === selected) file.select(1);
+        else file.deselect();
+      } catch {
+        // Selection may be unavailable briefly while metadata settles.
+      }
+    }
+
+    const info = this.infoMap.get(id);
+    if (!info) throw new Error('Torrent metadata is not ready yet.');
+    info.status = info.progress >= 1 ? 'completed' : 'downloading';
+    info.files = this.buildFiles(torrent);
+
+    return {
+      torrent: { ...info },
+      file: this.toFileInfo(selected),
+      absolutePath: join(info.savePath, selected.path),
+    };
+  }
+
+  createFileReadStream(
+    id: string,
+    filePath: string,
+    range?: { start?: number; end?: number },
+  ): { stream: Readable; size: number; filePath: string } {
+    const torrent = this.findTorrent(id);
+    if (!torrent) throw new Error('Torrent is not active.');
+    const file = (torrent.files ?? []).find((f) => f.path === filePath);
+    if (!file) throw new Error('Torrent file was not found.');
+    torrent.resume();
+    try { file.select(1); } catch { /* ignore */ }
+    return {
+      stream: file.createReadStream(range),
+      size: file.length,
+      filePath: file.path,
+    };
+  }
+
+  getFileSize(id: string, filePath: string): number {
+    const torrent = this.findTorrent(id);
+    if (!torrent) throw new Error('Torrent is not active.');
+    const file = (torrent.files ?? []).find((f) => f.path === filePath);
+    if (!file) throw new Error('Torrent file was not found.');
+    return file.length;
+  }
+
   list(): TorrentInfo[] {
     return Array.from(this.infoMap.values());
   }
@@ -276,9 +345,16 @@ export class TorrentService extends EventEmitter {
   }
 
   private buildFiles(torrent: Torrent): TorrentFileInfo[] {
-    return (torrent.files ?? []).map((f: TorrentFile) => ({
-      name: f.name, path: f.path, size: f.length, progress: f.progress,
-    }));
+    return (torrent.files ?? []).map((f: TorrentFile) => this.toFileInfo(f));
+  }
+
+  private toFileInfo(file: TorrentFile): TorrentFileInfo {
+    return {
+      name: file.name,
+      path: file.path,
+      size: file.length,
+      progress: file.progress,
+    };
   }
 
   private startProgressPolling(torrent: Torrent, id: string): void {
@@ -349,5 +425,48 @@ export class TorrentService extends EventEmitter {
   private hashFromMagnet(magnetUri: string): string {
     const m = magnetUri.match(/xt=urn:btih:([a-fA-F0-9]{40})/i);
     return m ? m[1].toLowerCase() : '';
+  }
+
+  private pickMainVideoFile(files: TorrentFile[]): TorrentFile | null {
+    const videos = files.filter((file) => {
+      const dot = file.name.lastIndexOf('.');
+      const ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : '';
+      return VIDEO_EXTENSIONS.has(ext);
+    });
+    const candidates = videos.length > 0 ? videos : files;
+    return candidates.reduce<TorrentFile | null>(
+      (best, file) => (!best || file.length > best.length ? file : best),
+      null,
+    );
+  }
+
+  private waitForFiles(torrent: Torrent): Promise<void> {
+    if ((torrent.files?.length ?? 0) > 0) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Timed out waiting for torrent metadata.'));
+      }, 30_000);
+
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = (err: Error | string) => {
+        cleanup();
+        reject(err instanceof Error ? err : new Error(String(err)));
+      };
+      const cleanup = () => {
+        clearTimeout(timeout);
+        torrent.off('metadata', onReady);
+        torrent.off('ready', onReady);
+        torrent.off('error', onError);
+      };
+
+      torrent.on('metadata', onReady);
+      torrent.on('ready', onReady);
+      torrent.on('error', onError);
+    });
   }
 }

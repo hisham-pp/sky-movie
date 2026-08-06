@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { app, shell, Notification } from 'electron';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { extname, join } from 'node:path';
+import { Readable } from 'node:stream';
+import { app, shell, Notification, protocol } from 'electron';
 import type {
   AddMagnetRequest,
   TorrentGlobalStats,
@@ -9,6 +11,9 @@ import type {
   TorrentSearchRequest,
   TorrentSearchResult,
   TorrentSettings,
+  TorrentStreamInfo,
+  TorrentStreamProgressUpdate,
+  WatchProgressSnapshot,
 } from '../../shared/ipc';
 import { renameTorrentFile } from './TorrentRenamer';
 import { YtsProvider } from './providers/YtsProvider';
@@ -50,6 +55,7 @@ interface PersistedActiveTorrent {
 interface PersistedState {
   active:    PersistedActiveTorrent[];
   completed: TorrentInfo[];
+  streamProgress?: Record<string, WatchProgressSnapshot>;
 }
 
 export class TorrentManager {
@@ -64,6 +70,10 @@ export class TorrentManager {
   private activePersisted: PersistedActiveTorrent[] = [];
   /** Completed entries persisted to disk. */
   private completedTorrents: TorrentInfo[] = [];
+  /** Resume positions for direct torrent streams. */
+  private streamProgress: Record<string, WatchProgressSnapshot> = {};
+  private streamServer: Server | null = null;
+  private streamServerPort: number | null = null;
 
   private progressListeners: Array<(info: TorrentInfo) => void> = [];
 
@@ -242,6 +252,91 @@ export class TorrentManager {
     setTimeout(() => this.service!.resume(id), 500);
   }
 
+  async prepareStream(id: string): Promise<TorrentStreamInfo> {
+    await this.ensureInit();
+    const prepared = await this.service!.prepareStream(id);
+    const progressKey = this.streamProgressKey(id, prepared.file.path);
+    const streamBaseUrl = await this.ensureStreamServer();
+
+    return {
+      mediaFileId: this.torrentMediaId(id),
+      mediaUrl: `${streamBaseUrl}/torrent/${id}/${encodeURIComponent(prepared.file.path)}`,
+      absolutePath: prepared.absolutePath,
+      title: prepared.file.name || prepared.torrent.name,
+      watchProgress: this.streamProgress[progressKey] ?? null,
+      sidecarSubtitles: [],
+      playbackKind: 'torrent',
+      torrentId: id,
+      torrentFilePath: prepared.file.path,
+      fileSize: prepared.file.size,
+      cleanupOnClose: prepared.torrent.status !== 'completed',
+    };
+  }
+
+  async cleanupStream(id: string): Promise<void> {
+    await this.ensureInit();
+    const info = this.service!.list().find((t) => t.id === id);
+    if (!info || info.status === 'completed') return;
+    await this.service!.remove(id, true);
+    this.removePersisted(id);
+    this.saveState();
+  }
+
+  updateStreamProgress(update: TorrentStreamProgressUpdate): void {
+    const key = this.streamProgressKey(update.torrentId, update.filePath);
+    this.streamProgress[key] = {
+      positionSeconds: update.positionSeconds,
+      durationSeconds: update.durationSeconds,
+      completed: Boolean(update.completed),
+      updatedAt: new Date().toISOString(),
+    };
+    this.saveState();
+  }
+
+  registerStreamProtocol(): void {
+    protocol.handle('sky-torrent', async (request) => {
+      try {
+        await this.ensureInit();
+        const url = new URL(request.url);
+        const id = url.hostname;
+        const filePath = decodeURIComponent(url.pathname.replace(/^\//, ''));
+        const size = this.service!.getFileSize(id, filePath);
+        const range = parseByteRange(request.headers.get('range'), size);
+        if (request.headers.get('range') && !range) {
+          return new Response(null, {
+            status: 416,
+            headers: {
+              'Accept-Ranges': 'bytes',
+              'Content-Range': `bytes */${size}`,
+            },
+          });
+        }
+
+        const { stream } = this.service!.createFileReadStream(id, filePath, range ?? undefined);
+        const body = Readable.toWeb(stream) as ReadableStream;
+        const start = range?.start ?? 0;
+        const end = range?.end ?? size - 1;
+        const headers: Record<string, string> = {
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'no-store',
+          'Content-Type': getVideoContentType(filePath),
+        };
+
+        if (range) {
+          headers['Content-Length'] = String(end - start + 1);
+          headers['Content-Range'] = `bytes ${start}-${end}/${size}`;
+        } else {
+          headers['Content-Length'] = String(size);
+        }
+
+        return new Response(body, { status: range ? 206 : 200, headers });
+      } catch (error) {
+        console.error('[TorrentManager] sky-torrent protocol failed', error);
+        return new Response('Torrent stream unavailable', { status: 404 });
+      }
+    });
+  }
+
   openFolder(id: string): void {
     const info = this.list().find((t) => t.id === id);
     if (info) shell.openPath(info.savePath);
@@ -365,9 +460,81 @@ export class TorrentManager {
   async destroy(): Promise<void> {
     this.progressListeners = [];
     if (this.service) await this.service.destroy();
+    if (this.streamServer) {
+      await new Promise<void>((resolve) => this.streamServer!.close(() => resolve()));
+      this.streamServer = null;
+      this.streamServerPort = null;
+    }
   }
 
   // ── Private ────────────────────────────────────────────────────────────────
+
+  private async ensureStreamServer(): Promise<string> {
+    if (this.streamServer && this.streamServerPort) {
+      return `http://127.0.0.1:${this.streamServerPort}`;
+    }
+
+    this.streamServer = createServer((req, res) => {
+      this.handleHttpStream(req, res).catch((error) => {
+        console.error('[TorrentManager] HTTP torrent stream failed', error);
+        if (!res.headersSent) {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+        }
+        res.end('Torrent stream unavailable');
+      });
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      this.streamServer!.once('error', reject);
+      this.streamServer!.listen(0, '127.0.0.1', () => resolve());
+    });
+
+    const address = this.streamServer.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Could not start torrent stream server.');
+    }
+
+    this.streamServerPort = address.port;
+    return `http://127.0.0.1:${this.streamServerPort}`;
+  }
+
+  private async handleHttpStream(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    await this.ensureInit();
+    const host = req.headers.host ?? '127.0.0.1';
+    const url = new URL(req.url ?? '/', `http://${host}`);
+    const match = url.pathname.match(/^\/torrent\/([^/]+)\/(.+)$/);
+    if (!match) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not found');
+      return;
+    }
+
+    const id = decodeURIComponent(match[1]);
+    const filePath = decodeURIComponent(match[2]);
+    const size = this.service!.getFileSize(id, filePath);
+    const range = parseByteRange(req.headers.range ?? null, size);
+
+    if (req.headers.range && !range) {
+      res.writeHead(416, {
+        'Accept-Ranges': 'bytes',
+        'Content-Range': `bytes */${size}`,
+      });
+      res.end();
+      return;
+    }
+
+    const { stream } = this.service!.createFileReadStream(id, filePath, range ?? undefined);
+    const start = range?.start ?? 0;
+    const end = range?.end ?? size - 1;
+    res.writeHead(range ? 206 : 200, {
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': 'no-store',
+      'Content-Type': getVideoContentType(filePath),
+      'Content-Length': String(range ? end - start + 1 : size),
+      ...(range ? { 'Content-Range': `bytes ${start}-${end}/${size}` } : {}),
+    });
+    stream.pipe(res);
+  }
 
   private removePersisted(id: string): void {
     // id is infoHash; active entries only have magnetUri, so check both
@@ -421,6 +588,7 @@ export class TorrentManager {
         const s: PersistedState = JSON.parse(readFileSync(this.statePath(), 'utf8'));
         this.activePersisted   = s.active    ?? [];
         this.completedTorrents = s.completed ?? [];
+        this.streamProgress    = s.streamProgress ?? {};
       }
     } catch { /* ignore */ }
   }
@@ -430,6 +598,7 @@ export class TorrentManager {
       writeFileSync(this.statePath(), JSON.stringify({
         active:    this.activePersisted,
         completed: this.completedTorrents,
+        streamProgress: this.streamProgress,
       } satisfies PersistedState, null, 2));
     } catch (e) { console.error('[TorrentManager] save state failed', e); }
   }
@@ -437,5 +606,60 @@ export class TorrentManager {
   private extractHash(magnetUri: string): string {
     const m = magnetUri.match(/xt=urn:btih:([a-fA-F0-9]+)/i);
     return m ? m[1].toLowerCase() : magnetUri;
+  }
+
+  private streamProgressKey(torrentId: string, filePath: string): string {
+    return `${torrentId}:${filePath}`;
+  }
+
+  private torrentMediaId(id: string): number {
+    const parsed = Number.parseInt(id.slice(0, 8), 16);
+    return Number.isFinite(parsed) ? -Math.max(1, parsed) : -1;
+  }
+}
+
+interface ByteRange {
+  start: number;
+  end: number;
+}
+
+function parseByteRange(rangeHeader: string | null, fileSize: number): ByteRange | null {
+  if (!rangeHeader?.startsWith('bytes=')) return null;
+
+  const range = rangeHeader.slice('bytes='.length).split(',')[0];
+  const [rawStart, rawEnd] = range.split('-');
+  const start = rawStart ? Number(rawStart) : Math.max(fileSize - Number(rawEnd), 0);
+  const end = rawEnd ? Number(rawEnd) : fileSize - 1;
+
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= fileSize) {
+    return null;
+  }
+
+  return { start, end: Math.min(end, fileSize - 1) };
+}
+
+function getVideoContentType(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case '.mp4':
+    case '.m4v':
+      return 'video/mp4';
+    case '.mov':
+      return 'video/quicktime';
+    case '.webm':
+      return 'video/webm';
+    case '.mkv':
+      return 'video/x-matroska';
+    case '.avi':
+      return 'video/x-msvideo';
+    case '.wmv':
+      return 'video/x-ms-wmv';
+    case '.ogv':
+    case '.ogg':
+      return 'video/ogg';
+    case '.ts':
+    case '.m2ts':
+      return 'video/mp2t';
+    default:
+      return 'application/octet-stream';
   }
 }

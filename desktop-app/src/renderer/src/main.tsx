@@ -20,6 +20,7 @@ import './styles/unrecognized-drawer.css';
 import './styles/playlist.css';
 import './styles/last-watched.css';
 import './styles/watch-history.css';
+import './styles/torrent-stream.css';
 import './styles/route-error.css';
 import './styles/shortcuts-overlay.css';
 import './styles/tooltip.css';
