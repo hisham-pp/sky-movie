@@ -5,6 +5,14 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-08-06
+
+### Other
+
+- Refine detail page layout and player styling (Hisham)
+- Remove hover lift animation from last watched items (Hisham)
+- chore(release): publish Sky Movie 0.8.4 downloads from GitHub (Sky Movie)
+
 ## [0.8.4] - 2026-08-04
 
 ### Added
@@ -898,3 +906,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.2
 [0.8.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.3
 [0.8.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.4
+[0.8.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.5
