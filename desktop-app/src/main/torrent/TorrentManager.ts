@@ -276,9 +276,10 @@ export class TorrentManager {
   async cleanupStream(id: string): Promise<void> {
     await this.ensureInit();
     const info = this.service!.list().find((t) => t.id === id);
-    if (!info || info.status === 'completed') return;
+    if (!info) return;
     await this.service!.remove(id, true);
     this.removePersisted(id);
+    this.completedTorrents = this.completedTorrents.filter((t) => t.id !== id);
     this.saveState();
   }
 

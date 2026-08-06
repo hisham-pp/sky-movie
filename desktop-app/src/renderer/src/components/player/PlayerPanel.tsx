@@ -13,16 +13,24 @@ const SAVE_INTERVAL_MS = 10000;
 
 export function PlayerPanel({
   player,
-  onOpenExternal
+  onOpenExternal,
+  onEnded
 }: {
   player: PlayMediaResult | null;
   onOpenExternal?(mediaFileId: number): void;
+  onEnded?(): void;
 }) {
   const { settings, advancePlayback } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
   const resumePlayback = settings?.resumePlayback ?? true;
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
-  const handleEnded = () => { void advancePlayback(); };
+  const handleEnded = () => {
+    if (onEnded) {
+      onEnded();
+      return;
+    }
+    if (player?.playbackKind !== 'torrent') void advancePlayback();
+  };
 
   useEffect(() => {
     queries.mpvIsAvailable()

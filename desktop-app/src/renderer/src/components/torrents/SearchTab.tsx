@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Search, Download, Copy, Filter, X, ChevronDown, Film, Tv, Clock, Trash2 } from 'lucide-react';
+import { Search, Download, Copy, Filter, X, ChevronDown, Film, Tv, Clock, Trash2, CirclePlay } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { TorrentCategory, TorrentSearchResult } from '@shared/ipc';
 import { useTorrentSearch, useTorrentDownloads } from '../../hooks/useTorrent';
 import { useTmdbSuggestions, type TmdbSuggestion } from '../../hooks/useTmdbSuggestions';
@@ -48,6 +49,7 @@ type DropdownItem =
   | { type: 'recent'; text: string };
 
 export function SearchTab() {
+  const navigate = useNavigate();
   const [query,    setQuery]    = useState('');
   // The query the torrent providers were actually searched with. A single
   // effect re-runs the provider search whenever this or a filter changes, so
@@ -61,6 +63,7 @@ export function SearchTab() {
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [streamingId, setStreamingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { results, loading, error, search } = useTorrentSearch();
@@ -159,6 +162,20 @@ export function SearchTab() {
       await addMagnet({ magnetUri: result.magnetUri, category: result.category });
     } finally {
       setAddingId(null);
+    }
+  };
+
+  const handleStream = async (result: TorrentSearchResult) => {
+    setStreamingId(result.id);
+    try {
+      const info = await addMagnet({
+        magnetUri: result.magnetUri,
+        category: result.category,
+        paused: false,
+      });
+      navigate(`/downloads/stream/${info.id}`);
+    } finally {
+      setStreamingId(null);
     }
   };
 
@@ -334,8 +351,10 @@ export function SearchTab() {
             key={result.id}
             result={result}
             isAdding={addingId === result.id}
+            isStreaming={streamingId === result.id}
             isCopied={copiedId === result.id}
             onDownload={handleDownload}
+            onStream={handleStream}
             onCopy={handleCopyMagnet}
           />
         ))}
@@ -365,12 +384,14 @@ function SuggestionRow({ suggestion }: { suggestion: TmdbSuggestion }) {
 interface SearchResultCardProps {
   result: TorrentSearchResult;
   isAdding: boolean;
+  isStreaming: boolean;
   isCopied: boolean;
   onDownload(r: TorrentSearchResult): void;
+  onStream(r: TorrentSearchResult): void;
   onCopy(r: TorrentSearchResult): void;
 }
 
-function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: SearchResultCardProps) {
+function SearchResultCard({ result, isAdding, isStreaming, isCopied, onDownload, onStream, onCopy }: SearchResultCardProps) {
   return (
     <div className="flex items-start gap-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-3 transition-all">
       <Poster url={result.posterUrl} />
@@ -390,8 +411,16 @@ function SearchResultCard({ result, isAdding, isCopied, onDownload, onCopy }: Se
               </button>
             </Tooltip>
             <button
+              onClick={() => onStream(result)}
+              disabled={isStreaming || isAdding}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/80 hover:bg-emerald-500 text-white text-xs font-medium transition-colors disabled:opacity-50"
+            >
+              {isStreaming ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> : <CirclePlay size={12} />}
+              {isStreaming ? 'Opening...' : 'Play'}
+            </button>
+            <button
               onClick={() => onDownload(result)}
-              disabled={isAdding}
+              disabled={isAdding || isStreaming}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary)]/80 hover:bg-[var(--primary)] text-white text-xs font-medium transition-colors disabled:opacity-50"
             >
               {isAdding ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> : <Download size={12} />}

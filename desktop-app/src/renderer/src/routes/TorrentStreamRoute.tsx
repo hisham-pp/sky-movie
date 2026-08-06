@@ -12,6 +12,7 @@ export function TorrentStreamRoute() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const streamRef = useRef<TorrentStreamInfo | null>(null);
+  const cleanedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +30,7 @@ export function TorrentStreamRoute() {
         const result = await queries.torrentPrepareStream(id);
         if (cancelled) return;
         streamRef.current = result;
+        cleanedRef.current = false;
         setStream(result);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
@@ -43,11 +45,19 @@ export function TorrentStreamRoute() {
       cancelled = true;
       const activeStream = streamRef.current;
       streamRef.current = null;
-      if (activeStream?.cleanupOnClose) {
+      if (activeStream?.cleanupOnClose && !cleanedRef.current) {
+        cleanedRef.current = true;
         void queries.torrentCleanupStream(activeStream.torrentId).catch(() => {});
       }
     };
   }, [id]);
+
+  const cleanupStream = () => {
+    const activeStream = streamRef.current;
+    if (!activeStream?.cleanupOnClose || cleanedRef.current) return;
+    cleanedRef.current = true;
+    void queries.torrentCleanupStream(activeStream.torrentId).catch(() => {});
+  };
 
   return (
     <div className="torrent-stream-page">
@@ -83,7 +93,7 @@ export function TorrentStreamRoute() {
           </div>
         )}
 
-        {!loading && stream && <PlayerPanel player={stream} />}
+        {!loading && stream && <PlayerPanel player={stream} onEnded={cleanupStream} />}
       </div>
     </div>
   );
