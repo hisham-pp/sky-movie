@@ -27,22 +27,6 @@ jobs:
             platform: windows
             arch: arm64
             packageCommand: pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --arm64
-          - os: macos-latest
-            platform: macos
-            arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64
-          - os: macos-latest
-            platform: macos
-            arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64
-          - os: ubuntu-latest
-            platform: linux
-            arch: arm64
-            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64
 
     steps:
       - name: Checkout
@@ -183,9 +167,122 @@ jobs:
             desktop-app/dist/*.tar.gz
           if-no-files-found: error
 
+  build-manual-platforms:
+    name: Build manual ${{ matrix.platform }}-${{ matrix.arch }}
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+            arch: x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --x64
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:mac:ci --arm64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: arm64
+            packageCommand: pnpm --filter @sky-movie/desktop-app run package:linux:ci --arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.arch }}-libmpv-${{ hashFiles('.github/workflows/release.yml') }}
+          restore-keys: apt-${{ runner.arch }}-libmpv-
+
+      - name: Install Linux system deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
+          sudo apt-get install -y --no-install-recommends libarchive-tools libmpv-dev
+
+      - name: Cache Homebrew Cellar
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/mpv
+            /opt/homebrew/Cellar/ffmpeg
+            /opt/homebrew/Cellar/libass
+            /opt/homebrew/Cellar/libplacebo
+          key: brew-mpv-${{ runner.arch }}-${{ hashFiles('.github/workflows/release.yml') }}
+          restore-keys: brew-mpv-${{ runner.arch }}-
+
+      - name: Install macOS system deps
+        if: runner.os == 'macOS'
+        run: brew install mpv || true
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache Electron and electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: electron-cache-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: electron-cache-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: Prepare libmpv
+        run: pnpm --filter @sky-movie/desktop-app run prepare:libmpv
+
+      - name: Build mpv native addon
+        run: pnpm --filter @sky-movie/desktop-app run build:native
+
+      - name: Build app bundles
+        run: pnpm --filter @sky-movie/desktop-app run build:ci
+
+      - name: Package app
+        run: ${{ matrix.packageCommand }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sky-movie-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            desktop-app/dist/*.dmg
+            desktop-app/dist/*.zip
+            desktop-app/dist/*.AppImage
+            desktop-app/dist/*.deb
+            desktop-app/dist/*.tar.gz
+          if-no-files-found: error
+
   release:
     name: Create GitHub Release
-    needs: build
+    needs: [build, build-manual-platforms]
+    if: always() && needs.build.result == 'success' && (needs['build-manual-platforms'].result == 'success' || needs['build-manual-platforms'].result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write
