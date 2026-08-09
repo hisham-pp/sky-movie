@@ -42,6 +42,13 @@ export const FloatingPlayer = memo(function FloatingPlayer({
     setIsDragging(false);
   }, []);
 
+  const handleFullscreen = useCallback(() => {
+    // TODO: Implement fullscreen functionality
+    if (onExpand) {
+      onExpand();
+    }
+  }, [onExpand]);
+
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -53,12 +60,28 @@ export const FloatingPlayer = memo(function FloatingPlayer({
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const handleFullscreen = useCallback(() => {
-    // TODO: Implement fullscreen functionality
-    if (onExpand) {
-      onExpand();
-    }
-  }, [onExpand]);
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      switch (e.key.toLowerCase()) {
+        case 'escape':
+          e.preventDefault();
+          onClose();
+          break;
+        case 'f':
+          e.preventDefault();
+          handleFullscreen();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, handleFullscreen]);
 
   // Early return AFTER all hooks have been called
   if (!player) return null;
@@ -82,7 +105,7 @@ export const FloatingPlayer = memo(function FloatingPlayer({
     >
       {/* Top overlay controls */}
       <div className="floating-player-top-controls">
-        <Tooltip content="Close">
+        <Tooltip content="Close (Esc)">
           <button
             className="floating-player-control-btn floating-player-close-btn"
             onClick={onClose}
@@ -91,7 +114,7 @@ export const FloatingPlayer = memo(function FloatingPlayer({
             <X size={16} />
           </button>
         </Tooltip>
-        <Tooltip content="Fullscreen">
+        <Tooltip content="Fullscreen (F)">
           <button
             className="floating-player-control-btn"
             onClick={handleFullscreen}
