@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Search, AlertTriangle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Tooltip } from '../common';
 
 export const Toolbar = memo(function Toolbar({
   onOpenSearch,
@@ -18,12 +19,16 @@ export const Toolbar = memo(function Toolbar({
     <header className="toolbar">
       <div className="toolbar-spacer">
         <div className="nav-controls">
-          <button className="nav-btn" onClick={onBack} aria-label="Go back" title="Go back">
-            <ArrowLeft size={18} />
-          </button>
-          <button className="nav-btn" onClick={onForward} aria-label="Go forward" title="Go forward">
-            <ArrowRight size={18} />
-          </button>
+          <Tooltip content="Go back (Alt+←)">
+            <button className="nav-btn" onClick={onBack} aria-label="Go back">
+              <ArrowLeft size={18} />
+            </button>
+          </Tooltip>
+          <Tooltip content="Go forward (Alt+→)">
+            <button className="nav-btn" onClick={onForward} aria-label="Go forward">
+              <ArrowRight size={18} />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
