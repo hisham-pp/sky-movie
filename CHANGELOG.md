@@ -5,6 +5,17 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-08-09
+
+### Added
+
+- update fullscreen handling in FloatingPlayer and MpvPlayer components (Hisham)
+- enhance expand/collapse functionality and improve controls (Hisham)
+
+### Other
+
+- style(settings): increase settings nav header top padding (Hisham)
+
 ## [0.10.1] - 2026-08-09
 
 ### Added
@@ -1027,3 +1038,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.6
 [0.10.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.0
 [0.10.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.1
+[0.10.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.2
