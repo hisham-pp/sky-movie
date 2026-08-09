@@ -6,17 +6,16 @@ import { Modal, ModalFooter, Button, Tooltip } from '../common';
 
 interface MediaOptionsMenuProps {
   files: MediaFile[];
-  onDeleteFiles: (files: MediaFile[]) => void;
   onShowInFolder: (file: MediaFile) => void;
+  onDeleteSomeFiles: () => void;
 }
 
 export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   files,
-  onDeleteFiles,
-  onShowInFolder
+  onShowInFolder,
+  onDeleteSomeFiles
 }: MediaOptionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -62,17 +61,15 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   };
 
   const handleDeleteSomeFiles = () => {
-    setShowDeleteDialog(true);
     setIsOpen(false);
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteDialog(false);
-  };
-
-  const handleConfirmDelete = (selectedFiles: MediaFile[]) => {
-    onDeleteFiles(selectedFiles);
-    setShowDeleteDialog(false);
+    onDeleteSomeFiles();
+    // Remove focus from the button
+    if (buttonRef.current) {
+      const button = buttonRef.current.querySelector('button');
+      if (button) {
+        button.blur();
+      }
+    }
   };
 
   return (
@@ -113,14 +110,6 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
           document.body
         )}
       </div>
-
-      {showDeleteDialog && (
-        <DeleteFilesDialog
-          files={files}
-          onCancel={handleCancelDelete}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
     </>
   );
 });
@@ -131,7 +120,7 @@ interface DeleteFilesDialogProps {
   onConfirm: (files: MediaFile[]) => void;
 }
 
-const DeleteFilesDialog = memo(function DeleteFilesDialog({
+export const DeleteFilesDialog = memo(function DeleteFilesDialog({
   files,
   onCancel,
   onConfirm
@@ -157,18 +146,30 @@ const DeleteFilesDialog = memo(function DeleteFilesDialog({
 
   return (
     <Modal isOpen={true} onClose={onCancel} title="Delete Files" maxWidth="small">
-      <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
-      <div className="file-selection-list">
-        {files.map((file) => (
-          <label key={file.id} className="file-selection-item">
-            <input
-              type="checkbox"
-              checked={selectedFiles.has(file.id)}
-              onChange={() => toggleFile(file.id)}
-            />
-            <span className="file-name">{file.fileName}</span>
-          </label>
-        ))}
+      <div style={{ pointerEvents: 'auto' }}>
+        <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
+        <div className="file-selection-list">
+          {files.map((file) => (
+            <div 
+              key={file.id} 
+              className="file-selection-item" 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFile(file.id);
+              }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              <input
+                type="checkbox"
+                checked={selectedFiles.has(file.id)}
+                onChange={() => {}}
+                readOnly
+                style={{ pointerEvents: 'auto' }}
+              />
+              <span className="file-name">{file.fileName}</span>
+            </div>
+          ))}
+        </div>
       </div>
       <ModalFooter>
         <Button variant="secondary" size="medium" onClick={onCancel}>

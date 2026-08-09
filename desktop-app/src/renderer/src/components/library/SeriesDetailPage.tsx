@@ -4,7 +4,7 @@ import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Pl
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
-import { MediaOptionsMenu } from './MediaOptionsMenu';
+import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
 import { Button, Tooltip } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
@@ -52,6 +52,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
 }) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [showMetadataDialog, setShowMetadataDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const episodeGridRef = useRef<HTMLDivElement>(null);
 
@@ -117,9 +118,17 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
   const handleOpenMetadataDialog = useCallback(() => setShowMetadataDialog(true), []);
   const handleCloseMetadataDialog = useCallback(() => setShowMetadataDialog(false), []);
 
+  const handleOpenDeleteDialog = useCallback(() => setShowDeleteDialog(true), []);
+  const handleCloseDeleteDialog = useCallback(() => setShowDeleteDialog(false), []);
+
   const handleDeleteFiles = useCallback((filesToDelete: MediaFile[]) => {
     filesToDelete.forEach(file => onDeleteFile(file));
   }, [onDeleteFile]);
+
+  const handleConfirmDelete = useCallback((filesToDelete: MediaFile[]) => {
+    handleDeleteFiles(filesToDelete);
+    setShowDeleteDialog(false);
+  }, [handleDeleteFiles]);
 
   return (
     <section className="media-detail-page series-detail-page">
@@ -179,8 +188,8 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
               </Tooltip>
               <MediaOptionsMenu
                 files={files}
-                onDeleteFiles={handleDeleteFiles}
                 onShowInFolder={onShowInFolder}
+                onDeleteSomeFiles={handleOpenDeleteDialog}
               />
             </div>
           </div>
@@ -278,6 +287,14 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
           onSearchMetadata={onSearchMetadata}
           onApplyMetadata={onApplyMetadata}
           onClose={handleCloseMetadataDialog}
+        />
+      )}
+
+      {showDeleteDialog && (
+        <DeleteFilesDialog
+          files={files}
+          onCancel={handleCloseDeleteDialog}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </section>

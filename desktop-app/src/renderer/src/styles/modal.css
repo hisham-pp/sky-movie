@@ -2,7 +2,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 100000;
   display: grid;
   place-items: center;
   /* light wash + blur — dark enough for focus, light enough that the scene
@@ -14,6 +14,7 @@
   /* opacity-only fade — animating backdrop-filter re-blurs the whole window per frame */
   animation: modalFadeIn 0.22s var(--ease-fluid);
   overflow-y: auto;
+  pointer-events: auto;
 }
 
 @keyframes modalFadeIn {
@@ -39,6 +40,7 @@
   display: flex;
   flex-direction: column;
   animation: modalSlideUp 0.32s var(--ease-spring);
+  pointer-events: auto;
 }
 
 @keyframes modalSlideUp {
@@ -119,6 +121,7 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+  pointer-events: auto;
 }
 
 /* Custom scrollbar for modal body */

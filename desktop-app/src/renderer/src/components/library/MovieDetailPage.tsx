@@ -3,7 +3,7 @@ import { Clapperboard, Heart, Play, ListMusic, Search } from 'lucide-react';
 import type { MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
-import { MediaOptionsMenu } from './MediaOptionsMenu';
+import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
 import { Button, Tooltip } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
@@ -52,6 +52,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
 }:MovieDetailPageProps) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [showMetadataDialog, setShowMetadataDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const meta = useMemo(() => [
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
@@ -69,9 +70,17 @@ export const MovieDetailPage = memo(function MovieDetailPage({
   const handleOpenMetadataDialog = useCallback(() => setShowMetadataDialog(true), []);
   const handleCloseMetadataDialog = useCallback(() => setShowMetadataDialog(false), []);
 
+  const handleOpenDeleteDialog = useCallback(() => setShowDeleteDialog(true), []);
+  const handleCloseDeleteDialog = useCallback(() => setShowDeleteDialog(false), []);
+
   const handleDeleteFiles = useCallback((filesToDelete: MediaFile[]) => {
     filesToDelete.forEach(file => onDeleteFile(file));
   }, [onDeleteFile]);
+
+  const handleConfirmDelete = useCallback((filesToDelete: MediaFile[]) => {
+    handleDeleteFiles(filesToDelete);
+    setShowDeleteDialog(false);
+  }, [handleDeleteFiles]);
 
   return (
     <section className="media-detail-page movie-detail-page">
@@ -135,8 +144,8 @@ export const MovieDetailPage = memo(function MovieDetailPage({
               </Tooltip>
               <MediaOptionsMenu
                 files={files}
-                onDeleteFiles={handleDeleteFiles}
                 onShowInFolder={onShowInFolder}
+                onDeleteSomeFiles={handleOpenDeleteDialog}
               />
             </div>
           </div>
@@ -207,6 +216,14 @@ export const MovieDetailPage = memo(function MovieDetailPage({
           onSearchMetadata={onSearchMetadata}
           onApplyMetadata={onApplyMetadata}
           onClose={handleCloseMetadataDialog}
+        />
+      )}
+
+      {showDeleteDialog && (
+        <DeleteFilesDialog
+          files={files}
+          onCancel={handleCloseDeleteDialog}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </section>
