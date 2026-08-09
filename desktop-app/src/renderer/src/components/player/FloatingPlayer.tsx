@@ -22,16 +22,19 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
     setIsDragging(true);
-    dragStartPos.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
-  }, [position]);
+    const rect = playerRef.current?.getBoundingClientRect();
+    if (rect) {
+      dragStartPos.current = {
+        x: e.clientX - rect.left,
+        y: window.innerHeight - e.clientY - (window.innerHeight - rect.bottom)
+      };
+    }
+  }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     const newX = e.clientX - dragStartPos.current.x;
-    const newY = e.clientY - dragStartPos.current.y;
+    const newY = window.innerHeight - e.clientY - dragStartPos.current.y;
     setPosition({ x: newX, y: newY });
   }, [isDragging]);
 
