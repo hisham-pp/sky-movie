@@ -74,7 +74,7 @@ function DefaultControls({
   const [aiColorBoost,   setAiColorBoost] = useState(30);
   const videoEnhancerRef = useRef<VideoEnhancer | null>(null);
 
-  // Show top-left volume OSD whenever volume changes (keyboard / scroll wheel)
+  // Show top-left volume OSD whenever volume changes (keyboard)
   useEffect(() => {
     if (!didMount.current) { didMount.current = true; return; }
     if (state.muted) return;
@@ -179,7 +179,7 @@ function DefaultControls({
 
   return (
     <>
-      {/* Top-left volume OSD — appears on keyboard / scroll volume change */}
+      {/* Top-left volume OSD — appears on keyboard volume change */}
       <div className={`default-vol-osd${volOsd ? ' visible' : ''}`}>
         {state.muted || state.volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
         <span>{displayVol}</span>

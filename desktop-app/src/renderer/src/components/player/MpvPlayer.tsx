@@ -411,12 +411,6 @@ export function MpvPlayer({
     }
   };
 
-  const onVideoWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('.default-controls')) return;
-    e.preventDefault();
-    changeVolume(Math.min(skin.volumeMax + skin.volumeBoostMax, Math.max(0, stateRef.current.volume + (e.deltaY < 0 ? 5 : -5))));
-  };
-
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -426,7 +420,6 @@ export function MpvPlayer({
       onMouseMove={resetHideTimer}
       onPointerDown={() => setShowMenu(null)}
       onClick={onVideoClick}
-      onWheel={onVideoWheel}
     >
       <canvas ref={canvasRef} className="mpv-canvas" />
 

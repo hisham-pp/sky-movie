@@ -187,7 +187,6 @@ export default function Home() {
                   <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Single click — Play / Pause</li>
                   <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Double-click left — Rewind 10s</li>
                   <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Double-click right — Forward 10s</li>
-                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>Scroll wheel — Volume</li>
                 </ul>
               </div>
 
