@@ -106,6 +106,42 @@ app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
+// ── Global error handlers ─────────────────────────────────────────────────────
+// Catch unhandled promise rejections and uncaught exceptions to prevent app crashes
+// from non-critical errors (e.g., WebRTC peer connection failures in torrents)
+
+process.on('unhandledRejection', (reason, promise) => {
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  
+  // Suppress common WebRTC/torrent peer connection errors that don't affect functionality
+  if (msg.includes('Ice connection') || 
+      msg.includes('ICE connection') ||
+      msg.includes('Connection failed') ||
+      msg.includes('Peer connection failed')) {
+    console.log('[Main] Suppressed non-critical unhandledRejection:', msg);
+    return;
+  }
+  
+  console.error('[Main] Unhandled promise rejection:', reason);
+  console.error('[Main] Promise:', promise);
+});
+
+process.on('uncaughtException', (error) => {
+  const msg = error.message || String(error);
+  
+  // Suppress common WebRTC/torrent peer connection errors
+  if (msg.includes('Ice connection') || 
+      msg.includes('ICE connection') ||
+      msg.includes('Connection failed') ||
+      msg.includes('Peer connection failed')) {
+    console.log('[Main] Suppressed non-critical uncaughtException:', msg);
+    return;
+  }
+  
+  console.error('[Main] Uncaught exception:', error);
+  // Don't exit on non-critical errors
+});
+
 app.whenReady().then(async () => {
   // Init file logging — writes to a logs/ folder next to the exe.
   // e.g. dist\win-unpacked\logs\sky-movie-YYYY-MM-DD.log

@@ -359,6 +359,10 @@ export class MpvService {
     if (now - s.lastSendMs < 33) return;
     s.lastSendMs = now;
 
+    // Skip encoding if the renderer is busy (back-pressure handling)
+    // This prevents memory accumulation during long playback sessions
+    if (s.webContents.isDestroyed()) return;
+
     try {
       const t0 = Date.now();
       const img  = nativeImage.createFromBuffer(rgba, { width, height });

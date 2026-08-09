@@ -43,6 +43,12 @@ export class TorrentService extends EventEmitter {
     });
 
     this.client.on('error', (err: Error) => {
+      // Suppress ICE connection errors — these are normal WebRTC peer failures
+      const msg = err.message || String(err);
+      if (msg.includes('Ice connection') || msg.includes('ICE connection')) {
+        console.log('[TorrentService] WebRTC peer connection failed (normal):', msg);
+        return;
+      }
       console.error('[TorrentService] client error', err);
     });
   }

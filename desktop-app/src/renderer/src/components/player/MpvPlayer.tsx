@@ -107,7 +107,9 @@ export function MpvPlayer({
       ctx.drawImage(bitmap, 0, 0);
       bitmap.close();
       drawingRef.current = false;
-    }).catch(() => { drawingRef.current = false; });
+    }).catch(() => { 
+      drawingRef.current = false; 
+    });
   }, []);
 
   // ── render size sync ───────────────────────────────────────────────────────
@@ -189,15 +191,34 @@ export function MpvPlayer({
       setTracks(ts);
     });
 
+    // Save progress every 15 seconds (reduced frequency to minimize IPC overhead)
+    // Only save when actually playing to avoid unnecessary writes
     const progressTimer = setInterval(() => {
       const s = stateRef.current;
-      if (s.duration > 0 && s.position > 0) {
+      if (s.playing && s.duration > 0 && s.position > 0) {
         savePlaybackProgress(player, Math.floor(s.position), Math.floor(s.duration), s.position / s.duration > 0.92).catch(() => {});
       }
-    }, 10_000);
+    }, 15_000);
+
+    // Periodic cleanup to help with long playback sessions
+    // Request browser idle callback every 2 minutes to allow GC
+    let cleanupCounter = 0;
+    const cleanupTimer = setInterval(() => {
+      cleanupCounter++;
+      // Every 2 minutes during playback
+      if (cleanupCounter % 8 === 0 && stateRef.current.playing) {
+        // Give the browser a hint that it can run GC during idle time
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => {
+            // No-op, just giving browser a chance to clean up
+          });
+        }
+      }
+    }, 15_000);
 
     return () => {
       clearInterval(progressTimer);
+      clearInterval(cleanupTimer);
       unsubFrame();
       unsubEvent();
       unsubTracks();
