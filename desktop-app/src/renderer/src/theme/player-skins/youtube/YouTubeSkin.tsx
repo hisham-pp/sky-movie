@@ -68,7 +68,6 @@ function YouTubeControls({
   const [bassBoost,      setBassBoost]    = useState(false);
   const [trebleBoost,    setTrebleBoost]  = useState(false);
   // AI enhance state
-  const [showAiPanel,    setShowAiPanel]  = useState(false);
   const [aiVideoOn,      setAiVideoOn]    = useState(false);
   const [aiAudioOn,      setAiAudioOn]    = useState(false);
   const [aiSharpness,    setAiSharpness]  = useState(55);  // 0-100 → 0-1
@@ -635,7 +634,7 @@ function YouTubeControls({
       )}
 
       {/* ── AI Enhance panel ─────────────────────────────────────────────────── */}
-      {showAiPanel && (
+      {showMenu === 'aiEnhance' && (
         <div
           className="yt-ai-panel"
           onClick={e => e.stopPropagation()}
@@ -788,11 +787,10 @@ function YouTubeControls({
 
               <Tooltip content="AI Enhance">
                 <button
-                  className={`yt-btn${showAiPanel ? ' active' : (aiVideoOn || aiAudioOn) ? ' active' : ''}`}
+                  className={`yt-btn${showMenu === 'aiEnhance' ? ' active' : (aiVideoOn || aiAudioOn) ? ' active' : ''}`}
                   onClick={e => {
                     e.stopPropagation();
-                    setShowAiPanel(v => !v);
-                    if (showMenu === 'settings') onSetShowMenu(null);
+                    onSetShowMenu(showMenu === 'aiEnhance' ? null : 'aiEnhance');
                   }}
                 >
                   <Sparkles size={18} />
@@ -804,7 +802,7 @@ function YouTubeControls({
                   className={`yt-btn${showMenu === 'settings' ? ' active' : ''}`}
                   onClick={e => {
                     e.stopPropagation();
-                    if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); setShowAiPanel(false); }
+                    if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); }
                   }}
                 >
                   <Settings size={18} style={{

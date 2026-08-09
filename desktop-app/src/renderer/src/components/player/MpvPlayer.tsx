@@ -76,7 +76,7 @@ export function MpvPlayer({
   const [showControls, setShowCtrl]  = useState(true);
   const [seekOsd,      setSeekOsd]   = useState(false);
   const [isFullscreen, setFullscr]   = useState(false);
-  const [showMenu,     setShowMenu]  = useState<'settings' | null>(null);
+  const [showMenu,     setShowMenu]  = useState<'settings' | 'aiEnhance' | null>(null);
   const [error,        setError]     = useState<string | null>(null);
   const [ripple,       setRipple]    = useState<'left' | 'right' | null>(null);
   const [trackOsd,     setTrackOsd]  = useState<string | null>(null);

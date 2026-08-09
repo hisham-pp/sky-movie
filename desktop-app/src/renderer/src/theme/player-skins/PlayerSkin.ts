@@ -52,7 +52,7 @@ export interface SkinControlsProps {
   isVisible: boolean;
   seekOsdVisible: boolean;
   isFullscreen: boolean;
-  showMenu: 'settings' | null;
+  showMenu: 'settings' | 'aiEnhance' | null;
   sidecarSubtitles: SkinSidecar[];
   onTogglePlay(): void;
   onToggleMute(): void;
@@ -63,7 +63,7 @@ export interface SkinControlsProps {
   onSetAudioTrack(id: number): void;
   onSetSubTrack(id: number): void;
   onSetSubFile(path: string): void;
-  onSetShowMenu(m: 'settings' | null): void;
+  onSetShowMenu(m: 'settings' | 'aiEnhance' | null): void;
   onSeekBarDown(e: ReactPointerEvent<HTMLDivElement>): void;
   onSeekBarMove(e: ReactPointerEvent<HTMLDivElement>): void;
   onSeekBarUp(e: ReactPointerEvent<HTMLDivElement>): void;

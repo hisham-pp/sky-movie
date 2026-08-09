@@ -66,7 +66,6 @@ function DefaultControls({
     compressor: DynamicsCompressorNode;
   } | null>(null);
   // AI enhance state
-  const [showAiPanel,    setShowAiPanel]  = useState(false);
   const [aiVideoOn,      setAiVideoOn]    = useState(false);
   const [aiAudioOn,      setAiAudioOn]    = useState(false);
   const [aiSharpness,    setAiSharpness]  = useState(55);
@@ -300,7 +299,7 @@ function DefaultControls({
           <div className="default-right">
 
             {/* AI Enhance panel */}
-            {showAiPanel && (
+            {showMenu === 'aiEnhance' && (
               <div
                 className="default-ai-panel"
                 onClick={e => e.stopPropagation()}
@@ -351,7 +350,7 @@ function DefaultControls({
             <Tooltip content="AI Enhance">
               <button
                 className={`default-btn${aiVideoOn || aiAudioOn ? ' default-btn-active' : ''}`}
-                onClick={e => { e.stopPropagation(); setShowAiPanel(v => !v); }}
+                onClick={e => { e.stopPropagation(); onSetShowMenu(showMenu === 'aiEnhance' ? null : 'aiEnhance'); }}
               >
                 <Sparkles size={15} />
               </button>
