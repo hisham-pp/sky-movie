@@ -167,9 +167,6 @@ export const MovieDetailPage = memo(function MovieDetailPage({
         
         {files.length > 0 && (
           <section className="files-section">
-            <div className="section-title">
-              <h2>Files</h2>
-            </div>
             <div className="movie-files-grid">
               {files.map((file) => (
                 <div key={file.id} className="movie-file-card">
