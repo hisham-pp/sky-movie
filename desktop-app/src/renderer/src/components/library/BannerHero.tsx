@@ -2,7 +2,6 @@ import { memo } from 'react';
 import { ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
-import { PlayerPanel } from '../player/PlayerPanel';
 import { Tooltip } from '../common';
 
 export const BannerHero = memo(function BannerHero({
@@ -54,11 +53,6 @@ export const BannerHero = memo(function BannerHero({
         </div>
       </div>
       {indicators}
-      {player && (
-        <div className="hero-player">
-          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-        </div>
-      )}
     </div>
   );
 });

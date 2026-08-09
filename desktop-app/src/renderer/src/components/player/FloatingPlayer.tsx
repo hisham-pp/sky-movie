@@ -14,7 +14,7 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   onClose,
   onExpand
 }: FloatingPlayerProps) {
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState({ x: window.innerWidth - 520, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const playerRef = useRef<HTMLDivElement>(null);
