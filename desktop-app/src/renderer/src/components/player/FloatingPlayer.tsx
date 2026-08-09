@@ -1,7 +1,9 @@
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
-import { X, Maximize2, Play } from 'lucide-react';
+import { X, Maximize2 } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
 import { Tooltip } from '../common';
+import { MpvPlayer } from './MpvPlayer';
+import { useLibraryControllerContext } from '../../hooks/LibraryControllerContext';
 
 interface FloatingPlayerProps {
   player: PlayMediaResult | null;
@@ -14,6 +16,9 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   onClose,
   onExpand
 }: FloatingPlayerProps) {
+  const { settings } = useLibraryControllerContext();
+  const playerStyle = settings?.playerStyle ?? 'default';
+  const resumePlayback = settings?.resumePlayback ?? true;
   const [position, setPosition] = useState({ x: window.innerWidth - 520, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -43,11 +48,15 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   }, []);
 
   const handleFullscreen = useCallback(() => {
-    // TODO: Implement fullscreen functionality
-    if (onExpand) {
-      onExpand();
+    const videoContainer = playerRef.current;
+    if (!videoContainer) return;
+    
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      videoContainer.requestFullscreen().catch(() => {});
     }
-  }, [onExpand]);
+  }, []);
 
   useEffect(() => {
     if (isDragging) {
@@ -127,10 +136,12 @@ export const FloatingPlayer = memo(function FloatingPlayer({
 
       {/* Video area */}
       <div className="floating-player-video">
-        {/* TODO: Integrate actual video player */}
-        <div className="floating-player-placeholder">
-          <Play size={48} />
-        </div>
+        <MpvPlayer 
+          player={player} 
+          playerStyle={playerStyle} 
+          resumePlayback={resumePlayback}
+          onEnded={onClose}
+        />
       </div>
     </div>
   );

@@ -311,6 +311,11 @@ export function useLibraryController() {
     setStatus(`Playing ${result.title}`);
   }
 
+  function stopPlayer() {
+    setPlayer(null);
+    setStatus('Stopped playback');
+  }
+
   /**
    * Advance to the next episode of the selected show after the current file
    * finishes. Episodes are ordered season/episode; episodes without a local
@@ -1001,6 +1006,7 @@ export function useLibraryController() {
     backToLibrary,
     play,
     playById,
+    stopPlayer,
     playNextEpisode,
     playPlaylist,
     advancePlayback,

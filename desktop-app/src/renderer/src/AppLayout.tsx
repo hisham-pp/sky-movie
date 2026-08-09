@@ -157,8 +157,8 @@ function AppLayoutInner() {
 
   const handleCloseFloatingPlayer = useCallback(() => {
     setShowFloatingPlayer(false);
-    // TODO: Stop playback
-  }, []);
+    library.stopPlayer();
+  }, [library]);
 
   const handleExpandFloatingPlayer = useCallback(() => {
     setShowFloatingPlayer(false);
