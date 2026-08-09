@@ -1,10 +1,11 @@
 import { memo, useMemo, useState, useCallback } from 'react';
-import { ArrowLeft, Heart, Play, Tv2, ListMusic } from 'lucide-react';
+import { ArrowLeft, Heart, Play, Tv2, ListMusic, Search } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
 import { PlayerPanel } from '../player/PlayerPanel';
-import { MetadataTools } from './MetadataTools';
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
+import { MetadataSearchDialog } from './MetadataSearchDialog';
+import { MediaOptionsMenu } from './MediaOptionsMenu';
 import { Button, Tooltip } from '../common';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
@@ -51,6 +52,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
   onToggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean): void;
 }) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [showMetadataDialog, setShowMetadataDialog] = useState(false);
 
   const seasons = useMemo(() => groupEpisodesBySeason(episodes), [episodes]);
 
@@ -80,6 +82,13 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
     setShowPlaylistDialog(false);
   }, [onAddToPlaylist, show.id]);
 
+  const handleOpenMetadataDialog = useCallback(() => setShowMetadataDialog(true), []);
+  const handleCloseMetadataDialog = useCallback(() => setShowMetadataDialog(false), []);
+
+  const handleDeleteFiles = useCallback((filesToDelete: MediaFile[]) => {
+    filesToDelete.forEach(file => onDeleteFile(file));
+  }, [onDeleteFile]);
+
   return (
     <section className="media-detail-page series-detail-page">
       {show.backdropPath ? <img className="detail-backdrop" src={show.backdropPath} alt={show.title} /> : null}
@@ -90,66 +99,83 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
         </button>
 
         <div className="movie-detail-layout">
-          <div className="detail-poster">
-            {show.posterPath ? <img src={show.posterPath} alt={show.title} /> : <Tv2 size={38} />}
+          <div className="detail-poster-section">
+            <div className="detail-poster">
+              {show.posterPath ? <img src={show.posterPath} alt={show.title} /> : <Tv2 size={38} />}
+            </div>
+            <div className="detail-actions">
+              {files.length > 0 ? (
+                <Button
+                  variant="primary"
+                  size="small"
+                  icon={<Play size={14} />}
+                  onClick={() => onPlay(files[0])}
+                  disabled={busy}
+                />
+              ) : (
+                <Button
+                  variant="primary"
+                  size="small"
+                  icon={<Play size={14} />}
+                  disabled
+                />
+              )}
+              <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  icon={<ListMusic size={14} />}
+                  onClick={handleOpenPlaylistDialog}
+                  disabled={busy || playlists.length === 0}
+                />
+              </Tooltip>
+              <Tooltip content={show.favorite ? 'Remove from favorites' : 'Add to favorites'}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  icon={<Heart size={14} fill={show.favorite ? 'currentColor' : 'none'} />}
+                  onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
+                  disabled={busy}
+                  className={show.favorite ? 'favorite-active' : ''}
+                />
+              </Tooltip>
+              <Tooltip content="Search metadata">
+                <Button
+                  variant="secondary"
+                  size="small"
+                  icon={<Search size={14} />}
+                  onClick={handleOpenMetadataDialog}
+                  disabled={busy}
+                />
+              </Tooltip>
+              <MediaOptionsMenu
+                files={files}
+                onDeleteFiles={handleDeleteFiles}
+                onShowInFolder={onShowInFolder}
+              />
+            </div>
           </div>
           <div className="detail-copy">
-            <div className="detail-title-row">
-              <h2>{show.title}</h2>
-              <Tooltip content={show.favorite ? 'Remove from favorites' : 'Add to favorites'}>
-                <button
-                  className={`detail-fav-btn${show.favorite ? ' active' : ''}`}
-                  aria-label={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
-                  onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
-                >
-                  <Heart size={18} fill={show.favorite ? 'currentColor' : 'none'} />
-                </button>
-              </Tooltip>
-            </div>
+            <h2>{show.title}</h2>
             <div className="hero-chips">
               {meta.map((item) => (
                 <span key={String(item)}>{item}</span>
               ))}
             </div>
             <p className="detail-overview">{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
-            <div className="detail-actions">
-              {files.length > 0 ? (
-                <Button
-                  variant="primary"
-                  size="medium"
-                  icon={<Play size={16} />}
-                  onClick={() => onPlay(files[0])}
-                  disabled={busy}
-                >
-                  {playingFile ? 'Playing' : 'Play Episode'}
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="medium"
-                  icon={<Play size={16} />}
-                  disabled
-                >
-                  No Files Available
-                </Button>
-              )}
-              <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
-                <Button
-                  variant="secondary"
-                  size="medium"
-                  icon={<ListMusic size={16} />}
-                  onClick={handleOpenPlaylistDialog}
-                  disabled={busy || playlists.length === 0}
-                >
-                  Add to Playlist
-                </Button>
-              </Tooltip>
-            </div>
           </div>
         </div>
       </div>
 
       <div className="series-detail-content">
+        <section className="detail-card player-card">
+          <div className="section-title">
+            <h2>Playback</h2>
+            <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
+          </div>
+          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
+        </section>
+
         <section className="detail-card episodes-card">
           <div className="section-title">
             <h2>Episodes</h2>
@@ -203,28 +229,6 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             </div>
           )}
         </section>
-
-        <section className="detail-card player-card">
-          <div className="section-title">
-            <h2>Playback</h2>
-            <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
-          </div>
-          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-        </section>
-
-        <section className="detail-card metadata-card">
-          <MetadataTools
-            label="Series metadata"
-            overview={show.overview}
-            meta={meta}
-            metadataQuery={metadataQuery}
-            metadataResults={metadataResults}
-            busy={busy}
-            onMetadataQueryChange={onMetadataQueryChange}
-            onSearchMetadata={onSearchMetadata}
-            onApplyMetadata={onApplyMetadata}
-          />
-        </section>
       </div>
 
       {showPlaylistDialog && (
@@ -232,6 +236,19 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
           playlists={playlists}
           onSelect={handleSelectPlaylist}
           onClose={handleClosePlaylistDialog}
+        />
+      )}
+
+      {showMetadataDialog && (
+        <MetadataSearchDialog
+          title={show.title}
+          metadataQuery={metadataQuery}
+          metadataResults={metadataResults}
+          busy={busy}
+          onMetadataQueryChange={onMetadataQueryChange}
+          onSearchMetadata={onSearchMetadata}
+          onApplyMetadata={onApplyMetadata}
+          onClose={handleCloseMetadataDialog}
         />
       )}
     </section>

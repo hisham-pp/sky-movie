@@ -131,8 +131,21 @@
     justify-self: start;
   }
 
+  .detail-poster-section {
+    gap: 12px;
+  }
+
+  .detail-poster-section .detail-actions {
+    width: 140px;
+    gap: 6px;
+  }
+
+  .detail-poster-section .detail-actions .btn {
+    padding: 6px;
+  }
+
   .movie-detail-layout {
-    grid-template-columns: 140px minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 24px;
   }
 
