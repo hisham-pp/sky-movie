@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback } from 'react';
+import { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { ArrowLeft, Heart, Play, Tv2, ListMusic, Search } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
@@ -52,6 +52,8 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
 }) {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [showMetadataDialog, setShowMetadataDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const episodeGridRef = useRef<HTMLDivElement>(null);
 
   const seasons = useMemo(() => groupEpisodesBySeason(episodes), [episodes]);
 
@@ -68,6 +70,37 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
     });
     return map;
   }, [files, episodes]);
+
+  // Calculate number of pages based on visible episodes
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(episodes.length / itemsPerPage);
+
+  // Handle scroll to update current page indicator
+  useEffect(() => {
+    const grid = episodeGridRef.current;
+    if (!grid) return;
+
+    const handleScroll = () => {
+      const scrollLeft = grid.scrollLeft;
+      const itemWidth = 300 + 16; // card width + gap
+      const page = Math.round(scrollLeft / (itemWidth * itemsPerPage));
+      setCurrentPage(page);
+    };
+
+    grid.addEventListener('scroll', handleScroll);
+    return () => grid.removeEventListener('scroll', handleScroll);
+  }, [itemsPerPage]);
+
+  const scrollToPage = useCallback((page: number) => {
+    const grid = episodeGridRef.current;
+    if (!grid) return;
+    const itemWidth = 300 + 16;
+    grid.scrollTo({
+      left: page * itemWidth * itemsPerPage,
+      behavior: 'smooth'
+    });
+    setCurrentPage(page);
+  }, [itemsPerPage]);
 
   const meta = useMemo(
     () => [show.firstAirYear ?? 'Unknown year', show.rating ? `${show.rating.toFixed(1)} rating` : null],
@@ -161,6 +194,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
                 <span key={String(item)}>{item}</span>
               ))}
             </div>
+            <p className="detail-subtitle">{episodes.length} episode{episodes.length === 1 ? '' : 's'}</p>
             <p className="detail-overview">{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
           </div>
         </div>
@@ -169,51 +203,55 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
       <div className="series-detail-content">
         {/* Player section removed - using floating player instead */}
 
-        <section className="detail-card episodes-card">
+        <section className="episodes-section">
           <div className="section-title">
             <h2>Episodes</h2>
-            <span className="section-badge">{seasons.length ? `${seasons.length} season${seasons.length === 1 ? '' : 's'}` : 'No episodes'}</span>
+            {totalPages > 1 && (
+              <div className="episode-scroll-indicators">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    className={`episode-scroll-dot ${i === currentPage ? 'active' : ''}`}
+                    onClick={() => scrollToPage(i)}
+                    aria-label={`Go to page ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-          {seasons.length ? (
-            <div className="season-list">
-              {seasons.map((season: { seasonNumber: number; episodes: Episode[] }) => (
-                <section key={season.seasonNumber} className="season-section">
-                  <h3>Season {season.seasonNumber}</h3>
-                  <div className="episode-grid">
-                    {season.episodes.map((episode: Episode) => {
-                      const episodeFile = episodeFileMap.get(episode.id);
-                      return (
-                        <div key={episode.id} className="episode-card">
-                          <div 
-                            className="episode-thumbnail"
-                            style={{
-                              backgroundImage: episode.stillPath ? `url(${episode.stillPath})` : 'none'
-                            }}
-                          >
-                            {episodeFile && (
-                              <button
-                                className="episode-play-overlay"
-                                onClick={() => onPlay(episodeFile)}
-                                title={`Play: ${episode.title || `Episode ${episode.episodeNumber}`}`}
-                              >
-                                <Play size={24} />
-                              </button>
-                            )}
-                            <span className="episode-number">
-                              {episode.episodeNumber}
-                            </span>
-                          </div>
-                          <div className="episode-info">
-                            <span className="episode-label">Episode {episode.episodeNumber}</span>
-                            <strong>{episode.title ?? `Episode ${episode.episodeNumber}`}</strong>
-                            <small>{episode.runtimeMinutes ? `${episode.runtimeMinutes}m` : ''}</small>
-                          </div>
-                        </div>
-                      );
-                    })}
+          {episodes.length > 0 ? (
+            <div className="episode-grid" ref={episodeGridRef}>
+              {episodes.map((episode: Episode) => {
+                const episodeFile = episodeFileMap.get(episode.id);
+                return (
+                  <div key={episode.id} className="episode-card">
+                    <div 
+                      className="episode-thumbnail"
+                      style={{
+                        backgroundImage: episode.stillPath ? `url(${episode.stillPath})` : 'none'
+                      }}
+                    >
+                      {episodeFile && (
+                        <button
+                          className="episode-play-overlay"
+                          onClick={() => onPlay(episodeFile)}
+                          title={`Play: ${episode.title || `S${episode.seasonNumber}E${episode.episodeNumber}`}`}
+                        >
+                          <Play size={24} />
+                        </button>
+                      )}
+                      <span className="episode-number">
+                        S{episode.seasonNumber}E{episode.episodeNumber}
+                      </span>
+                    </div>
+                    <div className="episode-info">
+                      <span className="episode-label">Season {episode.seasonNumber} · Episode {episode.episodeNumber}</span>
+                      <strong>{episode.title ?? `Episode ${episode.episodeNumber}`}</strong>
+                      <small>{episode.runtimeMinutes ? `${episode.runtimeMinutes}m` : ''}</small>
+                    </div>
                   </div>
-                </section>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="detail-empty">

@@ -57,8 +57,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
     movie.releaseYear ? `${movie.releaseYear}` : 'Unknown year',
     movie.runtimeMinutes ? `${movie.runtimeMinutes} min` : null,
     movie.rating ? `${movie.rating.toFixed(1)} rating` : null,
-    `${files.length} local file${files.length === 1 ? '' : 's'}`,
-  ].filter(Boolean), [movie.releaseYear, movie.runtimeMinutes, movie.rating, files.length]);
+  ].filter(Boolean), [movie.releaseYear, movie.runtimeMinutes, movie.rating]);
 
   const handleOpenPlaylistDialog = useCallback(() => setShowPlaylistDialog(true), []);
   const handleClosePlaylistDialog = useCallback(() => setShowPlaylistDialog(false), []);
@@ -146,6 +145,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
           </div>
           <div className="detail-copy">
             <h2>{movie.title}</h2>
+            <p className="detail-subtitle">{files.length} local file{files.length === 1 ? '' : 's'}</p>
             <div className="hero-chips">
               {meta.map((item) => (
                 <span key={String(item)}>{item}</span>
@@ -158,6 +158,38 @@ export const MovieDetailPage = memo(function MovieDetailPage({
 
       <div className="movie-detail-content">
         {/* Player section removed - using floating player instead */}
+        
+        {files.length > 0 && (
+          <section className="files-section">
+            <div className="section-title">
+              <h2>Files</h2>
+            </div>
+            <div className="movie-files-grid">
+              {files.map((file) => (
+                <div key={file.id} className="movie-file-card">
+                  <div 
+                    className="movie-file-thumbnail"
+                    style={{
+                      backgroundImage: movie.backdropPath ? `url(${movie.backdropPath})` : 'none'
+                    }}
+                  >
+                    <button
+                      className="movie-file-play-overlay"
+                      onClick={() => onPlay(file)}
+                      title={`Play: ${file.fileName}`}
+                    >
+                      <Play size={32} />
+                    </button>
+                  </div>
+                  <div className="movie-file-info">
+                    <strong>{file.fileName}</strong>
+                    <small>{file.fileSize ? `${(file.fileSize / (1024 * 1024 * 1024)).toFixed(2)} GB` : ''}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {showPlaylistDialog && (
