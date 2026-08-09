@@ -241,7 +241,8 @@ function getReleaseChanges(manifest, version, sourceCommit) {
   const previousRelease = (manifest.releases ?? []).find((release) => release.version !== version && release.sourceCommit?.sha);
   if (previousRelease?.sourceCommit?.sha) {
     try {
-      const logOutput = runGit(['log', '--pretty=format:%s', `${previousRelease.sourceCommit.sha}..${sourceCommit.sha}`]).trim();
+      // Use ^! to exclude the previous release commit itself, only get commits after it
+      const logOutput = runGit(['log', '--pretty=format:%s', `${previousRelease.sourceCommit.sha}^..${sourceCommit.sha}`]).trim();
       const changes = logOutput
         .split(/\r?\n/)
         .map((line) => line.trim())

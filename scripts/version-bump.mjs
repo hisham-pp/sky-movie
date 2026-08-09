@@ -308,8 +308,8 @@ function getCommitsSinceLastVersion(version) {
   let gitRange = 'HEAD';
   
   if (result.status === 0 && result.stdout.trim()) {
-    // Tag exists, get commits since that tag
-    gitRange = `v${version}..HEAD`;
+    // Tag exists, get commits since that tag (excluding the tag commit itself)
+    gitRange = `v${version}^..HEAD`;
   } else {
     // No tag found, try to get last N commits
     gitRange = 'HEAD~10..HEAD';
@@ -329,6 +329,11 @@ function getCommitsSinceLastVersion(version) {
     .trim()
     .split('\n')
     .filter(line => line.trim())
+    .filter(line => {
+      // Also filter out any release commits
+      const message = line.split('|')[0].toLowerCase();
+      return !message.startsWith('chore: release') && !message.startsWith('chore(release)');
+    })
     .map(line => {
       const [message, author] = line.split('|');
       return { 
