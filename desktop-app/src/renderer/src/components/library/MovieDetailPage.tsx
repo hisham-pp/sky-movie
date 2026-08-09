@@ -2,7 +2,6 @@ import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Clapperboard, Heart, Play, ListMusic } from 'lucide-react';
 import type { Episode, MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
 import { PlayerPanel } from '../player/PlayerPanel';
-import { FileList } from './FileList';
 import { MetadataTools } from './MetadataTools';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { Button, Tooltip } from '../common';
@@ -81,7 +80,6 @@ export const MovieDetailPage = memo(function MovieDetailPage({
             {movie.posterPath ? <img src={movie.posterPath} alt={movie.title} /> : <Clapperboard size={38} />}
           </div>
           <div className="detail-copy">
-            <span className="detail-kicker">Movie Detail</span>
             <div className="detail-title-row">
               <h2>{movie.title}</h2>
               <Tooltip content={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}>
@@ -137,25 +135,16 @@ export const MovieDetailPage = memo(function MovieDetailPage({
         </div>
       </div>
 
-      <div className="movie-detail-grid">
-        <div className="detail-main-stack">
-          <section className="detail-card player-card">
-            <div className="section-title">
-              <h2>Playback</h2>
-              <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
-            </div>
-            <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-          </section>
-          <FileList 
-            files={files} 
-            emptyLabel="No local movie files found for this title." 
-            onPlay={onPlay} 
-            onDelete={onDeleteFile} 
-            onShowInFolder={onShowInFolder} 
-          />
-        </div>
+      <div className="movie-detail-content">
+        <section className="detail-card player-card">
+          <div className="section-title">
+            <h2>Playback</h2>
+            <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
+          </div>
+          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
+        </section>
 
-        <aside className="detail-side-stack">
+        <section className="detail-card metadata-card">
           <MetadataTools
             label="Movie metadata"
             overview={movie.overview}
@@ -167,7 +156,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
             onSearchMetadata={onSearchMetadata}
             onApplyMetadata={onApplyMetadata}
           />
-        </aside>
+        </section>
       </div>
 
       {showPlaylistDialog && (
