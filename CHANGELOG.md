@@ -5,6 +5,18 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2026-08-09
+
+### Added
+
+- unify AI panel state management with menu system (Hisham)
+- remove scroll wheel volume control (Hisham)
+
+### Other
+
+- style(player): improve player container layout and responsive sizing (Hisham)
+- chore(scripts): fix git log range to exclude previous release commits (Hisham)
+
 ## [0.9.4] - 2026-08-09
 
 ### Added
@@ -952,3 +964,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.2
 [0.9.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.3
 [0.9.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.4
+[0.9.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.5
