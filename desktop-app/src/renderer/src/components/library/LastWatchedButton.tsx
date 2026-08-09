@@ -2,6 +2,7 @@ import * as queries from '@renderer/queries';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import type { LastWatchedInfo } from '@shared/ipc';
 import { formatPosition } from '../../utils/dateUtils';
+import { Tooltip } from '../common';
 
 interface LastWatchedButtonProps {
   onPlay: (info: LastWatchedInfo) => void;
@@ -12,7 +13,6 @@ interface LastWatchedButtonProps {
 export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activeMediaFileId }: LastWatchedButtonProps) {
   const [info, setInfo] = useState<LastWatchedInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -44,8 +44,6 @@ export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activ
   }, [info, onPlay]);
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
-  const handleMouseEnter = useCallback(() => setHovered(true), []);
-  const handleMouseLeave = useCallback(() => setHovered(false), []);
 
   const progress = useMemo(
     () => (info && info.durationSeconds > 0 ? (info.positionSeconds / info.durationSeconds) * 100 : 0),
@@ -56,33 +54,33 @@ export const LastWatchedButton = memo(function LastWatchedButton({ onPlay, activ
   if (!info || dismissed || activeMediaFileId === info.mediaFileId) return null;
 
   const resumeLabel = info.completed ? 'Play Again' : `Resume at ${formatPosition(info.positionSeconds)}`;
+  const tooltipContent = (
+    <>
+      <div>{resumeLabel} — {info.title}</div>
+      <div style={{ fontSize: '10px', opacity: 0.7, marginTop: '2px' }}>Ctrl + L</div>
+    </>
+  );
 
   return (
-    <div
-      className="last-watched-fab"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="last-watched-fab">
       <button className="last-watched-dismiss" onClick={handleDismiss} title="Dismiss">
         ×
       </button>
 
-      <button className="last-watched-body" onClick={handlePlay} title={`${resumeLabel} — ${info.title}`}>
-        <div className="last-watched-icon">▶</div>
-        <div className="last-watched-text">
-          <span className="last-watched-action">{resumeLabel}</span>
-          <span className="last-watched-title">{info.title}</span>
-          {!info.completed && (
-            <div className="last-watched-bar">
-              <div className="last-watched-fill" style={{ width: `${progress}%` }} />
-            </div>
-          )}
-        </div>
-      </button>
-
-      {hovered && (
-        <div className="last-watched-hint">Ctrl + L</div>
-      )}
+      <Tooltip content={tooltipContent} placement="left">
+        <button className="last-watched-body" onClick={handlePlay}>
+          <div className="last-watched-icon">▶</div>
+          <div className="last-watched-text">
+            <span className="last-watched-action">{resumeLabel}</span>
+            <span className="last-watched-title">{info.title}</span>
+            {!info.completed && (
+              <div className="last-watched-bar">
+                <div className="last-watched-fill" style={{ width: `${progress}%` }} />
+              </div>
+            )}
+          </div>
+        </button>
+      </Tooltip>
     </div>
   );
 });
