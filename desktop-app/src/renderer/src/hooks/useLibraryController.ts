@@ -227,7 +227,7 @@ export function useLibraryController() {
     setPlayer(null);
   }
 
-  async function selectMovie(movie: Movie, playFileId?: number): Promise<boolean> {
+  async function selectMovie(movie: Movie, playFileId?: number, autoPlay = true): Promise<boolean> {
     if (!queueNavigationRef.current) playlistQueueRef.current = null;
     const details = await queries.getMovieById(movie.id);
     const selected = details.item ?? movie;
@@ -238,12 +238,13 @@ export function useLibraryController() {
     setSelectedFiles(details.files);
     setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
     setMetadataResults([]);
-    
+
     // Clear player when selecting a different movie
     setPlayer(null);
-    
-    // Auto-play the requested file, or the first one available
-    if (details.files.length > 0) {
+
+    // Auto-play only for explicit playback actions. Opening a detail view should
+    // preserve the selected item without immediately starting the movie.
+    if (autoPlay && details.files.length > 0) {
       const targetFile =
         (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
         details.files[0];
@@ -256,10 +257,10 @@ export function useLibraryController() {
   }
 
   async function viewMovieDetails(movie: Movie) {
-    await selectMovie(movie);
+    await selectMovie(movie, undefined, false);
   }
 
-  async function selectShow(show: TvShow, playFileId?: number): Promise<boolean> {
+  async function selectShow(show: TvShow, playFileId?: number, autoPlay = true): Promise<boolean> {
     if (!queueNavigationRef.current) playlistQueueRef.current = null;
     const details = await queries.getShowById(show.id);
     const selected = details.item ?? show;
@@ -270,14 +271,13 @@ export function useLibraryController() {
     setSelectedFiles(details.files);
     setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
     setMetadataResults([]);
-    
+
     // Clear player when selecting a different show
     setPlayer(null);
 
-    // Auto-play the requested file if given, else resume from watch history
-    // (partially watched episode, or the next unwatched one), else first
-    // episode (S01E01) or first file
-    if (details.files.length > 0) {
+    // Auto-play only for explicit playback actions. Opening a detail view should
+    // not start a show until the user chooses to play it.
+    if (autoPlay && details.files.length > 0) {
       const requestedFile =
         playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
       const resumeFile =
@@ -296,7 +296,7 @@ export function useLibraryController() {
   }
 
   async function viewShowDetails(show: TvShow) {
-    await selectShow(show);
+    await selectShow(show, undefined, false);
   }
 
   async function play(file: MediaFile) {

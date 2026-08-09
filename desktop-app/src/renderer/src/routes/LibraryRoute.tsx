@@ -41,13 +41,13 @@ export function LibraryRoute(props: LibraryRouteProps) {
 
   const handleViewMovieDetails = useCallback(async (movie: any) => {
     clickSelectedRef.current = { view: 'movies', id: movie.id };
-    await library.selectMovie(movie);
+    await library.selectMovie(movie, undefined, false);
     navigate(`/movies/${movie.id}`);
   }, [library, navigate]);
 
   const handleViewShowDetails = useCallback(async (show: any) => {
     clickSelectedRef.current = { view: 'shows', id: show.id };
-    await library.selectShow(show);
+    await library.selectShow(show, undefined, false);
     navigate(`/shows/${show.id}`);
   }, [library, navigate]);
 
