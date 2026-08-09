@@ -354,14 +354,16 @@ function YouTubeControls({
                   </span>
                 </button>
 
-                <button className="yt-settings-item" onClick={() => setPage('sub')}>
-                  <span className="yt-settings-item-icon"><Captions size={17} /></span>
-                  <span className="yt-settings-item-label">Subtitles/CC</span>
-                  <span className="yt-settings-item-value">
-                    {subLabel}
-                    <ChevronRight size={14} />
-                  </span>
-                </button>
+                {(subTracks.length > 0 || sidecarSubtitles.length > 0) && (
+                  <button className="yt-settings-item" onClick={() => setPage('sub')}>
+                    <span className="yt-settings-item-icon"><Captions size={17} /></span>
+                    <span className="yt-settings-item-label">Subtitles/CC</span>
+                    <span className="yt-settings-item-value">
+                      {subLabel}
+                      <ChevronRight size={14} />
+                    </span>
+                  </button>
+                )}
 
                 <button className="yt-settings-item" onClick={() => setPage('sleep')}>
                   <span className="yt-settings-item-icon"><Moon size={17} /></span>
@@ -779,14 +781,16 @@ function YouTubeControls({
           {/* Right: CC · AI enhance · settings · fullscreen in single pill */}
           <div className="yt-right">
             <div className="yt-pill">
-              <Tooltip content={selectedSid !== null ? 'Subtitles on' : 'Subtitles off'}>
-                <button
-                  className={`yt-btn${selectedSid !== null ? ' active' : ''}`}
-                  onClick={e => { e.stopPropagation(); toggleSubtitles(); }}
-                >
-                  <Captions size={20} />
-                </button>
-              </Tooltip>
+              {(subTracks.length > 0 || sidecarSubtitles.length > 0) && (
+                <Tooltip content={selectedSid !== null ? 'Subtitles on' : 'Subtitles off'}>
+                  <button
+                    className={`yt-btn${selectedSid !== null ? ' active' : ''}`}
+                    onClick={e => { e.stopPropagation(); toggleSubtitles(); }}
+                  >
+                    <Captions size={20} />
+                  </button>
+                </Tooltip>
+              )}
 
               <Tooltip content="AI Enhance">
                 <button
