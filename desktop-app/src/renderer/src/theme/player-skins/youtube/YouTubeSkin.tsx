@@ -8,6 +8,7 @@ import {
   Settings, Captions,
   ChevronRight, ChevronLeft,
   Check, Moon, Gauge, SlidersHorizontal, Sparkles,
+  X,
 } from 'lucide-react';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
@@ -45,10 +46,11 @@ function YouTubeControls({
   keyMap: PlayerKeyMap;
 }) {
   const {
-    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles, bufferProgress,
+    state, tracks, isVisible, seekOsdVisible, isFullscreen, isFloating, showMenu, sidecarSubtitles, bufferProgress,
     onTogglePlay, onToggleMute, onChangeVolume, onToggleFullscreen,
     onSetSpeed, onSetAudioTrack, onSetSubTrack, onSetSubFile,
     onSetShowMenu, onSeekBarDown, onSeekBarMove, onSeekBarUp,
+    onFloatingExpand, onFloatingClose,
   } = props;
 
   const [volExpanded,    setVolExpand]    = useState(false);
@@ -704,6 +706,31 @@ function YouTubeControls({
         </div>
       )}
 
+      {/* Floating mode buttons (expand + close) - outside controls overlay */}
+      {isFloating && onFloatingExpand && onFloatingClose && (
+        <div className="yt-floating-controls">
+          <Tooltip content="Expand">
+            <button
+              className="yt-btn"
+              onClick={e => { e.stopPropagation(); onFloatingExpand(); }}
+              aria-label="Expand to fullscreen"
+            >
+              <Maximize size={18} />
+            </button>
+          </Tooltip>
+          <Tooltip content="Close">
+            <button
+              className="yt-btn"
+              onClick={e => { e.stopPropagation(); onFloatingClose(); }}
+              aria-label="Close player"
+              style={{ color: '#ef4444' }}
+            >
+              <X size={18} />
+            </button>
+          </Tooltip>
+        </div>
+      )}
+
       {/* ── Controls overlay ─────────────────────────────────────────────────── */}
       <div className={`yt-controls${isVisible ? ' visible' : ''}`}>
 
@@ -724,20 +751,21 @@ function YouTubeControls({
           </div>
         </div>
 
-        {/* Bottom row */}
-        <div className="yt-bottom">
+        {/* Bottom row - hidden when floating */}
+        {!isFloating && (
+          <div className="yt-bottom">
 
-          {/* Left: play pill · volume pill · time */}
-          <div className="yt-left">
-            <div className="yt-pill">
-              <Tooltip content={state.playing ? 'Pause (k)' : 'Play (k)'}>
-                <button className="yt-btn"
-                  onClick={e => { e.stopPropagation(); onTogglePlay(); }}>
-                  {state.playing
-                  ? <Pause size={20} fill="currentColor" stroke="none" />
-                  : <Play  size={20} fill="currentColor" stroke="none" />}
-              </button>
-              </Tooltip>
+            {/* Left: play pill · volume pill · time */}
+            <div className="yt-left">
+              <div className="yt-pill">
+                <Tooltip content={state.playing ? 'Pause (k)' : 'Play (k)'}>
+                  <button className="yt-btn"
+                    onClick={e => { e.stopPropagation(); onTogglePlay(); }}>
+                    {state.playing
+                    ? <Pause size={20} fill="currentColor" stroke="none" />
+                    : <Play  size={20} fill="currentColor" stroke="none" />}
+                </button>
+                </Tooltip>
             </div>
 
             <div className="yt-pill"
@@ -829,6 +857,7 @@ function YouTubeControls({
           </div>
 
         </div>
+        )}
       </div>
     </>
   );

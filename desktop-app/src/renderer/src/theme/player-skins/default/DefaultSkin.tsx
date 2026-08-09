@@ -6,7 +6,8 @@ import {
   Volume2, VolumeX,
   Maximize, Minimize,
   Settings, Sparkles,
-  RotateCcw, RotateCw
+  RotateCcw, RotateCw,
+  X
 } from 'lucide-react';
 import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
 import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
@@ -38,10 +39,11 @@ function DefaultControls({
   keyMap: PlayerKeyMap;
 }) {
   const {
-    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles, bufferProgress,
+    state, tracks, isVisible, seekOsdVisible, isFullscreen, isFloating, showMenu, sidecarSubtitles, bufferProgress,
     onTogglePlay, onToggleMute, onChangeVolume, onToggleFullscreen,
     onSeekTo, onSetSpeed, onSetAudioTrack, onSetSubTrack, onSetSubFile,
-    onSetShowMenu, onSeekBarDown, onSeekBarMove, onSeekBarUp
+    onSetShowMenu, onSeekBarDown, onSeekBarMove, onSeekBarUp,
+    onFloatingExpand, onFloatingClose,
   } = props;
 
   const [volOsd,      setVolOsd]     = useState(false);
@@ -200,6 +202,30 @@ function DefaultControls({
         </>
       )}
 
+      {/* Floating mode buttons (expand + close) - outside controls overlay */}
+      {isFloating && onFloatingExpand && onFloatingClose && (
+        <div className="default-floating-controls">
+          <Tooltip content="Expand">
+            <button
+              className="default-floating-btn"
+              onClick={onFloatingExpand}
+              aria-label="Expand to fullscreen"
+            >
+              <Maximize size={18} />
+            </button>
+          </Tooltip>
+          <Tooltip content="Close">
+            <button
+              className="default-floating-btn default-floating-close"
+              onClick={onFloatingClose}
+              aria-label="Close player"
+            >
+              <X size={18} />
+            </button>
+          </Tooltip>
+        </div>
+      )}
+
       {/* Controls overlay */}
       <div className={`default-controls${isVisible ? ' visible' : ''}`}>
 
@@ -219,34 +245,35 @@ function DefaultControls({
           </div>
         </div>
 
-        {/* Bottom row */}
-        <div className="default-bottom">
+        {/* Bottom row - hidden when floating */}
+        {!isFloating && (
+          <div className="default-bottom">
 
-          {/* Left: mute · hover-expand volume slider · volume number · boost · time */}
-          <div className="default-left">
-            <div
-              className={`default-volume-group${volExpanded ? ' expanded' : ''}`}
-              onMouseEnter={() => setVolExpand(true)}
-              onMouseLeave={() => setVolExpand(false)}
-            >
-              <Tooltip content="Mute (M)">
-                <button className="default-btn" onClick={onToggleMute}>
-                  {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-              </Tooltip>
-              <div className="default-volume-expand">
-                <input
-                  className="default-volume-slider"
-                  type="range"
-                  min={0}
-                  max={totalMax}
-                  step={1}
-                  value={displayVol}
-                  style={{ '--vol': `${(displayVol / totalMax) * 100}%` } as React.CSSProperties}
-                  onChange={e => onChangeVolume(Number(e.target.value))}
-                />
+            {/* Left: mute · hover-expand volume slider · volume number · boost · time */}
+            <div className="default-left">
+              <div
+                className={`default-volume-group${volExpanded ? ' expanded' : ''}`}
+                onMouseEnter={() => setVolExpand(true)}
+                onMouseLeave={() => setVolExpand(false)}
+              >
+                <Tooltip content="Mute (M)">
+                  <button className="default-btn" onClick={onToggleMute}>
+                    {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  </button>
+                </Tooltip>
+                <div className="default-volume-expand">
+                  <input
+                    className="default-volume-slider"
+                    type="range"
+                    min={0}
+                    max={totalMax}
+                    step={1}
+                    value={displayVol}
+                    style={{ '--vol': `${(displayVol / totalMax) * 100}%` } as React.CSSProperties}
+                    onChange={e => onChangeVolume(Number(e.target.value))}
+                  />
+                </div>
               </div>
-            </div>
 
             {volExpanded && (
               <>
@@ -501,6 +528,7 @@ function DefaultControls({
             </Tooltip>
           </div>
         </div>
+        )}
       </div>
     </>
   );

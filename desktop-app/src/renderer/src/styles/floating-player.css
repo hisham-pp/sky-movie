@@ -1,129 +1,151 @@
-/* Floating Player (Picture-in-Picture) */
+/* Floating Player (Miniplayer) */
 .floating-player {
   position: fixed;
   z-index: 9999;
-  width: 500px;
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-blur-light);
-  -webkit-backdrop-filter: var(--glass-blur-light);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  width: 400px;
+  background: #000;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  transition: all 0.3s var(--ease-spring);
   user-select: none;
   cursor: grab;
-  padding: 16px;
-}
-
-.floating-player * {
-  z-index: 10000;
+  transition: box-shadow 0.2s ease;
 }
 
 .floating-player-dragging {
   cursor: grabbing;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
-  transform: scale(1.02);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
-/* Top overlay controls */
-.floating-player-top-controls {
+/* Expanded (fullscreen) mode */
+.floating-player-expanded {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+  cursor: default;
+}
+
+/* Mini player overlay controls (only visible in mini mode) */
+.mini-player-overlay-controls {
   position: absolute;
-  top: 24px;
-  left: 24px;
-  right: 24px;
+  bottom: 56px;
+  right: 16px;
+  z-index: 10001;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 10;
+  gap: 10px;
   pointer-events: none;
 }
 
-.floating-player-top-controls button {
+.floating-player-expanded .mini-player-overlay-controls {
+  display: none;
+}
+
+.mini-player-overlay-controls button {
   pointer-events: all;
 }
 
-.floating-player-control-btn {
-  display: grid;
-  place-items: center;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: white;
+.mini-player-overlay-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  border-radius: 18px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.floating-player-control-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+.mini-player-overlay-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
 }
 
-.floating-player-control-btn:active {
-  transform: scale(0.95);
+.mini-player-overlay-btn:active {
+  transform: scale(0.97);
 }
 
-.floating-player-close-btn {
-  color: #ef4444;
+.mini-player-overlay-btn svg {
+  flex-shrink: 0;
 }
 
-.floating-player-close-btn:hover {
-  background: rgba(239, 68, 68, 0.85);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: white;
+.mini-player-close-btn {
+  background: rgba(239, 68, 68, 0.15);
 }
 
-/* Video area */
-.floating-player-video {
-  position: relative;
+.mini-player-close-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Ensure MpvPlayer fills the container */
+.floating-player .mpv-player {
   width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* In mini mode, set aspect ratio */
+.floating-player:not(.floating-player-expanded) .mpv-player {
   aspect-ratio: 16 / 9;
-  background: var(--surface-high);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  height: auto;
 }
 
-.floating-player-video .mpv-player {
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-}
-
-.floating-player-placeholder {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  color: var(--primary);
-  opacity: 0.5;
+/* In expanded mode, fill screen */
+.floating-player-expanded .mpv-player {
+  width: 100vw;
+  height: 100vh;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .floating-player {
-    width: 360px;
+  .floating-player:not(.floating-player-expanded) {
+    width: 320px;
+  }
+
+  .mini-player-overlay-btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .mini-player-overlay-btn svg {
+    width: 14px;
+    height: 14px;
   }
 }
 
 @media (max-width: 480px) {
-  .floating-player {
-    width: 300px;
+  .floating-player:not(.floating-player-expanded) {
+    width: 280px;
   }
 
-  .floating-player-top-controls {
-    top: 16px;
-    left: 16px;
-    right: 16px;
+  .mini-player-overlay-controls {
+    bottom: 52px;
+    right: 12px;
+    gap: 8px;
   }
 
-  .floating-player-control-btn {
-    min-width: 32px;
-    min-height: 32px;
+  .mini-player-overlay-btn {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .mini-player-overlay-btn svg {
+    width: 13px;
+    height: 13px;
   }
 }

@@ -610,3 +610,76 @@
   .default-menu,
   .default-ai-panel { max-width: calc(100cqw - 16px); }
 }
+
+/* ── Floating mode controls ───────────────────────────────────────────────── */
+
+.default-floating-controls {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.default-floating-controls > * {
+  pointer-events: auto;
+}
+
+.default-floating-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--control-bg);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
+  border: 1px solid var(--control-border);
+  border-radius: 50%;
+  color: var(--control-fg);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  box-shadow: var(--control-shadow);
+}
+
+.default-floating-btn:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--control-border-hover);
+  transform: scale(1.08);
+}
+
+.default-floating-btn:active {
+  transform: scale(0.95);
+}
+
+.default-floating-close {
+  color: #ef4444;
+}
+
+.default-floating-close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .default-floating-controls {
+    top: 12px;
+    padding: 0 12px;
+  }
+
+  .default-floating-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .default-floating-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}

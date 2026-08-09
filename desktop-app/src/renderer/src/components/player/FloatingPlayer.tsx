@@ -1,7 +1,6 @@
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
-import { X, Maximize2 } from 'lucide-react';
+import { X, Maximize2, Minimize2 } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
-import { Tooltip } from '../common';
 import { MpvPlayer } from './MpvPlayer';
 import { useLibraryControllerContext } from '../../hooks/LibraryControllerContext';
 
@@ -19,16 +18,19 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   const { settings } = useLibraryControllerContext();
   const playerStyle = settings?.playerStyle ?? 'default';
   const resumePlayback = settings?.resumePlayback ?? true;
-  const [position, setPosition] = useState({ x: window.innerWidth - 520, y: 20 });
+  const [position, setPosition] = useState({ x: window.innerWidth - 420, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const playerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Don't start dragging if clicking on controls or the video player itself
+    // Don't drag in expanded mode or when clicking on player controls
+    if (isExpanded) return;
+    
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('.mpv-player')) return;
-    
+
     setIsDragging(true);
     const rect = playerRef.current?.getBoundingClientRect();
     if (rect) {
@@ -37,7 +39,7 @@ export const FloatingPlayer = memo(function FloatingPlayer({
         y: window.innerHeight - e.clientY - (window.innerHeight - rect.bottom)
       };
     }
-  }, []);
+  }, [isExpanded]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
@@ -50,14 +52,20 @@ export const FloatingPlayer = memo(function FloatingPlayer({
     setIsDragging(false);
   }, []);
 
-  const handleFullscreen = useCallback(() => {
-    const videoContainer = playerRef.current;
-    if (!videoContainer) return;
-    
+  const handleExpand = useCallback(() => {
+    setIsExpanded(true);
+    // Request fullscreen on the player container
+    const container = playerRef.current;
+    if (container) {
+      container.requestFullscreen().catch(() => {});
+    }
+  }, []);
+
+  const handleCollapse = useCallback(() => {
+    setIsExpanded(false);
+    // Exit fullscreen if in fullscreen mode
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
-    } else {
-      videoContainer.requestFullscreen().catch(() => {});
     }
   }, []);
 
@@ -72,80 +80,56 @@ export const FloatingPlayer = memo(function FloatingPlayer({
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isExpanded) {
+        setIsExpanded(false);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [isExpanded]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
-      switch (e.key.toLowerCase()) {
-        case 'escape':
-          e.preventDefault();
-          onClose();
-          break;
-        case 'f':
-          e.preventDefault();
-          handleFullscreen();
-          break;
+      if (e.key === 'Escape' && !isExpanded) {
+        e.preventDefault();
+        onClose();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, handleFullscreen]);
+  }, [onClose, isExpanded]);
 
-  // Early return AFTER all hooks have been called
   if (!player) return null;
-
-  const displayTitle = player.metadata?.title ?? player.fileName?.split('.')[0] ?? 'Unknown';
-  const displaySubtitle = player.metadata?.seasonNumber && player.metadata?.episodeNumber
-    ? `S${player.metadata.seasonNumber}E${player.metadata.episodeNumber}`
-    : player.metadata?.releaseYear
-    ? `${player.metadata.releaseYear}`
-    : null;
 
   return (
     <div
       ref={playerRef}
-      className={`floating-player${isDragging ? ' floating-player-dragging' : ''}`}
-      style={{
+      className={`floating-player${isDragging ? ' floating-player-dragging' : ''}${isExpanded ? ' floating-player-expanded' : ''}`}
+      style={!isExpanded ? {
         left: `${position.x}px`,
         bottom: `${position.y}px`,
-      }}
+      } : undefined}
       onMouseDown={handleMouseDown}
     >
-      {/* Top overlay controls */}
-      <div className="floating-player-top-controls">
-        <Tooltip content="Close (Esc)">
-          <button
-            className="floating-player-control-btn floating-player-close-btn"
-            onClick={onClose}
-            aria-label="Close player"
-          >
-            <X size={16} />
-          </button>
-        </Tooltip>
-        <Tooltip content="Fullscreen (F)">
-          <button
-            className="floating-player-control-btn"
-            onClick={handleFullscreen}
-            aria-label="Fullscreen"
-          >
-            <Maximize2 size={16} />
-          </button>
-        </Tooltip>
-      </div>
-
-      {/* Video area */}
-      <div className="floating-player-video">
-        <MpvPlayer 
-          player={player} 
-          playerStyle={playerStyle} 
-          resumePlayback={resumePlayback}
-          onEnded={onClose}
-        />
-      </div>
+      {/* MpvPlayer with skin - skin will render expand/close buttons when isFloating=true */}
+      <MpvPlayer 
+        player={player} 
+        playerStyle={playerStyle} 
+        resumePlayback={resumePlayback}
+        isFloating={!isExpanded}
+        onEnded={onClose}
+        onFloatingExpand={handleExpand}
+        onFloatingClose={onClose}
+      />
     </div>
   );
 });

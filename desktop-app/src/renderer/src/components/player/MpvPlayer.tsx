@@ -40,14 +40,20 @@ export function MpvPlayer({
   player,
   playerStyle = 'default',
   resumePlayback = true,
+  isFloating = false,
   onOpenExternal,
-  onEnded
+  onEnded,
+  onFloatingExpand,
+  onFloatingClose
 }: {
   player: PlayMediaResult;
   playerStyle?: PlayerStyle;
   resumePlayback?: boolean;
+  isFloating?: boolean;
   onOpenExternal?(mediaFileId: number): void;
   onEnded?(): void;
+  onFloatingExpand?(): void;
+  onFloatingClose?(): void;
 }) {
   const skin = getSkin(playerStyle);
   const resumeRef = useRef(resumePlayback);
@@ -503,6 +509,7 @@ export function MpvPlayer({
         isVisible: showControls,
         seekOsdVisible: seekOsd && !showControls,
         isFullscreen,
+        isFloating,
         showMenu,
         sidecarSubtitles: player.sidecarSubtitles ?? [],
         bufferProgress: player.playbackKind === 'torrent' ? bufferProgress : undefined,
@@ -518,7 +525,9 @@ export function MpvPlayer({
         onSetShowMenu:    setShowMenu,
         onSeekBarDown,
         onSeekBarMove,
-        onSeekBarUp
+        onSeekBarUp,
+        onFloatingExpand,
+        onFloatingClose
       })}
     </div>
   );

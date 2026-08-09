@@ -52,6 +52,7 @@ export interface SkinControlsProps {
   isVisible: boolean;
   seekOsdVisible: boolean;
   isFullscreen: boolean;
+  isFloating: boolean;
   showMenu: 'settings' | 'aiEnhance' | null;
   sidecarSubtitles: SkinSidecar[];
   bufferProgress?: number;  // 0-1, for torrent streaming
@@ -68,6 +69,8 @@ export interface SkinControlsProps {
   onSeekBarDown(e: ReactPointerEvent<HTMLDivElement>): void;
   onSeekBarMove(e: ReactPointerEvent<HTMLDivElement>): void;
   onSeekBarUp(e: ReactPointerEvent<HTMLDivElement>): void;
+  onFloatingExpand?(): void;
+  onFloatingClose?(): void;
 }
 
 // ── Abstract base ─────────────────────────────────────────────────────────────

@@ -644,3 +644,29 @@
     width: min(260px, calc(100cqw - 16px));
   }
 }
+
+/* ── Floating mode controls ───────────────────────────────────────────────── */
+
+.yt-floating-controls {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.yt-floating-controls > * {
+  pointer-events: auto;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .yt-floating-controls {
+    top: 12px;
+    padding: 0 12px;
+  }
+}
