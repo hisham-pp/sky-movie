@@ -93,7 +93,7 @@
   display: grid;
   align-content: center;
   min-height: clamp(400px, 50vh, 560px);
-  padding: 42px 0 42px;
+  padding: 42px 0 0;
 }
 
 .detail-hero,
@@ -291,8 +291,8 @@
 .movie-detail-content,
 .series-detail-content {
   display: grid;
-  gap: 32px;
-  margin-top: 32px;
+  gap: 16px;
+  margin-top: -20px;
   grid-template-columns: 1fr;
   max-width: 100%;
 }
