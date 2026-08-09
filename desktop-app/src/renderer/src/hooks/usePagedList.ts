@@ -26,13 +26,22 @@ export function usePagedList<T>(items: T[], persistKey?: string) {
     });
   }, [persistKey]);
 
-  // Reset to one page when the list changes — but not on the initial mount,
+  // Reset to one page when the list length changes — but not on the initial mount,
   // which would discard a count restored via persistKey.
   const didMount = useRef(false);
+  const prevLength = useRef(items.length);
   useEffect(() => {
-    if (!didMount.current) { didMount.current = true; return; }
-    setVisibleCount(PAGE_SIZE);
-  }, [items, setVisibleCount]);
+    if (!didMount.current) { 
+      didMount.current = true; 
+      prevLength.current = items.length;
+      return; 
+    }
+    // Only reset if the list length actually changed, not just the reference
+    if (prevLength.current !== items.length) {
+      setVisibleCount(PAGE_SIZE);
+      prevLength.current = items.length;
+    }
+  }, [items.length, setVisibleCount]);
 
   const visibleItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
   const hasMore = visibleCount < items.length;
