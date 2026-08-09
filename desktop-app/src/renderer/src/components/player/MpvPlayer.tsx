@@ -81,6 +81,7 @@ export function MpvPlayer({
   const [ripple,       setRipple]    = useState<'left' | 'right' | null>(null);
   const [trackOsd,     setTrackOsd]  = useState<string | null>(null);
   const [bufferProgress, setBufferProgress] = useState<number>(0);
+  const [showCursor,   setShowCursor] = useState(true);
 
   const updateState = useCallback((patch: Partial<PlayerState>) => {
     stateRef.current = { ...stateRef.current, ...patch };
@@ -343,13 +344,18 @@ export function MpvPlayer({
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // ── controls auto-hide ─────────────────────────────────────────────────────
+  // ── controls auto-hide + cursor hide ───────────────────────────────────────
 
   const resetHideTimer = useCallback(() => {
     showControlsRef.current = true;
     setShowCtrl(true);
+    setShowCursor(true);
     if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => { showControlsRef.current = false; setShowCtrl(false); }, 3000);
+    hideTimer.current = setTimeout(() => { 
+      showControlsRef.current = false; 
+      setShowCtrl(false);
+      setShowCursor(false);
+    }, 3000);
   }, []);
 
   const triggerSeekOsd = useCallback(() => {
@@ -453,6 +459,7 @@ export function MpvPlayer({
     <div
       ref={containerRef}
       className="mpv-player"
+      style={{ cursor: showCursor ? 'default' : 'none' }}
       onMouseMove={resetHideTimer}
       onPointerDown={() => setShowMenu(null)}
       onClick={onVideoClick}
