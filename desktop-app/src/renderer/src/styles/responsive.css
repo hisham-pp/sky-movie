@@ -118,6 +118,7 @@
 
   .detail-hero {
     min-height: auto;
+    padding: 48px 0 28px;
   }
 
   .movie-detail-page .detail-side-stack {
@@ -126,13 +127,28 @@
 
   .detail-poster,
   .series-poster {
-    width: 120px;
+    width: 140px;
     justify-self: start;
+  }
+
+  .movie-detail-layout {
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .series-title-row {
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 24px;
   }
 
   .detail-copy h2,
   .series-title-row h2 {
     font-size: 38px;
+  }
+
+  .detail-actions,
+  .series-actions {
+    grid-template-columns: 1fr;
   }
 
   .episode-row {

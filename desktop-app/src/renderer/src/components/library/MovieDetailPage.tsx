@@ -78,10 +78,10 @@ export const MovieDetailPage = memo(function MovieDetailPage({
 
         <div className="movie-detail-layout">
           <div className="detail-poster">
-            {movie.posterPath ? <img src={movie.posterPath} alt="" /> : <Clapperboard size={38} />}
+            {movie.posterPath ? <img src={movie.posterPath} alt={movie.title} /> : <Clapperboard size={38} />}
           </div>
           <div className="detail-copy">
-            <span className="detail-kicker">Movie detail</span>
+            <span className="detail-kicker">Movie Detail</span>
             <div className="detail-title-row">
               <h2>{movie.title}</h2>
               <Tooltip content={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}>
@@ -90,7 +90,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
                   aria-label={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}
                   onClick={() => onToggleFavorite('movie', movie.id, !movie.favorite)}
                 >
-                  <Heart size={17} fill={movie.favorite ? 'currentColor' : 'none'} />
+                  <Heart size={18} fill={movie.favorite ? 'currentColor' : 'none'} />
                 </button>
               </Tooltip>
             </div>
@@ -99,24 +99,40 @@ export const MovieDetailPage = memo(function MovieDetailPage({
                 <span key={String(item)}>{item}</span>
               ))}
             </div>
-            <p>{movie.overview ?? 'No overview stored yet. Load TMDB metadata to enrich this movie.'}</p>
-            {playingFile ? (
-              <div className="hero-now-playing" title={playingFile.fileName}>
-                <Play size={14} />
-                <span>{playingFile.fileName}</span>
-              </div>
-            ) : null}
-            <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
-              <Button
-                variant="secondary"
-                size="medium"
-                icon={<ListMusic />}
-                onClick={handleOpenPlaylistDialog}
-                disabled={busy || playlists.length === 0}
-              >
-                Add to Playlist
-              </Button>
-            </Tooltip>
+            <p className="detail-overview">{movie.overview ?? 'No overview stored yet. Load TMDB metadata to enrich this movie.'}</p>
+            <div className="detail-actions">
+              {files.length > 0 ? (
+                <Button
+                  variant="primary"
+                  size="medium"
+                  icon={<Play size={16} />}
+                  onClick={() => onPlay(files[0])}
+                  disabled={busy}
+                >
+                  {playingFile ? 'Playing' : 'Play Movie'}
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="medium"
+                  icon={<Play size={16} />}
+                  disabled
+                >
+                  No Files Available
+                </Button>
+              )}
+              <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
+                <Button
+                  variant="secondary"
+                  size="medium"
+                  icon={<ListMusic size={16} />}
+                  onClick={handleOpenPlaylistDialog}
+                  disabled={busy || playlists.length === 0}
+                >
+                  Add to Playlist
+                </Button>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -126,11 +142,17 @@ export const MovieDetailPage = memo(function MovieDetailPage({
           <section className="detail-card player-card">
             <div className="section-title">
               <h2>Playback</h2>
-              <span>{files.length} files</span>
+              <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
             </div>
             <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
           </section>
-          <FileList files={files} emptyLabel="No local movie files found for this title." onPlay={onPlay} onDelete={onDeleteFile} onShowInFolder={onShowInFolder} />
+          <FileList 
+            files={files} 
+            emptyLabel="No local movie files found for this title." 
+            onPlay={onPlay} 
+            onDelete={onDeleteFile} 
+            onShowInFolder={onShowInFolder} 
+          />
         </div>
 
         <aside className="detail-side-stack">

@@ -84,7 +84,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
 
   return (
     <section className="media-detail-page series-detail-page">
-      {show.backdropPath ? <img className="detail-backdrop" src={show.backdropPath} alt="" /> : null}
+      {show.backdropPath ? <img className="detail-backdrop" src={show.backdropPath} alt={show.title} /> : null}
       <div className="series-hero">
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={17} />
@@ -92,7 +92,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
         </button>
         <div className="series-title-row">
           <div>
-            <span className="detail-kicker">Series detail</span>
+            <span className="detail-kicker">Series Detail</span>
             <div className="detail-title-row">
               <h2>{show.title}</h2>
               <Tooltip content={show.favorite ? 'Remove from favorites' : 'Add to favorites'}>
@@ -101,14 +101,14 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
                   aria-label={show.favorite ? 'Remove from favorites' : 'Add to favorites'}
                   onClick={() => onToggleFavorite('show', show.id, !show.favorite)}
                 >
-                  <Heart size={17} fill={show.favorite ? 'currentColor' : 'none'} />
+                  <Heart size={18} fill={show.favorite ? 'currentColor' : 'none'} />
                 </button>
               </Tooltip>
             </div>
-            <p>{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
+            <p className="series-overview">{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
           </div>
           <div className="series-poster">
-            {show.posterPath ? <img src={show.posterPath} alt="" /> : <Tv2 size={38} />}
+            {show.posterPath ? <img src={show.posterPath} alt={show.title} /> : <Tv2 size={38} />}
           </div>
         </div>
         <div className="series-stats">
@@ -117,23 +117,39 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
           <DetailStat icon={<Star size={18} />} label="Rating" value={show.rating ? show.rating.toFixed(1) : 'Unrated'} />
           <DetailStat icon={<FolderSearch size={18} />} label="Files" value={files.length} />
         </div>
-        {playingFile ? (
-          <div className="hero-now-playing" title={playingFile.fileName}>
-            <Play size={14} />
-            <span>{playingFile.fileName}</span>
-          </div>
-        ) : null}
-        <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
-          <Button
-            variant="secondary"
-            size="medium"
-            icon={<ListMusic />}
-            onClick={handleOpenPlaylistDialog}
-            disabled={busy || playlists.length === 0}
-          >
-            Add to Playlist
-          </Button>
-        </Tooltip>
+        <div className="series-actions">
+          {files.length > 0 ? (
+            <Button
+              variant="primary"
+              size="medium"
+              icon={<Play size={16} />}
+              onClick={() => onPlay(files[0])}
+              disabled={busy}
+            >
+              {playingFile ? 'Playing' : 'Play Episode'}
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="medium"
+              icon={<Play size={16} />}
+              disabled
+            >
+              No Files Available
+            </Button>
+          )}
+          <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
+            <Button
+              variant="secondary"
+              size="medium"
+              icon={<ListMusic size={16} />}
+              onClick={handleOpenPlaylistDialog}
+              disabled={busy || playlists.length === 0}
+            >
+              Add to Playlist
+            </Button>
+          </Tooltip>
+        </div>
       </div>
 
       <div className="series-detail-grid">
@@ -141,7 +157,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
           <section className="detail-card">
             <div className="section-title">
               <h2>Episode Guide</h2>
-              <span>{seasons.length ? `${seasons.length} seasons` : 'No episodes'}</span>
+              <span className="section-badge">{seasons.length ? `${seasons.length} season${seasons.length === 1 ? '' : 's'}` : 'No episodes'}</span>
             </div>
             {seasons.length ? (
               <div className="season-list">
@@ -182,14 +198,20 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             )}
           </section>
 
-          <FileList files={files} emptyLabel="No local series files found for this show." onPlay={onPlay} onDelete={onDeleteFile} onShowInFolder={onShowInFolder} />
+          <FileList 
+            files={files} 
+            emptyLabel="No local series files found for this show." 
+            onPlay={onPlay} 
+            onDelete={onDeleteFile} 
+            onShowInFolder={onShowInFolder} 
+          />
         </div>
 
         <aside className="detail-side-stack">
           <section className="detail-card player-card">
             <div className="section-title">
               <h2>Series Player</h2>
-              <span>{files.length} files</span>
+              <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
             </div>
             <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
           </section>

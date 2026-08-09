@@ -173,27 +173,29 @@
 .hero-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-  margin-bottom: 4px;
+  gap: 9px;
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 .hero-chips span {
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 5px 10px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 7px 13px;
+  transition: all 0.2s ease;
 }
 
 .hero-chips span:first-child {
   background: var(--primary);
   border-color: transparent;
   color: var(--on-primary);
+  font-weight: 700;
 }
 
 .hero-play-btn {
@@ -262,14 +264,14 @@
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  gap: 8px;
-  margin-top: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(12, 14, 18, 0.72);
+  gap: 9px;
+  margin-top: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(12, 14, 18, 0.78);
   color: var(--soft);
-  padding: 8px 10px;
-  backdrop-filter: blur(12px);
+  padding: 9px 13px;
+  backdrop-filter: blur(14px);
 }
 
 .hero-now-playing svg {
@@ -280,8 +282,8 @@
 .hero-now-playing span {
   overflow: hidden;
   min-width: 0;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -422,8 +424,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 20px;
-  margin-top: 12px;
+  margin-bottom: 18px;
+  margin-top: 0;
   position: relative;
   z-index: 5;
   background: transparent;
@@ -433,10 +435,23 @@
   margin: 0;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Inter, sans-serif;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.3;
   letter-spacing: -0.01em;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .detail-panel .section-title {
