@@ -397,6 +397,11 @@ export function MpvPlayer({
   };
 
   const toggleFullscreen = () => {
+    if (isFloating && onFloatingExpand) {
+      onFloatingExpand();
+      return;
+    }
+
     const el = containerRef.current;
     if (!el) return;
     document.fullscreenElement

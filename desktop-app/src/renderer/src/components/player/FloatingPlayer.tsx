@@ -83,14 +83,13 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   // Listen for fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && isExpanded) {
-        setIsExpanded(false);
-      }
+      const isFullscreenTarget = document.fullscreenElement === playerRef.current;
+      setIsExpanded(isFullscreenTarget);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [isExpanded]);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
