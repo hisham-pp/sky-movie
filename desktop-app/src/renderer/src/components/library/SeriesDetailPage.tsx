@@ -1,7 +1,6 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Heart, Play, Tv2, ListMusic, Search } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
-import { PlayerPanel } from '../player/PlayerPanel';
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
@@ -168,13 +167,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
       </div>
 
       <div className="series-detail-content">
-        <section className="detail-card player-card">
-          <div className="section-title">
-            <h2>Playback</h2>
-            <span className="section-badge">{files.length} file{files.length === 1 ? '' : 's'}</span>
-          </div>
-          <PlayerPanel player={player} onOpenExternal={onOpenExternal} />
-        </section>
+        {/* Player section removed - using floating player instead */}
 
         <section className="detail-card episodes-card">
           <div className="section-title">

@@ -12,6 +12,7 @@ import './styles/glass-select.css';
 import './styles/detail.css';
 import './styles/dialog.css';
 import './styles/player.css';
+import './styles/floating-player.css';
 import './styles/scan.css';
 import './styles/settings.css';
 import './styles/responsive.css';

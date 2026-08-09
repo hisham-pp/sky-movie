@@ -1,6 +1,7 @@
 import { memo, useState, useRef, useEffect } from 'react';
-import { MoreVertical, Folder, FolderOpen, Trash2 } from 'lucide-react';
+import { MoreVertical, Folder, FolderOpen, Trash2, X } from 'lucide-react';
 import type { MediaFile } from '@shared/ipc';
+import { Modal, ModalFooter, Button, Tooltip } from '../common';
 
 interface MediaOptionsMenuProps {
   files: MediaFile[];
@@ -57,13 +58,15 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   return (
     <>
       <div className="media-options-menu" ref={menuRef}>
-        <button
-          className="media-options-trigger"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="More options"
-        >
-          <MoreVertical size={14} />
-        </button>
+        <Tooltip content="More options">
+          <button
+            className="media-options-trigger"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="More options"
+          >
+            <MoreVertical size={14} />
+          </button>
+        </Tooltip>
 
         {isOpen && (
           <div className="media-options-dropdown">
@@ -123,42 +126,35 @@ const DeleteFilesDialog = memo(function DeleteFilesDialog({
   };
 
   return (
-    <div className="dialog-overlay" onClick={onCancel}>
-      <div className="delete-files-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <h3>Delete Files</h3>
-          <button className="dialog-close-btn" onClick={onCancel} aria-label="Close">
-            ×
-          </button>
-        </div>
-        <div className="dialog-body">
-          <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
-          <div className="file-selection-list">
-            {files.map((file) => (
-              <label key={file.id} className="file-selection-item">
-                <input
-                  type="checkbox"
-                  checked={selectedFiles.has(file.id)}
-                  onChange={() => toggleFile(file.id)}
-                />
-                <span className="file-name">{file.fileName}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="dialog-footer">
-          <button className="btn btn-secondary btn-medium" onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            className="btn btn-danger btn-medium"
-            onClick={handleConfirm}
-            disabled={selectedFiles.size === 0}
-          >
-            Delete {selectedFiles.size > 0 ? `${selectedFiles.size} file${selectedFiles.size === 1 ? '' : 's'}` : ''}
-          </button>
-        </div>
+    <Modal isOpen={true} onClose={onCancel} title="Delete Files" maxWidth="small">
+      <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
+      <div className="file-selection-list">
+        {files.map((file) => (
+          <label key={file.id} className="file-selection-item">
+            <input
+              type="checkbox"
+              checked={selectedFiles.has(file.id)}
+              onChange={() => toggleFile(file.id)}
+            />
+            <span className="file-name">{file.fileName}</span>
+          </label>
+        ))}
       </div>
-    </div>
+      <ModalFooter>
+        <Button variant="secondary" size="medium" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          variant="danger"
+          size="medium"
+          onClick={handleConfirm}
+          disabled={selectedFiles.size === 0}
+        >
+          {selectedFiles.size > 0 
+            ? `Delete ${selectedFiles.size} file${selectedFiles.size === 1 ? '' : 's'}` 
+            : 'Delete'}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 });

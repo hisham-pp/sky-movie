@@ -12,6 +12,7 @@ import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './components/layout/LoadingScreen';
 import { WindowControls } from './components/layout/WindowControls';
 import { LastWatchedButton } from './components/library/LastWatchedButton';
+import { FloatingPlayer } from './components/player/FloatingPlayer';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { LAUNCH_ONBOARDING_EVENT } from './config/events';
 import { useResumePlayback } from './hooks/useResumePlayback';
@@ -38,6 +39,7 @@ function AppLayoutInner() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [showFloatingPlayer, setShowFloatingPlayer] = useState(false);
   const settings = library.settings;
 
   // Auto-open the welcome tour once, the first time settings load for a user
@@ -146,9 +148,37 @@ function AppLayoutInner() {
 
   const resumePlayback = useResumePlayback();
   const handleLastWatchedPlay = useCallback(
-    (info: LastWatchedInfo) => { void resumePlayback(info); },
+    (info: LastWatchedInfo) => { 
+      void resumePlayback(info);
+      setShowFloatingPlayer(true);
+    },
     [resumePlayback],
   );
+
+  const handleCloseFloatingPlayer = useCallback(() => {
+    setShowFloatingPlayer(false);
+    // TODO: Stop playback
+  }, []);
+
+  const handleExpandFloatingPlayer = useCallback(() => {
+    setShowFloatingPlayer(false);
+    if (library.player?.metadata?.mediaKind === 'movie') {
+      // Navigate to movie detail
+      // TODO: Get movie ID from player metadata
+    } else if (library.player?.metadata?.mediaKind === 'show') {
+      // Navigate to show detail
+      // TODO: Get show ID from player metadata
+    }
+  }, [library.player, navigate]);
+
+  // Show floating player when there's an active player
+  useEffect(() => {
+    if (library.player) {
+      setShowFloatingPlayer(true);
+    } else {
+      setShowFloatingPlayer(false);
+    }
+  }, [library.player]);
 
   const handleSelectMovie = useCallback(async (movie: Movie) => {
     await library.selectMovie(movie);
@@ -213,6 +243,14 @@ function AppLayoutInner() {
             activeMediaFileId={library.player?.mediaFileId ?? null}
             onPlay={handleLastWatchedPlay}
           />
+
+          {showFloatingPlayer && (
+            <FloatingPlayer
+              player={library.player}
+              onClose={handleCloseFloatingPlayer}
+              onExpand={handleExpandFloatingPlayer}
+            />
+          )}
 
           <KeyboardShortcutsOverlay
             isOpen={isShortcutsOpen}
