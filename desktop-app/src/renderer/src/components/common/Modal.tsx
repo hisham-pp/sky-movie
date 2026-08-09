@@ -40,8 +40,8 @@ export function Modal({
   }
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick} style={{ pointerEvents: 'auto' }}>
-      <div className={`modal-content ${maxWidthClass}`} onClick={(e) => e.stopPropagation()} style={{ pointerEvents: 'auto' }}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className={`modal-content ${maxWidthClass}`} onClick={(e) => e.stopPropagation()}>
         {(title || showCloseButton) && (
           <div className="modal-header">
             {title && <h3>{title}</h3>}
@@ -52,7 +52,7 @@ export function Modal({
             )}
           </div>
         )}
-        <div className="modal-body" style={{ pointerEvents: 'auto' }}>{children}</div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

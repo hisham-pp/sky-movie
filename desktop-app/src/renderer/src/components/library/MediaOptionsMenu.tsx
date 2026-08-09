@@ -146,30 +146,23 @@ export const DeleteFilesDialog = memo(function DeleteFilesDialog({
 
   return (
     <Modal isOpen={true} onClose={onCancel} title="Delete Files" maxWidth="small">
-      <div style={{ pointerEvents: 'auto' }}>
-        <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
-        <div className="file-selection-list">
-          {files.map((file) => (
-            <div 
-              key={file.id} 
-              className="file-selection-item" 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFile(file.id);
-              }}
-              style={{ pointerEvents: 'auto' }}
-            >
-              <input
-                type="checkbox"
-                checked={selectedFiles.has(file.id)}
-                onChange={() => {}}
-                readOnly
-                style={{ pointerEvents: 'auto' }}
-              />
-              <span className="file-name">{file.fileName}</span>
-            </div>
-          ))}
-        </div>
+      <p className="delete-warning">Select files to delete. This action cannot be undone.</p>
+      <div className="file-selection-list">
+        {files.map((file) => (
+          <div 
+            key={file.id} 
+            className="file-selection-item" 
+            onClick={() => toggleFile(file.id)}
+          >
+            <input
+              type="checkbox"
+              checked={selectedFiles.has(file.id)}
+              onChange={() => {}}
+              readOnly
+            />
+            <span className="file-name">{file.fileName}</span>
+          </div>
+        ))}
       </div>
       <ModalFooter>
         <Button variant="secondary" size="medium" onClick={onCancel}>
