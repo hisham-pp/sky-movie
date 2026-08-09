@@ -222,11 +222,20 @@ export interface PlayMediaResult {
   mediaUrl: string;
   absolutePath: string;
   title: string;
+  fileName?: string;
   watchProgress: WatchProgressSnapshot | null;
   sidecarSubtitles?: SidecarSubtitle[];
   playbackKind?: 'library' | 'torrent';
   torrentId?: string;
   torrentFilePath?: string;
+  metadata?: {
+    mediaKind: 'movie' | 'show';
+    title: string;
+    releaseYear?: number | null;
+    seasonNumber?: number;
+    episodeNumber?: number;
+    episodeTitle?: string | null;
+  };
 }
 
 export interface SidecarSubtitle {

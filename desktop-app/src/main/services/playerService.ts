@@ -120,13 +120,43 @@ export class PlayerService {
     const mediaUrl = `sky-media://${mediaFileId}`;
     const sidecarSubtitles = scanSidecarSubtitles(mediaFile.absolutePath);
 
+    // Build metadata if the file is matched to a movie or show
+    let metadata: PlayMediaResult['metadata'];
+    if (mediaFile.matchedMovieId) {
+      const movieDetail = this.catalog.getMovieById(mediaFile.matchedMovieId);
+      if (movieDetail.item) {
+        metadata = {
+          mediaKind: 'movie',
+          title: movieDetail.item.title,
+          releaseYear: movieDetail.item.releaseYear,
+        };
+      }
+    } else if (mediaFile.matchedShowId && mediaFile.matchedEpisodeId) {
+      const showDetail = this.catalog.getShowById(mediaFile.matchedShowId);
+      if (showDetail.item && showDetail.episodes) {
+        const episode = showDetail.episodes.find(e => e.id === mediaFile.matchedEpisodeId);
+        if (episode) {
+          metadata = {
+            mediaKind: 'show',
+            title: showDetail.item.title,
+            seasonNumber: episode.seasonNumber,
+            episodeNumber: episode.episodeNumber,
+            episodeTitle: episode.title,
+            releaseYear: showDetail.item.firstAirYear,
+          };
+        }
+      }
+    }
+
     return {
       mediaFileId,
       mediaUrl,
       absolutePath: mediaFile.absolutePath,
       title: mediaFile.fileName,
+      fileName: mediaFile.fileName,
       watchProgress: this.getWatchProgress(mediaFileId),
-      sidecarSubtitles
+      sidecarSubtitles,
+      metadata,
     };
   }
 
