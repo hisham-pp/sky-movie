@@ -5,6 +5,20 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-08-09
+
+### Added
+
+- improve drag handling and video player styling (Hisham)
+- integrate MpvPlayer and implement playback controls (Hisham)
+- remove redundant pointer-events styles and simplify markup (Hisham)
+
+### Other
+
+- style(settings): add top padding to settings nav header (Hisham)
+- style(modals): reduce modal z-index from 9000 to 1000 (Hisham)
+- style(modals): reduce modal z-index from 100000 to 9000 (Hisham)
+
 ## [0.10.0] - 2026-08-09
 
 ### Added
@@ -1012,3 +1026,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.5
 [0.9.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.6
 [0.10.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.0
+[0.10.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.1
