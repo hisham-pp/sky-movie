@@ -25,7 +25,10 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   const playerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('button')) return;
+    // Don't start dragging if clicking on controls or the video player itself
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('.mpv-player')) return;
+    
     setIsDragging(true);
     const rect = playerRef.current?.getBoundingClientRect();
     if (rect) {

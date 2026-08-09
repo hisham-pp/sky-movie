@@ -89,6 +89,12 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.floating-player-video .mpv-player {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
 .floating-player-placeholder {
   display: grid;
   place-items: center;
