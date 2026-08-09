@@ -15,7 +15,7 @@
     "build": "pnpm --filter @sky-movie/desktop-app build",
     "build:website": "pnpm --filter @sky-movie/website build",
     "package": "pnpm --filter @sky-movie/desktop-app package",
-    "package:all": "pnpm --filter @sky-movie/desktop-app package:all",
+    "package:all": "pnpm --filter @sky-movie/desktop-app package:all && node scripts/refresh-release-manifest-if-configured.mjs",
     "package:current": "pnpm --filter @sky-movie/desktop-app package:current",
     "package:linux": "pnpm --filter @sky-movie/desktop-app package:linux",
     "package:mac": "pnpm --filter @sky-movie/desktop-app package:mac",
