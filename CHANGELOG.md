@@ -5,6 +5,33 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-08-09
+
+### Added
+
+- improve pointer events handling and refactor delete dialog (Hisham)
+- convert dropdown to portal with fixed positioning (Hisham)
+- enable fullscreen mode for desktop app (Hisham)
+- add tooltips to navigation controls (Hisham)
+- add browser-style navigation controls (Hisham)
+- improve episode thumbnail fallback logic (Hisham)
+- add keyboard shortcuts to floating player (Hisham)
+- add file galleries and episode carousel pagination (Hisham)
+- add media metadata to playback results (Hisham)
+- add floating player component with playback controls (Hisham)
+- add media options menu and metadata search dialog (Hisham)
+
+### Fixed
+
+- improve floating player drag calculation accuracy (Hisham)
+
+### Other
+
+- style(detail-pages): adjust spacing and padding in detail view (Hisham)
+- refactor(ui): remove embedded player from banner and reposition floating player (Hisham)
+- refactor(player): simplify floating player UI and remove placeholder controls (Hisham)
+- refactor(detail-pages): unify movie and series detail layouts (Hisham)
+
 ## [0.9.6] - 2026-08-09
 
 ### Added
@@ -984,3 +1011,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.4
 [0.9.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.5
 [0.9.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.9.6
+[0.10.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.0
