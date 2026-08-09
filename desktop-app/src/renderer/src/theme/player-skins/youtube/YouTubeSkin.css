@@ -43,11 +43,19 @@
   border-radius: var(--radius-pill);
   overflow: visible;
 }
+.yt-progress-buffered {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255,255,255,0.4);
+  border-radius: var(--radius-pill);
+  z-index: 1;
+}
 .yt-progress-filled {
   position: absolute;
   inset: 0 auto 0 0;
   background: var(--primary);
   border-radius: var(--radius-pill);
+  z-index: 2;
 }
 .yt-progress-thumb {
   position: absolute;
@@ -59,6 +67,7 @@
   transition: transform 0.1s ease;
   pointer-events: none;
   box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  z-index: 3;
 }
 .yt-progress-wrap:hover .yt-progress-thumb { transform: translate(-50%, -50%) scale(1); }
 

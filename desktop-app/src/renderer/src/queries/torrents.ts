@@ -16,5 +16,6 @@ export const torrentRecheck = bind('torrentRecheck');
 export const torrentPrepareStream = bind('torrentPrepareStream');
 export const torrentCleanupStream = bind('torrentCleanupStream');
 export const torrentUpdateStreamProgress = bind('torrentUpdateStreamProgress');
+export const torrentGetBufferProgress = bind('torrentGetBufferProgress');
 export const torrentSetPlaybackThrottle = bind('torrentSetPlaybackThrottle');
 export const onTorrentProgress = bind('onTorrentProgress');

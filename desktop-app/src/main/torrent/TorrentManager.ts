@@ -5,6 +5,7 @@ import { Readable } from 'node:stream';
 import { app, shell, Notification, protocol } from 'electron';
 import type {
   AddMagnetRequest,
+  TorrentBufferProgress,
   TorrentGlobalStats,
   TorrentInfo,
   TorrentMoveRequest,
@@ -292,6 +293,11 @@ export class TorrentManager {
       updatedAt: new Date().toISOString(),
     };
     this.saveState();
+  }
+
+  async getBufferProgress(torrentId: string, filePath: string): Promise<TorrentBufferProgress> {
+    await this.ensureInit();
+    return this.service!.getBufferProgress(torrentId, filePath);
   }
 
   registerStreamProtocol(): void {

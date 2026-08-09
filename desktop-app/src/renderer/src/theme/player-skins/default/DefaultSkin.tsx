@@ -38,7 +38,7 @@ function DefaultControls({
   keyMap: PlayerKeyMap;
 }) {
   const {
-    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles,
+    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles, bufferProgress,
     onTogglePlay, onToggleMute, onChangeVolume, onToggleFullscreen,
     onSeekTo, onSetSpeed, onSetAudioTrack, onSetSubTrack, onSetSubFile,
     onSetShowMenu, onSeekBarDown, onSeekBarMove, onSeekBarUp
@@ -211,6 +211,9 @@ function DefaultControls({
           onPointerUp={onSeekBarUp}
         >
           <div className="default-seek-track">
+            {bufferProgress !== undefined && bufferProgress > 0 && (
+              <div className="default-seek-buffer" style={{ width: `${bufferProgress * 100}%` }} />
+            )}
             <div className="default-seek-fill" style={{ width: `${progress * 100}%` }} />
             <div className="default-seek-thumb" style={{ left: `${progress * 100}%` }} />
           </div>

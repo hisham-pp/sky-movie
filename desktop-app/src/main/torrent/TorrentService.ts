@@ -251,6 +251,16 @@ export class TorrentService extends EventEmitter {
     };
   }
 
+  getBufferProgress(id: string, filePath: string): { fileProgress: number } {
+    const torrent = this.findTorrent(id);
+    if (!torrent) return { fileProgress: 0 };
+    
+    const file = torrent.files?.find((f: TorrentFile) => f.path === filePath);
+    if (!file) return { fileProgress: 0 };
+    
+    return { fileProgress: file.progress ?? 0 };
+  }
+
   createFileReadStream(
     id: string,
     filePath: string,

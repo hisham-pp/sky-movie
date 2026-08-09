@@ -132,6 +132,8 @@ const api: SkyMovieApi = {
   torrentCleanupStream:        (id: string) => ipcRenderer.invoke(ipcChannels.torrentCleanupStream, id),
   torrentUpdateStreamProgress: (update: TorrentStreamProgressUpdate) =>
     ipcRenderer.invoke(ipcChannels.torrentUpdateStreamProgress, update),
+  torrentGetBufferProgress:    (torrentId: string, filePath: string) =>
+    ipcRenderer.invoke(ipcChannels.torrentGetBufferProgress, torrentId, filePath),
   torrentSetPlaybackThrottle:  (active: boolean) => ipcRenderer.invoke(ipcChannels.torrentSetPlaybackThrottle, active),
   onTorrentProgress: (callback: (event: TorrentProgressEvent) => void) => {
     const listener = (_: Electron.IpcRendererEvent, event: TorrentProgressEvent) => callback(event);

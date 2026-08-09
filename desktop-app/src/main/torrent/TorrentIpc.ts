@@ -88,6 +88,10 @@ export function registerTorrentIpcHandlers(
     safe(ipcChannels.torrentUpdateStreamProgress, () => manager.updateStreamProgress(update))
   );
 
+  h(ipcChannels.torrentGetBufferProgress, (_e, torrentId: string, filePath: string) =>
+    safe(ipcChannels.torrentGetBufferProgress, () => manager.getBufferProgress(torrentId, filePath))
+  );
+
   h(ipcChannels.torrentSetPlaybackThrottle, (_e, active: boolean) =>
     safe(ipcChannels.torrentSetPlaybackThrottle, () => { manager.setPlaybackThrottle(active); })
   );

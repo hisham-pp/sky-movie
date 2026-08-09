@@ -45,7 +45,7 @@ function YouTubeControls({
   keyMap: PlayerKeyMap;
 }) {
   const {
-    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles,
+    state, tracks, isVisible, seekOsdVisible, isFullscreen, showMenu, sidecarSubtitles, bufferProgress,
     onTogglePlay, onToggleMute, onChangeVolume, onToggleFullscreen,
     onSetSpeed, onSetAudioTrack, onSetSubTrack, onSetSubFile,
     onSetShowMenu, onSeekBarDown, onSeekBarMove, onSeekBarUp,
@@ -714,6 +714,9 @@ function YouTubeControls({
           onPointerUp={e => { e.stopPropagation(); onSeekBarUp(e); }}
         >
           <div className="yt-progress-track">
+            {bufferProgress !== undefined && bufferProgress > 0 && (
+              <div className="yt-progress-buffered" style={{ width: `${bufferProgress * 100}%` }} />
+            )}
             <div className="yt-progress-filled" style={{ width: `${progress * 100}%` }} />
             <div className="yt-progress-thumb"  style={{ left: `${progress * 100}%` }} />
           </div>

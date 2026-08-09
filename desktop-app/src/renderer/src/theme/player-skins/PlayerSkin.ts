@@ -54,6 +54,7 @@ export interface SkinControlsProps {
   isFullscreen: boolean;
   showMenu: 'settings' | 'aiEnhance' | null;
   sidecarSubtitles: SkinSidecar[];
+  bufferProgress?: number;  // 0-1, for torrent streaming
   onTogglePlay(): void;
   onToggleMute(): void;
   onChangeVolume(v: number): void;

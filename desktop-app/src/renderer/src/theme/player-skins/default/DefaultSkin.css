@@ -40,11 +40,20 @@
   height: 6px;
 }
 
+.default-seek-buffer {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255,255,255,0.35);
+  border-radius: 2px;
+  z-index: 1;
+}
+
 .default-seek-fill {
   position: absolute;
   inset: 0 auto 0 0;
   background: var(--primary, #89ceff);
   border-radius: 2px;
+  z-index: 2;
 }
 
 .default-seek-thumb {
@@ -56,6 +65,7 @@
   background: #fff;
   border-radius: 50%;
   transition: transform 0.15s;
+  z-index: 3;
 }
 
 .default-seek:hover .default-seek-thumb {

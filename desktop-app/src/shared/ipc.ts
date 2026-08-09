@@ -585,6 +585,7 @@ export const ipcChannels = {
   torrentPrepareStream:   'torrent:prepare-stream',
   torrentCleanupStream:   'torrent:cleanup-stream',
   torrentUpdateStreamProgress: 'torrent:update-stream-progress',
+  torrentGetBufferProgress: 'torrent:get-buffer-progress',
   torrentProgress:        'torrent:progress',   // push: main → renderer
   torrentSetPlaybackThrottle: 'torrent:set-playback-throttle',
 } as const;
@@ -731,6 +732,10 @@ export interface TorrentStreamInfo extends PlayMediaResult {
   cleanupOnClose: boolean;
 }
 
+export interface TorrentBufferProgress {
+  fileProgress: number;  // 0-1, overall file download progress
+}
+
 export interface TorrentApi {
   torrentSearch(req: TorrentSearchRequest): Promise<TorrentSearchResult[]>;
   torrentAddMagnet(req: AddMagnetRequest): Promise<TorrentInfo>;
@@ -748,6 +753,7 @@ export interface TorrentApi {
   torrentPrepareStream(id: string): Promise<TorrentStreamInfo>;
   torrentCleanupStream(id: string): Promise<void>;
   torrentUpdateStreamProgress(update: TorrentStreamProgressUpdate): Promise<void>;
+  torrentGetBufferProgress(torrentId: string, filePath: string): Promise<TorrentBufferProgress>;
   torrentSetPlaybackThrottle(active: boolean): Promise<void>;
   onTorrentProgress(callback: (event: TorrentProgressEvent) => void): () => void;
 }

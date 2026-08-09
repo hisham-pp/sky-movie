@@ -80,6 +80,7 @@ export function MpvPlayer({
   const [error,        setError]     = useState<string | null>(null);
   const [ripple,       setRipple]    = useState<'left' | 'right' | null>(null);
   const [trackOsd,     setTrackOsd]  = useState<string | null>(null);
+  const [bufferProgress, setBufferProgress] = useState<number>(0);
 
   const updateState = useCallback((patch: Partial<PlayerState>) => {
     stateRef.current = { ...stateRef.current, ...patch };
@@ -136,6 +137,7 @@ export function MpvPlayer({
     updateState({ ...DEFAULT_STATE });
     setTracks([]);
     setError(null);
+    setBufferProgress(0);
 
     const { width, height } = container.getBoundingClientRect();
 
@@ -216,9 +218,22 @@ export function MpvPlayer({
       }
     }, 15_000);
 
+    // Poll buffer progress for torrent streams
+    let bufferTimer: ReturnType<typeof setInterval> | null = null;
+    if (player.playbackKind === 'torrent' && player.torrentId && player.torrentFilePath) {
+      bufferTimer = setInterval(() => {
+        if (player.torrentId && player.torrentFilePath) {
+          queries.torrentGetBufferProgress(player.torrentId, player.torrentFilePath)
+            .then(result => setBufferProgress(result.fileProgress))
+            .catch(() => {});
+        }
+      }, 2000);
+    }
+
     return () => {
       clearInterval(progressTimer);
       clearInterval(cleanupTimer);
+      if (bufferTimer) clearInterval(bufferTimer);
       unsubFrame();
       unsubEvent();
       unsubTracks();
@@ -483,6 +498,7 @@ export function MpvPlayer({
         isFullscreen,
         showMenu,
         sidecarSubtitles: player.sidecarSubtitles ?? [],
+        bufferProgress: player.playbackKind === 'torrent' ? bufferProgress : undefined,
         onTogglePlay:     togglePlay,
         onToggleMute:     toggleMute,
         onChangeVolume:   changeVolume,
