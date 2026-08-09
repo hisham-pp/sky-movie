@@ -223,12 +223,13 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             <div className="episode-grid" ref={episodeGridRef}>
               {episodes.map((episode: Episode) => {
                 const episodeFile = episodeFileMap.get(episode.id);
+                const thumbnailUrl = episode.stillPath || show.backdropPath || null;
                 return (
                   <div key={episode.id} className="episode-card">
                     <div 
                       className="episode-thumbnail"
                       style={{
-                        backgroundImage: episode.stillPath ? `url(${episode.stillPath})` : 'none'
+                        backgroundImage: thumbnailUrl ? `url(${thumbnailUrl})` : 'none'
                       }}
                     >
                       {episodeFile && (
