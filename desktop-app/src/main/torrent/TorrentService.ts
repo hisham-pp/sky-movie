@@ -409,9 +409,14 @@ export class TorrentService extends EventEmitter {
         console.log(`[TorrentService] ${id.slice(0, 8)}… stalled ${stalledSecs}s — forcing reannounce`);
         try {
           // WebTorrent internal: trigger a fresh DHT/tracker announce
-          (torrent as unknown as { _discovery?: { tracker?: { update?(): void }; dht?: { lookup?(ih: string): void } } })
-            ._discovery?.tracker?.update?.();
-        } catch { /* ignore */ }
+          const discovery = (torrent as unknown as { _discovery?: { tracker?: { update?(): void }; dht?: { lookup?(ih: string): void } } | null })._discovery;
+          if (discovery && discovery.tracker) {
+            discovery.tracker.update?.();
+          }
+        } catch (err) {
+          // Silently ignore — this is a best-effort retry mechanism
+          console.debug('[TorrentService] reannounce failed:', err);
+        }
       }
 
       // Log on status or peer-count change
