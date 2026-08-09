@@ -7,6 +7,61 @@
   padding: 0 48px 48px;
 }
 
+/* Browser-style navigation bar */
+.detail-nav-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  background: transparent;
+  margin: 0 -48px 0;
+  padding-left: 48px;
+  padding-right: 48px;
+  border-bottom: none;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-app-region: no-drag;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--ink);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.detail-nav-bar .search {
+  justify-self: center;
+  -webkit-app-region: no-drag;
+}
+
 .detail-backdrop {
   position: absolute;
   inset: 0;
@@ -30,11 +85,15 @@
   z-index: 1;
 }
 
+.detail-nav-bar {
+  z-index: 101 !important;
+}
+
 .detail-hero {
   display: grid;
   align-content: center;
   min-height: clamp(400px, 50vh, 560px);
-  padding: 58px 0 42px;
+  padding: 42px 0 42px;
 }
 
 .detail-hero,
@@ -42,31 +101,6 @@
 .series-detail-content {
   position: relative;
   z-index: 2;
-}
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  justify-self: start;
-  gap: 9px;
-  min-height: 42px;
-  margin-bottom: 28px;
-  background: rgba(12, 14, 18, 0.72);
-  color: var(--soft);
-  padding: 0 16px;
-  backdrop-filter: blur(16px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.back-button:hover {
-  background: rgba(12, 14, 18, 0.85);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: var(--ink);
-  transform: translateX(-4px);
 }
 
 .movie-detail-layout {

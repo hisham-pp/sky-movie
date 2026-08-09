@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, Heart, Play, Tv2, ListMusic, Search } from 'lucide-react';
+import { Heart, Play, Tv2, ListMusic, Search } from 'lucide-react';
 import type { Episode, MediaFile, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult, TvShow } from '@shared/ipc';
 import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
@@ -124,11 +124,8 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
   return (
     <section className="media-detail-page series-detail-page">
       {show.backdropPath ? <img className="detail-backdrop" src={show.backdropPath} alt={show.title} /> : null}
+
       <div className="detail-hero">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={17} />
-          Back to TV shows
-        </button>
 
         <div className="movie-detail-layout">
           <div className="detail-poster-section">

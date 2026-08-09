@@ -1,18 +1,31 @@
 import { memo } from 'react';
-import { Search, AlertTriangle } from 'lucide-react';
+import { Search, AlertTriangle, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const Toolbar = memo(function Toolbar({
   onOpenSearch,
   unmatchedCount,
-  onOpenUnrecognized
+  onOpenUnrecognized,
+  onBack,
+  onForward
 }: {
   onOpenSearch: () => void;
   unmatchedCount?: number;
   onOpenUnrecognized?: () => void;
+  onBack?: () => void;
+  onForward?: () => void;
 }) {
   return (
     <header className="toolbar">
-      <div className="toolbar-spacer"></div>
+      <div className="toolbar-spacer">
+        <div className="nav-controls">
+          <button className="nav-btn" onClick={onBack} aria-label="Go back" title="Go back">
+            <ArrowLeft size={18} />
+          </button>
+          <button className="nav-btn" onClick={onForward} aria-label="Go forward" title="Go forward">
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
 
       <div className="search" onClick={onOpenSearch}>
         <Search size={18} />

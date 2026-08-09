@@ -217,6 +217,8 @@ function AppLayoutInner() {
             onOpenSearch={handleSearchToggle}
             unmatchedCount={library.unmatchedFiles.length}
             onOpenUnrecognized={handleUnrecognizedOpen}
+            onBack={handleBack}
+            onForward={handleForward}
           />
 
           <Outlet />

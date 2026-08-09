@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback } from 'react';
-import { ArrowLeft, Clapperboard, Heart, Play, ListMusic, Search } from 'lucide-react';
+import { Clapperboard, Heart, Play, ListMusic, Search } from 'lucide-react';
 import type { MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Playlist, TvMetadataSearchResult } from '@shared/ipc';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
@@ -76,11 +76,8 @@ export const MovieDetailPage = memo(function MovieDetailPage({
   return (
     <section className="media-detail-page movie-detail-page">
       {movie.backdropPath ? <img className="detail-backdrop" src={movie.backdropPath} alt="" /> : null}
+
       <div className="detail-hero">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={17} />
-          Back to movies
-        </button>
 
         <div className="movie-detail-layout">
           <div className="detail-poster-section">
