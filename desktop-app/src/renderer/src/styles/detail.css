@@ -94,6 +94,8 @@
   align-content: center;
   min-height: clamp(400px, 50vh, 560px);
   padding: 42px 0 0;
+  position: relative;
+  overflow: visible;
 }
 
 .detail-hero,
@@ -109,12 +111,16 @@
   gap: 40px;
   align-items: start;
   max-width: 1200px;
+  position: relative;
+  overflow: visible;
 }
 
 .detail-poster-section {
   display: grid;
   gap: 16px;
   justify-items: stretch;
+  position: relative;
+  overflow: visible;
 }
 
 .detail-poster-section .detail-actions {
@@ -122,6 +128,8 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   width: 180px;
+  position: relative;
+  overflow: visible;
 }
 
 .detail-poster-section .detail-actions .btn,
@@ -787,42 +795,24 @@
 /* Media Options Menu */
 .media-options-menu {
   position: relative;
+  z-index: 1000;
 }
 
-.media-options-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.media-options-menu .btn {
   width: 32px;
   height: 32px;
   min-height: 32px;
   padding: 0;
-  background: var(--surface-low);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--soft);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.media-options-trigger:hover {
-  background: var(--surface-high);
-  border-color: var(--line-strong);
-  color: var(--ink);
-  transform: translateY(-1px);
 }
 
 .media-options-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
   min-width: 220px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   padding: 8px;
-  z-index: 100;
+  z-index: 10000;
   animation: slideDown 0.2s ease;
 }
 

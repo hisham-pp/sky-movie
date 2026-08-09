@@ -1,4 +1,5 @@
 import { memo, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MoreVertical, Folder, FolderOpen, Trash2, X } from 'lucide-react';
 import type { MediaFile } from '@shared/ipc';
 import { Modal, ModalFooter, Button, Tooltip } from '../common';
@@ -16,11 +17,30 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
 }: MediaOptionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        left: rect.left
+      });
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        menuRef.current && 
+        !menuRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -58,18 +78,27 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   return (
     <>
       <div className="media-options-menu" ref={menuRef}>
-        <Tooltip content="More options">
-          <button
-            className="media-options-trigger"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="More options"
-          >
-            <MoreVertical size={14} />
-          </button>
-        </Tooltip>
+        <div ref={buttonRef}>
+          <Tooltip content="More options">
+            <Button
+              variant="secondary"
+              size="small"
+              icon={<MoreVertical size={14} />}
+              onClick={() => setIsOpen(!isOpen)}
+            />
+          </Tooltip>
+        </div>
 
-        {isOpen && (
-          <div className="media-options-dropdown">
+        {isOpen && createPortal(
+          <div 
+            ref={dropdownRef}
+            className="media-options-dropdown" 
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`
+            }}
+          >
             <button className="menu-item" onClick={handleOpenDirectory} disabled={files.length === 0}>
               <FolderOpen size={16} />
               <span>Open directory</span>
@@ -80,7 +109,8 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
               <Trash2 size={16} />
               <span>Delete some files</span>
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
