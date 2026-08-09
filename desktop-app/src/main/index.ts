@@ -65,6 +65,7 @@ function createWindow(): BrowserWindow {
     title: 'Sky Movie',
     backgroundColor: '#111317',
     titleBarStyle: 'hidden',
+    fullscreen: true,
     webPreferences: {
       preload: resolvePreloadPath(),
       contextIsolation: true,
@@ -80,6 +81,11 @@ function createWindow(): BrowserWindow {
   } else {
     window.loadFile(join(currentDir, '../renderer/index.html'));
   }
+
+  // Ensure fullscreen after content loads
+  window.once('ready-to-show', () => {
+    window.setFullScreen(true);
+  });
 
   window.on('closed', () => {
     if (mainWindow === window) {
