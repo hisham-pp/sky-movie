@@ -1,5 +1,6 @@
 import { CheckCircle2, FolderCog, FolderSearch, HardDrive, Loader2, Settings, Film, Tv, Zap } from 'lucide-react';
 import type { LibraryScanMode, MatcherStrategy, ScanResult } from '@shared/ipc';
+import { Tooltip } from '../common';
 
 export function ScanPanel({
   libraryFolders,
@@ -96,7 +97,9 @@ export function ScanPanel({
                   <div className="folder-icon">
                     <HardDrive size={18} />
                   </div>
-                  <span title={folder}>{folder}</span>
+                  <Tooltip content={folder}>
+                    <span>{folder}</span>
+                  </Tooltip>
                 </div>
               ))
             ) : (

@@ -22,7 +22,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
-import { GlassSelect, Switch } from '../common';
+import { GlassSelect, Switch, Tooltip } from '../common';
 import { formatBytes } from '../../utils/format';
 import { LAUNCH_ONBOARDING_EVENT } from '../../config/events';
 
@@ -330,10 +330,14 @@ export const SettingsPanel = memo(function SettingsPanel({
                 {libraryFolders.length ? (
                   libraryFolders.map((folder) => (
                     <div key={folder} className="folder-row">
-                      <span title={folder}>{folder}</span>
-                      <button disabled={busy} onClick={() => onRemoveFolder(folder)} title="Remove folder">
-                        <X size={16} />
-                      </button>
+                      <Tooltip content={folder}>
+                        <span>{folder}</span>
+                      </Tooltip>
+                      <Tooltip content="Remove folder">
+                        <button disabled={busy} onClick={() => onRemoveFolder(folder)}>
+                          <X size={16} />
+                        </button>
+                      </Tooltip>
                     </div>
                   ))
                 ) : (

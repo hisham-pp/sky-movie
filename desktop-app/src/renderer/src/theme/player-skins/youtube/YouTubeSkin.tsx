@@ -14,6 +14,7 @@ import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
 import { VideoEnhancer } from '../../../utils/player/videoEnhancer';
 import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
 import { buildMpvAudioFilter } from '../../../utils/player/audioEnhance';
+import { Tooltip } from '../../../components/common';
 
 function formatTime(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00';
@@ -725,23 +726,26 @@ function YouTubeControls({
           {/* Left: play pill · volume pill · time */}
           <div className="yt-left">
             <div className="yt-pill">
-              <button className="yt-btn"
-                title={state.playing ? 'Pause (k)' : 'Play (k)'}
-                onClick={e => { e.stopPropagation(); onTogglePlay(); }}>
-                {state.playing
+              <Tooltip content={state.playing ? 'Pause (k)' : 'Play (k)'}>
+                <button className="yt-btn"
+                  onClick={e => { e.stopPropagation(); onTogglePlay(); }}>
+                  {state.playing
                   ? <Pause size={20} fill="currentColor" stroke="none" />
                   : <Play  size={20} fill="currentColor" stroke="none" />}
               </button>
+              </Tooltip>
             </div>
 
             <div className="yt-pill"
               onMouseEnter={() => setVolExpand(true)}
               onMouseLeave={() => setVolExpand(false)}
             >
-              <button className="yt-btn" title="Mute (m)"
-                onClick={e => { e.stopPropagation(); onToggleMute(); }}>
-                <VolumeIcon size={20} />
-              </button>
+              <Tooltip content="Mute (m)">
+                <button className="yt-btn"
+                  onClick={e => { e.stopPropagation(); onToggleMute(); }}>
+                  <VolumeIcon size={20} />
+                </button>
+              </Tooltip>
               <div className={`yt-vol-expand${volExpanded ? ' open' : ''}`}>
                 <input
                   className="yt-volume-slider"
@@ -755,61 +759,67 @@ function YouTubeControls({
             </div>
 
             <div className="yt-pill">
-              <div className="yt-time"
-                style={{ cursor: 'pointer' }}
-                onClick={e => { e.stopPropagation(); setShowRemaining(r => !r); }}
-                title="Toggle remaining time"
-              >
-                {showRemaining
-                  ? <strong>−{formatTime(Math.max(0, state.duration - state.position))}</strong>
-                  : <strong>{formatTime(state.position)}</strong>}
-                <span className="sep">/</span>
-                <span className="yt-time-duration" style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
-              </div>
+              <Tooltip content="Toggle remaining time">
+                <div className="yt-time"
+                  style={{ cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); setShowRemaining(r => !r); }}
+                >
+                  {showRemaining
+                    ? <strong>−{formatTime(Math.max(0, state.duration - state.position))}</strong>
+                    : <strong>{formatTime(state.position)}</strong>}
+                  <span className="sep">/</span>
+                  <span className="yt-time-duration" style={{ opacity: 0.45 }}>{formatTime(state.duration)}</span>
+                </div>
+              </Tooltip>
             </div>
           </div>
 
           {/* Right: CC · AI enhance · settings · fullscreen in single pill */}
           <div className="yt-right">
             <div className="yt-pill">
-              <button
-                className={`yt-btn${selectedSid !== null ? ' active' : ''}`}
-                title={selectedSid !== null ? 'Subtitles on' : 'Subtitles off'}
-                onClick={e => { e.stopPropagation(); toggleSubtitles(); }}
-              >
-                <Captions size={20} />
-              </button>
+              <Tooltip content={selectedSid !== null ? 'Subtitles on' : 'Subtitles off'}>
+                <button
+                  className={`yt-btn${selectedSid !== null ? ' active' : ''}`}
+                  onClick={e => { e.stopPropagation(); toggleSubtitles(); }}
+                >
+                  <Captions size={20} />
+                </button>
+              </Tooltip>
 
-              <button
-                className={`yt-btn${showAiPanel ? ' active' : (aiVideoOn || aiAudioOn) ? ' active' : ''}`}
-                title="AI Enhance"
-                onClick={e => {
-                  e.stopPropagation();
-                  setShowAiPanel(v => !v);
-                  if (showMenu === 'settings') onSetShowMenu(null);
-                }}
-              >
-                <Sparkles size={18} />
-              </button>
+              <Tooltip content="AI Enhance">
+                <button
+                  className={`yt-btn${showAiPanel ? ' active' : (aiVideoOn || aiAudioOn) ? ' active' : ''}`}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setShowAiPanel(v => !v);
+                    if (showMenu === 'settings') onSetShowMenu(null);
+                  }}
+                >
+                  <Sparkles size={18} />
+                </button>
+              </Tooltip>
 
-              <button
-                className={`yt-btn${showMenu === 'settings' ? ' active' : ''}`}
-                title="Settings"
-                onClick={e => {
-                  e.stopPropagation();
-                  if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); setShowAiPanel(false); }
-                }}
-              >
-                <Settings size={18} style={{
-                  transform: showMenu === 'settings' ? 'rotate(30deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease',
-                }} />
-              </button>
+              <Tooltip content="Settings">
+                <button
+                  className={`yt-btn${showMenu === 'settings' ? ' active' : ''}`}
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (showMenu === 'settings') { onSetShowMenu(null); } else { openMenu('main'); setShowAiPanel(false); }
+                  }}
+                >
+                  <Settings size={18} style={{
+                    transform: showMenu === 'settings' ? 'rotate(30deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }} />
+                </button>
+              </Tooltip>
 
-              <button className="yt-btn" title="Fullscreen (f)"
-                onClick={e => { e.stopPropagation(); onToggleFullscreen(); }}>
-                {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-              </button>
+              <Tooltip content="Fullscreen (f)">
+                <button className="yt-btn"
+                  onClick={e => { e.stopPropagation(); onToggleFullscreen(); }}>
+                  {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                </button>
+              </Tooltip>
             </div>
           </div>
 

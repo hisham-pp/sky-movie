@@ -13,6 +13,7 @@ import type { VideoEnhancerParams } from '../../../utils/player/videoEnhancer';
 import { buildMpvAudioFilter } from '../../../utils/player/audioEnhance';
 import { PlayerSkin } from '../PlayerSkin';
 import type { PlayerKeyMap, SkinControlsProps } from '../PlayerSkin';
+import { Tooltip } from '../../../components/common';
 
 function formatTime(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00';
@@ -226,9 +227,11 @@ function DefaultControls({
               onMouseEnter={() => setVolExpand(true)}
               onMouseLeave={() => setVolExpand(false)}
             >
-              <button className="default-btn" onClick={onToggleMute} title="Mute (M)">
-                {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
-              </button>
+              <Tooltip content="Mute (M)">
+                <button className="default-btn" onClick={onToggleMute}>
+                  {state.muted || state.volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+              </Tooltip>
               <div className="default-volume-expand">
                 <input
                   className="default-volume-slider"
@@ -259,35 +262,38 @@ function DefaultControls({
 
           {/* Center: −Ns · play/pause · +Ns */}
           <div className="default-center">
-            <button
-              className="default-btn default-skip-btn"
-              onClick={() => onSeekTo(Math.max(0, state.position - keyMap.seekBackLargeSeconds))}
-              title={`Rewind ${keyMap.seekBackLargeSeconds}s`}
-            >
-              <span className="default-skip-inner">
-                <RotateCcw size={18} />
-                <span className="default-skip-label">{keyMap.seekBackLargeSeconds}</span>
-              </span>
-            </button>
+            <Tooltip content={`Rewind ${keyMap.seekBackLargeSeconds}s`}>
+              <button
+                className="default-btn default-skip-btn"
+                onClick={() => onSeekTo(Math.max(0, state.position - keyMap.seekBackLargeSeconds))}
+              >
+                <span className="default-skip-inner">
+                  <RotateCcw size={18} />
+                  <span className="default-skip-label">{keyMap.seekBackLargeSeconds}</span>
+                </span>
+              </button>
+            </Tooltip>
 
-            <button
-              className="default-btn default-play-btn"
-              onClick={onTogglePlay}
-              title={state.playing ? 'Pause (Space)' : 'Play (Space)'}
-            >
-              {state.playing ? <Pause size={22} /> : <Play size={22} />}
-            </button>
+            <Tooltip content={state.playing ? 'Pause (Space)' : 'Play (Space)'}>
+              <button
+                className="default-btn default-play-btn"
+                onClick={onTogglePlay}
+              >
+                {state.playing ? <Pause size={22} /> : <Play size={22} />}
+              </button>
+            </Tooltip>
 
-            <button
-              className="default-btn default-skip-btn"
-              onClick={() => onSeekTo(state.position + keyMap.seekForwardLargeSeconds)}
-              title={`Forward ${keyMap.seekForwardLargeSeconds}s`}
-            >
-              <span className="default-skip-inner">
-                <RotateCw size={18} />
-                <span className="default-skip-label">{keyMap.seekForwardLargeSeconds}</span>
-              </span>
-            </button>
+            <Tooltip content={`Forward ${keyMap.seekForwardLargeSeconds}s`}>
+              <button
+                className="default-btn default-skip-btn"
+                onClick={() => onSeekTo(state.position + keyMap.seekForwardLargeSeconds)}
+              >
+                <span className="default-skip-inner">
+                  <RotateCw size={18} />
+                  <span className="default-skip-label">{keyMap.seekForwardLargeSeconds}</span>
+                </span>
+              </button>
+            </Tooltip>
           </div>
 
           {/* Right: settings (speed + audio + subtitles) · AI enhance · fullscreen */}
@@ -342,23 +348,25 @@ function DefaultControls({
             )}
 
             {/* AI button */}
-            <button
-              className={`default-btn${aiVideoOn || aiAudioOn ? ' default-btn-active' : ''}`}
-              title="AI Enhance"
-              onClick={e => { e.stopPropagation(); setShowAiPanel(v => !v); }}
-            >
-              <Sparkles size={15} />
-            </button>
+            <Tooltip content="AI Enhance">
+              <button
+                className={`default-btn${aiVideoOn || aiAudioOn ? ' default-btn-active' : ''}`}
+                onClick={e => { e.stopPropagation(); setShowAiPanel(v => !v); }}
+              >
+                <Sparkles size={15} />
+              </button>
+            </Tooltip>
 
             {/* Combined settings panel */}
             <div className="default-menu-wrap">
-              <button
-                className="default-btn"
-                onClick={e => { e.stopPropagation(); onSetShowMenu(showMenu === 'settings' ? null : 'settings'); }}
-                title="Settings"
-              >
-                <Settings size={16} />
-              </button>
+              <Tooltip content="Settings">
+                <button
+                  className="default-btn"
+                  onClick={e => { e.stopPropagation(); onSetShowMenu(showMenu === 'settings' ? null : 'settings'); }}
+                >
+                  <Settings size={16} />
+                </button>
+              </Tooltip>
               {showMenu === 'settings' && (
                 <div
                   className="default-menu default-settings-panel"
@@ -484,9 +492,11 @@ function DefaultControls({
               )}
             </div>
 
-            <button className="default-btn" onClick={onToggleFullscreen} title="Fullscreen (F)">
-              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-            </button>
+            <Tooltip content="Fullscreen (F)">
+              <button className="default-btn" onClick={onToggleFullscreen}>
+                {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

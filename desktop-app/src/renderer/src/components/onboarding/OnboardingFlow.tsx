@@ -5,7 +5,7 @@ import {
   Keyboard, Volume2, Captions, Wand2, Maximize, Cpu, Play, Trash2, ScanLine
 } from 'lucide-react';
 import type { AppSettings } from '@shared/ipc';
-import { Switch, GlassSelect } from '../common';
+import { Switch, GlassSelect, Tooltip } from '../common';
 import type { GlassSelectOption } from '../common';
 
 const TOTAL_STEPS = 6;
@@ -104,9 +104,11 @@ export const OnboardingFlow = memo(function OnboardingFlow({
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-card" role="dialog" aria-modal="true" aria-label="Welcome tour">
-        <button className="onboarding-skip" onClick={skip} title="Skip tour (Esc)">
-          <X size={16} /> Skip
-        </button>
+        <Tooltip content="Skip tour (Esc)">
+          <button className="onboarding-skip" onClick={skip}>
+            <X size={16} /> Skip
+          </button>
+        </Tooltip>
 
         <div className="onboarding-progress">
           <div className="onboarding-progress-fill" style={{ width: `${progress}%` }} />
@@ -194,10 +196,14 @@ function MediaSetupStep({
         <ul className="onboarding-folder-list">
           {libraryFolders.map((folder) => (
             <li key={folder}>
-              <span className="onboarding-folder-path" title={folder}>{folder}</span>
-              <button className="onboarding-folder-remove" onClick={() => onRemoveFolder(folder)} title="Remove folder" aria-label="Remove folder">
-                <Trash2 size={14} />
-              </button>
+              <Tooltip content={folder}>
+                <span className="onboarding-folder-path">{folder}</span>
+              </Tooltip>
+              <Tooltip content="Remove folder">
+                <button className="onboarding-folder-remove" onClick={() => onRemoveFolder(folder)} aria-label="Remove folder">
+                  <Trash2 size={14} />
+                </button>
+              </Tooltip>
             </li>
           ))}
         </ul>
