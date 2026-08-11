@@ -48,7 +48,7 @@ export const MetadataSearchDialog = memo(function MetadataSearchDialog({
 
   return (
     <Modal isOpen={true} onClose={onClose} title={`Search Metadata: ${title}`} maxWidth="medium">
-      <div className="metadata-search-input">
+      <div className="metadata-search">
         <input
           value={metadataQuery}
           onChange={handleInputChange}
