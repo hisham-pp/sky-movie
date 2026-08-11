@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreVertical, Folder, FolderOpen, Trash2, X } from 'lucide-react';
+import { MoreVertical, Folder, FolderOpen, Trash2, X, Search } from 'lucide-react';
 import type { MediaFile } from '@shared/ipc';
 import { Modal, ModalFooter, Button, Tooltip } from '../common';
 
@@ -8,12 +8,14 @@ interface MediaOptionsMenuProps {
   files: MediaFile[];
   onShowInFolder: (file: MediaFile) => void;
   onDeleteSomeFiles: () => void;
+  onSearchGoogle?: () => void;
 }
 
 export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   files,
   onShowInFolder,
-  onDeleteSomeFiles
+  onDeleteSomeFiles,
+  onSearchGoogle
 }: MediaOptionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -100,6 +102,12 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
               <FolderOpen size={16} />
               <span>Open directory</span>
             </button>
+            {onSearchGoogle && (
+              <button className="menu-item" onClick={() => { setIsOpen(false); onSearchGoogle(); }}>
+                <Search size={16} />
+                <span>Search on Google</span>
+              </button>
+            )}
             <div className="menu-divider" />
             <div className="menu-section-title">Bulk actions</div>
             <button className="menu-item danger" onClick={handleDeleteSomeFiles} disabled={files.length === 0}>

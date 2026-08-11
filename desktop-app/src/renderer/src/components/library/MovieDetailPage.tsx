@@ -5,6 +5,7 @@ import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
 import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
 import { Button, Tooltip } from '../common';
+import { openExternalUrl } from '@renderer/queries';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 
@@ -82,6 +83,11 @@ export const MovieDetailPage = memo(function MovieDetailPage({
     setShowDeleteDialog(false);
   }, [handleDeleteFiles]);
 
+  const handleSearchGoogle = useCallback(() => {
+    const query = `${movie.title} ${movie.releaseYear || ''} movie`;
+    void openExternalUrl(`https://www.google.com/search?q=${encodeURIComponent(query)}`);
+  }, [movie.title, movie.releaseYear]);
+
   return (
     <section className="media-detail-page movie-detail-page">
       {movie.backdropPath ? <img className="detail-backdrop" src={movie.backdropPath} alt="" /> : null}
@@ -146,6 +152,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
                 files={files}
                 onShowInFolder={onShowInFolder}
                 onDeleteSomeFiles={handleOpenDeleteDialog}
+                onSearchGoogle={handleSearchGoogle}
               />
             </div>
           </div>
