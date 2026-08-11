@@ -260,6 +260,17 @@ export class MpvService {
     session.player = player;
     log.info(`[MpvService] MpvPlayer constructed in ${Date.now() - t0}ms`);
 
+    // Configure caching for smoother playback, especially for local HTTP torrent streams
+    player.setProperty('cache', 'yes');
+    player.setProperty('demuxer-max-bytes', 500 * 1024 * 1024); // 500MB
+    player.setProperty('demuxer-max-back-bytes', 100 * 1024 * 1024); // 100MB
+    player.setProperty('cache-secs', 600); // 10 minutes max buffer
+    
+    // Enable hardware decoding (copy-back) and use the fast profile to prevent CPU bottlenecks
+    // which can cause local playback to freeze or stutter on high-bitrate files.
+    player.setProperty('hwdec', 'auto-safe');
+    player.setProperty('profile', 'fast');
+
     player.loadFile(filePath);
     log.info('[MpvService] loadFile dispatched');
 
