@@ -30,13 +30,13 @@ type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'download
 
 const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
   { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
-  { id: 'library',    label: 'Library',    icon: <Library size={16} /> },
-  { id: 'metadata',   label: 'Metadata',   icon: <Tag size={16} /> },
-  { id: 'backups',    label: 'Backups',    icon: <DatabaseBackup size={16} /> },
-  { id: 'downloads',  label: 'Downloads',  icon: <FolderDown size={16} /> },
+  { id: 'library', label: 'Library', icon: <Library size={16} /> },
+  { id: 'metadata', label: 'Metadata', icon: <Tag size={16} /> },
+  { id: 'backups', label: 'Backups', icon: <DatabaseBackup size={16} /> },
+  { id: 'downloads', label: 'Downloads', icon: <FolderDown size={16} /> },
   { id: 'local-data', label: 'Local Data', icon: <Database size={16} /> },
-  { id: 'updates',    label: 'Updates',    icon: <Zap size={16} /> },
-  { id: 'help',       label: 'Help',       icon: <LifeBuoy size={16} /> },
+  { id: 'updates', label: 'Updates', icon: <Zap size={16} /> },
+  { id: 'help', label: 'Help', icon: <LifeBuoy size={16} /> },
 ];
 
 const themePresets: Array<{
@@ -45,17 +45,17 @@ const themePresets: Array<{
   description: string;
   swatches: [string, string, string];
 }> = [
-  { id: 'cinema',   name: 'Cinema',   description: 'Cinematic charcoal surfaces with sky blue focus.',      swatches: ['#111317', '#1a1c20', '#89ceff'] },
-  { id: 'midnight', name: 'Midnight', description: 'Deep blue surfaces with soft violet accents.',           swatches: ['#070b18', '#8bb7ff', '#b695ff'] },
-  { id: 'daylight', name: 'Daylight', description: 'Clean bright layout for daytime curation.',              swatches: ['#f7f3ea', '#2364d2', '#111317'] },
-  { id: 'ember',    name: 'Ember',    description: 'Warm theater tones with amber focus states.',             swatches: ['#170b08', '#ffb13c', '#f04f32'] },
-  { id: 'ocean',    name: 'Ocean',    description: 'Deep teal waves with aqua highlights.',                  swatches: ['#0a1a1f', '#14b8a6', '#06b6d4'] },
-  { id: 'forest',   name: 'Forest',   description: 'Rich emerald tones with natural greens.',                swatches: ['#0f1810', '#10b981', '#34d399'] },
-  { id: 'sunset',   name: 'Sunset',   description: 'Warm dusk palette with golden accents.',                 swatches: ['#1a1214', '#f59e0b', '#fb923c'] },
-  { id: 'noir',     name: 'Noir',     description: 'Pure black surfaces with minimal accents.',              swatches: ['#000000', '#404040', '#a3a3a3'] },
-  { id: 'lavender', name: 'Lavender', description: 'Soft purple hues with dreamy atmospherics.',             swatches: ['#1a0f1f', '#a78bfa', '#c4b5fd'] },
-  { id: 'crimson',  name: 'Crimson',  description: 'Bold red theater with dramatic contrast.',               swatches: ['#1a0808', '#ef4444', '#dc2626'] },
-];
+    { id: 'cinema', name: 'Cinema', description: 'Cinematic charcoal surfaces with sky blue focus.', swatches: ['#111317', '#1a1c20', '#89ceff'] },
+    { id: 'midnight', name: 'Midnight', description: 'Deep blue surfaces with soft violet accents.', swatches: ['#070b18', '#8bb7ff', '#b695ff'] },
+    { id: 'daylight', name: 'Daylight', description: 'Clean bright layout for daytime curation.', swatches: ['#f7f3ea', '#2364d2', '#111317'] },
+    { id: 'ember', name: 'Ember', description: 'Warm theater tones with amber focus states.', swatches: ['#170b08', '#ffb13c', '#f04f32'] },
+    { id: 'ocean', name: 'Ocean', description: 'Deep teal waves with aqua highlights.', swatches: ['#0a1a1f', '#14b8a6', '#06b6d4'] },
+    { id: 'forest', name: 'Forest', description: 'Rich emerald tones with natural greens.', swatches: ['#0f1810', '#10b981', '#34d399'] },
+    { id: 'sunset', name: 'Sunset', description: 'Warm dusk palette with golden accents.', swatches: ['#1a1214', '#f59e0b', '#fb923c'] },
+    { id: 'noir', name: 'Noir', description: 'Pure black surfaces with minimal accents.', swatches: ['#000000', '#404040', '#a3a3a3'] },
+    { id: 'lavender', name: 'Lavender', description: 'Soft purple hues with dreamy atmospherics.', swatches: ['#1a0f1f', '#a78bfa', '#c4b5fd'] },
+    { id: 'crimson', name: 'Crimson', description: 'Bold red theater with dramatic contrast.', swatches: ['#1a0808', '#ef4444', '#dc2626'] },
+  ];
 
 const playerStylePresets: Array<{ id: PlayerStyle; name: string; description: string }> = [
   { id: 'default', name: 'Default', description: 'Standard controls with seek bar, volume, track selection and fullscreen toggle.' },
@@ -125,7 +125,7 @@ export const SettingsPanel = memo(function SettingsPanel({
 
   // Sync initial status and listen for progress events
   useEffect(() => {
-    queries.getUpdateStatus().then((s: UpdateStatus) => setUpdateStatus(s)).catch(() => {});
+    queries.getUpdateStatus().then((s: UpdateStatus) => setUpdateStatus(s)).catch(() => { });
 
     return queries.onUpdateProgress((event: UpdateProgressEvent) => {
       if (event.type === 'status') {
@@ -201,7 +201,7 @@ export const SettingsPanel = memo(function SettingsPanel({
       </aside>
 
       {/* Right content area */}
-      <main className="settings-content" role="tabpanel">
+      <main className="settings-content mt-10" role="tabpanel">
         {activeTab === 'appearance' && (
           <div className="settings-sections">
             <div className="settings-section">

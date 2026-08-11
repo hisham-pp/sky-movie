@@ -4,6 +4,7 @@
   height: 100%;
   overflow: hidden;
   -webkit-app-region: no-drag;
+  padding-top: 80px;
 }
 
 /* ── header ─────────────────────────────────────────────────── */
@@ -13,7 +14,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 20px 24px 16px;
+  padding: 0px 24px 16px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
   position: relative;
@@ -283,5 +284,7 @@
 }
 
 @keyframes wh-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

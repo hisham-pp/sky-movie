@@ -109,10 +109,7 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
       )}
 
       <div className="detail-hero">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={17} />
-          Back to playlists
-        </button>
+
 
         <div className="playlist-detail-layout">
           <div className="detail-poster playlist-poster-large">

@@ -9,16 +9,16 @@ import { GlassSelect, Tooltip } from '../common';
 
 const QUALITY_OPTIONS = ['all', '2160p', '1080p', '720p', '480p', 'HDR', 'x265', 'x264', 'HEVC', 'BluRay', 'WEBRip'];
 const CATEGORY_OPTIONS: { value: TorrentCategory | 'all'; label: string }[] = [
-  { value: 'all',   label: 'All' },
+  { value: 'all', label: 'All' },
   { value: 'movie', label: 'Movies' },
-  { value: 'tv',    label: 'TV Shows' },
+  { value: 'tv', label: 'TV Shows' },
   { value: 'anime', label: 'Anime' },
 ];
 const SORT_OPTIONS = [
   { value: 'seeds', label: 'Seeds' },
   { value: 'peers', label: 'Peers' },
-  { value: 'size',  label: 'Size' },
-  { value: 'date',  label: 'Date' },
+  { value: 'size', label: 'Size' },
+  { value: 'date', label: 'Date' },
 ];
 
 const RECENT_SEARCHES_KEY = 'torrent-recent-searches';
@@ -50,14 +50,14 @@ type DropdownItem =
 
 export function SearchTab() {
   const navigate = useNavigate();
-  const [query,    setQuery]    = useState('');
+  const [query, setQuery] = useState('');
   // The query the torrent providers were actually searched with. A single
   // effect re-runs the provider search whenever this or a filter changes, so
   // typing only drives suggestions — providers are hit on explicit intent.
   const [submitted, setSubmitted] = useState('');
   const [category, setCategory] = useState<Category>('all');
-  const [quality,  setQuality]  = useState('all');
-  const [sortBy,   setSortBy]   = useState<SortBy>('seeds');
+  const [quality, setQuality] = useState('all');
+  const [sortBy, setSortBy] = useState<SortBy>('seeds');
   const [showFilters, setShowFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(getRecentSearches);
   const [open, setOpen] = useState(false);
@@ -256,9 +256,8 @@ export function SearchTab() {
                   aria-selected={highlighted === i}
                   onMouseEnter={() => setHighlighted(i)}
                   onMouseDown={(e) => { e.preventDefault(); selectItem(item); }}
-                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-colors ${
-                    highlighted === i ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white'
-                  }`}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-colors ${highlighted === i ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white'
+                    }`}
                 >
                   {item.type === 'suggestion'
                     ? <SuggestionRow suggestion={item.suggestion} />
@@ -284,11 +283,10 @@ export function SearchTab() {
               <button
                 key={c.value}
                 onClick={() => setCategory(c.value)}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
-                  category === c.value
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'
-                }`}
+                className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${category === c.value
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'
+                  }`}
               >
                 {c.label}
               </button>

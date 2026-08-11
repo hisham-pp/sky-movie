@@ -24,7 +24,7 @@ export const BrowsePlaylistsPage = memo(function BrowsePlaylistsPage({
   return (
     <div className="browse-grid">
       <section className="library-list">
-        <div className="playlist-browse-header">
+        <div className="playlist-browse-header mt-6">
           <div className="playlist-browse-header-icon">
             <ListMusic size={28} />
           </div>
