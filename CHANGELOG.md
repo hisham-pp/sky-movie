@@ -5,6 +5,20 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.5] - 2026-08-11
+
+### Added
+
+- enhance package:all script to refresh release manifest if configured (Hisham)
+
+### Fixed
+
+- configure mpv cache and hwdec to prevent playback freezing (Hisham)
+
+### Other
+
+- UI redesign and stability improvements (Hisham)
+
 ## [0.10.4] - 2026-08-09
 
 ### Added
@@ -1053,3 +1067,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.2]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.2
 [0.10.3]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.3
 [0.10.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.4
+[0.10.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.5
