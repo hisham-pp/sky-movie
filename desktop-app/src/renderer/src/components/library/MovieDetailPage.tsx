@@ -151,7 +151,7 @@ export const MovieDetailPage = memo(function MovieDetailPage({
           </div>
           <div className="detail-copy">
             <h2>{movie.title}</h2>
-            <p className="detail-subtitle">{files.length} local file{files.length === 1 ? '' : 's'}</p>
+
             <div className="hero-chips">
               {meta.map((item) => (
                 <span key={String(item)}>{item}</span>

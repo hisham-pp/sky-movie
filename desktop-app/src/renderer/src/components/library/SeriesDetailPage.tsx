@@ -200,7 +200,7 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
                 <span key={String(item)}>{item}</span>
               ))}
             </div>
-            <p className="detail-subtitle">{episodes.length} episode{episodes.length === 1 ? '' : 's'}</p>
+
             <p className="detail-overview">{show.overview ?? 'No series overview stored yet. Load TMDB metadata to enrich this show.'}</p>
           </div>
         </div>
