@@ -178,12 +178,13 @@ export class MetadataProviderManager {
       throw new Error('Add a TMDB API key in Settings before applying movie metadata.');
     }
 
+    const auth = getAuth(apiKey);
     const params = new URLSearchParams({
-      api_key: apiKey,
+      ...auth.params,
       language: settings.tmdbLanguage || 'en-US',
       append_to_response: 'credits'
     });
-    const response = await requestUrl(`https://api.themoviedb.org/3/movie/${request.providerId}?${params.toString()}`, 'TMDB movie details');
+    const response = await requestUrl(`https://api.themoviedb.org/3/movie/${request.providerId}?${params.toString()}`, 'TMDB movie details', { headers: auth.headers });
     if (!response.ok) {
       throw new Error(`TMDB movie details failed: ${response.status} ${response.statusText}`);
     }
@@ -338,12 +339,13 @@ export class MetadataProviderManager {
       throw new Error('Add a TMDB API key in Settings before applying TV metadata.');
     }
 
+    const auth = getAuth(apiKey);
     const params = new URLSearchParams({
-      api_key: apiKey,
+      ...auth.params,
       language: settings.tmdbLanguage || 'en-US',
       append_to_response: 'credits'
     });
-    const response = await requestUrl(`https://api.themoviedb.org/3/tv/${request.providerId}?${params.toString()}`, 'TMDB TV details');
+    const response = await requestUrl(`https://api.themoviedb.org/3/tv/${request.providerId}?${params.toString()}`, 'TMDB TV details', { headers: auth.headers });
     if (!response.ok) {
       throw new Error(`TMDB TV details failed: ${response.status} ${response.statusText}`);
     }
@@ -456,10 +458,11 @@ export class MetadataProviderManager {
   private async getImageBaseUrl(apiKey: string, kind: 'poster' | 'backdrop' | 'profile'): Promise<string> {
     const fallbackSize = kind === 'backdrop' ? 'w780' : kind === 'profile' ? 'w185' : 'w342';
     try {
-      const response = await requestUrl(
-        `https://api.themoviedb.org/3/configuration?api_key=${encodeURIComponent(apiKey)}`,
-        'TMDB image configuration'
-      );
+      const auth = getAuth(apiKey);
+      const params = new URLSearchParams(auth.params);
+      const url = `https://api.themoviedb.org/3/configuration${params.toString() ? '?' + params.toString() : ''}`;
+      
+      const response = await requestUrl(url, 'TMDB image configuration', { headers: auth.headers });
       if (!response.ok) {
         return `https://image.tmdb.org/t/p/${fallbackSize}`;
       }
@@ -608,8 +611,9 @@ async function fetchTmdbMovieSearch(
   query: string,
   year: number | null
 ): Promise<TmdbSearchResponse> {
+  const auth = getAuth(apiKey);
   const params = new URLSearchParams({
-    api_key: apiKey,
+    ...auth.params,
     query,
     language,
     include_adult: 'false',
@@ -619,7 +623,7 @@ async function fetchTmdbMovieSearch(
     params.set('year', String(year));
   }
 
-  const response = await requestUrl(`https://api.themoviedb.org/3/search/movie?${params.toString()}`, 'TMDB movie search');
+  const response = await requestUrl(`https://api.themoviedb.org/3/search/movie?${params.toString()}`, 'TMDB movie search', { headers: auth.headers });
   if (!response.ok) {
     throw new Error(`TMDB movie search failed: ${response.status} ${response.statusText}`);
   }
@@ -637,8 +641,9 @@ async function searchTmdbTv(apiKey: string, language: string, query: string, yea
 }
 
 async function fetchTmdbTvSearch(apiKey: string, language: string, query: string, year: number | null): Promise<TmdbTvSearchResponse> {
+  const auth = getAuth(apiKey);
   const params = new URLSearchParams({
-    api_key: apiKey,
+    ...auth.params,
     query,
     language,
     include_adult: 'false',
@@ -648,7 +653,7 @@ async function fetchTmdbTvSearch(apiKey: string, language: string, query: string
     params.set('first_air_date_year', String(year));
   }
 
-  const response = await requestUrl(`https://api.themoviedb.org/3/search/tv?${params.toString()}`, 'TMDB TV search');
+  const response = await requestUrl(`https://api.themoviedb.org/3/search/tv?${params.toString()}`, 'TMDB TV search', { headers: auth.headers });
   if (!response.ok) {
     throw new Error(`TMDB TV search failed: ${response.status} ${response.statusText}`);
   }
@@ -672,9 +677,16 @@ function normalizeMetadataSearch(rawQuery: string, requestedYear?: number | null
   return { query, year };
 }
 
-async function requestUrl(url: string, label: string): Promise<Response> {
+function getAuth(key: string): { params: Record<string, string>; headers: Record<string, string> } {
+  if (key.length > 50) {
+    return { params: {}, headers: { Authorization: `Bearer ${key}` } };
+  }
+  return { params: { api_key: key }, headers: {} };
+}
+
+async function requestUrl(url: string, label: string, options?: RequestInit): Promise<Response> {
   try {
-    return await net.fetch(url);
+    return await net.fetch(url, options);
   } catch (error) {
     throw new Error(`${label} could not connect: ${formatNetworkError(error)}`);
   }

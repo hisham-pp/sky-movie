@@ -169,9 +169,13 @@ jobs:
 
       - name: Build app bundles
         run: pnpm --filter @sky-movie/desktop-app run build:ci
+        env:
+          VITE_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
 
       - name: Package app
         run: ${{ matrix.packageCommand }}
+        env:
+          VITE_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
 
       # - name: Sign DEB packages
       #   if: runner.os == 'Linux'

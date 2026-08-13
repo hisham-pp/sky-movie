@@ -116,7 +116,8 @@ export function defaultSettings(deviceId: string): AppSettings {
     theme: 'cinema',
     playerStyle: 'default',
     metadataProvider: 'local',
-    tmdbApiKey: '',
+    // @ts-ignore: Vite replaces this statically at build time
+    tmdbApiKey: import.meta.env.VITE_TMDB_API_KEY || '',
     tmdbLanguage: 'en-US',
     autoScan: false,
     watchFolders: false,
