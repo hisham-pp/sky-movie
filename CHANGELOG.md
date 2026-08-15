@@ -5,6 +5,20 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.7] - 2026-08-15
+
+### Added
+
+- integrate YouTube video download functionality and update database schema (Hisham)
+
+### Fixed
+
+- resolve sqliteTable deprecation warnings (Hisham)
+
+### Other
+
+- docs: update README to include features and screenshots sections (Hisham)
+
 ## [0.10.6] - 2026-08-13
 
 ### Added
@@ -1082,3 +1096,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.4]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.4
 [0.10.5]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.5
 [0.10.6]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.6
+[0.10.7]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.7
