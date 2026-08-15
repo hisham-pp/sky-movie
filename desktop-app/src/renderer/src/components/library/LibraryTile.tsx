@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Film, Heart, Tv, Info } from 'lucide-react';
+import { Film, Heart, Tv, Info, Youtube } from 'lucide-react';
 import type { Movie, TvShow } from '@shared/ipc';
 import { Tooltip } from '../common';
 
@@ -38,7 +38,13 @@ export const MovieTile = memo(function MovieTile({
     <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
       <div className="poster">
         {movie.posterPath ? <img src={movie.posterPath} alt="" loading="lazy" decoding="async" /> : <Film size={34} />}
-        <span className="tile-badge">LOCAL</span>
+        {movie.source === 'youtube' ? (
+          <span className="tile-badge bg-red-600 border border-red-500/50 flex items-center gap-1">
+            <Youtube size={10} /> YT
+          </span>
+        ) : (
+          <span className="tile-badge">LOCAL</span>
+        )}
         <FavoriteButton favorite={movie.favorite} onToggle={onToggleFavorite} />
         <span className="tile-overlay">
           <strong>{movie.title}</strong>

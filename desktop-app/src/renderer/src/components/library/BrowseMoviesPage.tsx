@@ -8,6 +8,9 @@ import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
+import { AddYouTubeModal } from './AddYouTubeModal';
+import { Button } from '../common';
+import { Youtube } from 'lucide-react';
 
 export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   movies,
@@ -34,6 +37,8 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   const [favoritesOnly, setFavoritesOnly] = useSessionState('movies.favoritesOnly', false);
   const [sortBy, setSortBy] = useSessionState<SortBy>('movies.sortBy', 'default');
   const scrollRef = useSessionScroll('movies.scrollTop');
+
+  const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false);
 
   const clearFilters = useCallback(() => {
     setSearch('');
@@ -154,7 +159,17 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
           onSortChange={setSortBy}
           onClear={clearFilters}
         />
-        <SectionTitle title="Current Movies" count={movieCount} />
+        <div className="flex items-center justify-between mb-2">
+          <SectionTitle title="Current Movies" count={movieCount} />
+          <Button
+            variant="secondary"
+            size="small"
+            icon={<Youtube size={14} className="text-red-500" />}
+            onClick={() => setIsYouTubeModalOpen(true)}
+          >
+            Download YouTube Video
+          </Button>
+        </div>
 
         {movieCount > 0 ? (
           <>
@@ -188,6 +203,14 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
           />
         )}
       </section>
+
+      <AddYouTubeModal
+        isOpen={isYouTubeModalOpen}
+        onClose={() => setIsYouTubeModalOpen(false)}
+        onAdded={() => {
+          // You could trigger a refresh here if you want to explicitly re-fetch
+        }}
+      />
     </div>
   );
 });

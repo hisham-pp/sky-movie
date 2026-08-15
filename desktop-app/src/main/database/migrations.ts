@@ -244,6 +244,23 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
   }
 
   try {
+    // Check if source column exists in movies
+    const columns = db.pragma('table_info(movies)') as Array<{ name: string }>;
+    const hasSource = columns.some(col => col.name === 'source');
+
+    if (!hasSource) {
+      db.exec(`
+        ALTER TABLE movies ADD COLUMN source TEXT DEFAULT 'local';
+        ALTER TABLE movies ADD COLUMN source_id TEXT;
+        ALTER TABLE movies ADD COLUMN source_url TEXT;
+        ALTER TABLE movies ADD COLUMN channel_name TEXT;
+      `);
+    }
+  } catch (error) {
+    console.warn('Migration for movies table (source columns) skipped or failed:', error);
+  }
+
+  try {
     // Check if id column exists in collection_items
     const columns = db.pragma('table_info(collection_items)') as Array<{ name: string }>;
     const hasId = columns.some(col => col.name === 'id');

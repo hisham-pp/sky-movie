@@ -29,7 +29,11 @@ export const movies = sqliteTable(
     rating: real('rating'),
     favorite: integer('favorite', { mode: 'boolean' }).notNull().default(false),
     addedAt: text('added_at').notNull(),
-    updatedAt: text('updated_at').notNull()
+    updatedAt: text('updated_at').notNull(),
+    source: text('source').default('local'),
+    sourceId: text('source_id'),
+    sourceUrl: text('source_url'),
+    channelName: text('channel_name')
   },
   (table) => [
     index('movies_title_idx').on(table.title),

@@ -25,6 +25,7 @@ import { PlaylistService } from './services/playlistService';
 import { SettingsService } from './services/settingsService';
 import { LocalSyncEngine } from './services/syncEngine';
 import { UpdateService } from './services/updateService';
+import youtubeService from './services/youtube';
 
 
 const log = logger('IPC');
@@ -237,6 +238,10 @@ export function registerIpcHandlers(services: IpcServices): void {
     mpvService.closeSession();
     event.returnValue = null;
   });
+
+  h(ipcChannels.downloadYouTubeVideo, (e, req: { url: string; folderId: number }) =>
+    safe(ipcChannels.downloadYouTubeVideo, () => youtubeService.downloadVideo(req.url, req.folderId, e.sender))
+  );
 }
 
 function normalizeScanRequest(request?: string | ScanLibraryRequest): ScanLibraryRequest {

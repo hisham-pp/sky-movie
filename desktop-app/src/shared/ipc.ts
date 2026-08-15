@@ -52,6 +52,10 @@ export interface Movie {
   favorite: boolean;
   addedAt: string;
   updatedAt: string;
+  source?: 'local' | 'youtube';
+  sourceId?: string | null;
+  sourceUrl?: string | null;
+  channelName?: string | null;
 }
 
 export interface TvShow {
@@ -400,6 +404,15 @@ export type UpdateProgressEvent =
   | { type: 'download-progress'; bytesDownloaded: number; totalBytes: number; percentage: number }
   | { type: 'update-available'; version: string; notes: string };
 
+export interface YouTubeProgressEvent {
+  url: string;
+  progress: number;
+  status: 'downloading' | 'processing' | 'completed' | 'error';
+  error?: string;
+  eta?: string;
+  speed?: string;
+}
+
 // ── mpv player IPC ──────────────────────────────────────────────────────────
 
 export interface MpvTrack {
@@ -501,6 +514,8 @@ export interface SkyMovieApi extends TorrentApi {
   windowMinimize(): Promise<void>;
   windowMaximize(): Promise<void>;
   windowClose(): Promise<void>;
+  downloadYouTubeVideo(req: { url: string; folderId: number }): Promise<void>;
+  onYouTubeDownloadProgress(callback: (event: YouTubeProgressEvent) => void): () => void;
 }
 
 export const ipcChannels = {
@@ -553,6 +568,8 @@ export const ipcChannels = {
   addToPlaylist: 'playlist:add-item',
   removeFromPlaylist: 'playlist:remove-item',
   reorderPlaylistItem: 'playlist:reorder-item',
+  downloadYouTubeVideo: 'youtube:download',
+  youtubeProgress: 'youtube:progress',
   // mpv
   mpvIsAvailable:    'mpv:is-available',
   mpvOpen:           'mpv:open',

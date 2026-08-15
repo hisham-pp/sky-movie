@@ -21,7 +21,8 @@ import type {
   TvMetadataSearchRequest,
   UpdatePlaylistRequest,
   UpdateProgressEvent,
-  WatchProgressUpdate
+  WatchProgressUpdate,
+  YouTubeProgressEvent
 } from '../shared/ipc';
 import { ipcChannels } from '../shared/ipc';
 
@@ -113,6 +114,12 @@ const api: SkyMovieApi = {
   windowMinimize: () => ipcRenderer.invoke(ipcChannels.windowMinimize),
   windowMaximize: () => ipcRenderer.invoke(ipcChannels.windowMaximize),
   windowClose:    () => ipcRenderer.invoke(ipcChannels.windowClose),
+  downloadYouTubeVideo: (req) => ipcRenderer.invoke(ipcChannels.downloadYouTubeVideo, req),
+  onYouTubeDownloadProgress: (callback: (event: YouTubeProgressEvent) => void) => {
+    const listener = (_: Electron.IpcRendererEvent, event: YouTubeProgressEvent) => callback(event);
+    ipcRenderer.on(ipcChannels.youtubeProgress, listener);
+    return () => ipcRenderer.off(ipcChannels.youtubeProgress, listener);
+  },
 
   // ── Torrent ───────────────────────────────────────────────────────────────
   torrentSearch:         (req: TorrentSearchRequest) => ipcRenderer.invoke(ipcChannels.torrentSearch, req),
