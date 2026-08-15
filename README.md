@@ -9,6 +9,23 @@ Sky Movie is organized as a local-first desktop MVP with room for future surface
 - `scripts/` - Development, maintenance, export, import, and release helper scripts.
 - `docs/` - Architecture, sync format, product scope, and implementation notes.
 
+## Features
+
+- Local SQLite storage and electron IPC
+- Movies & TV Shows management
+- Playlists and History
+- YouTube Video Downloading using yt-dlp
+- Built-in media player using mpv
+
+## Screenshots
+
+<p align="center">
+  <img src="website/public/screen-shots/main-screen.png" width="48%" />
+  <img src="website/public/screen-shots/movie-detail-playback.png" width="48%" />
+  <img src="website/public/screen-shots/playlist-view.png" width="48%" />
+  <img src="website/public/screen-shots/torrent-search-results.png" width="48%" />
+</p>
+
 ## MVP Rule
 
 The MVP does not include a backend API/server. The desktop app stores data locally with SQLite and uses secure Electron IPC between the renderer and main process.
