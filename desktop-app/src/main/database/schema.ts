@@ -10,9 +10,9 @@ export const libraryFolders = sqliteTable(
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
-  (table) => ({
-    pathUnique: uniqueIndex('library_folders_path_unique').on(table.path)
-  })
+  (table) => [
+    uniqueIndex('library_folders_path_unique').on(table.path)
+  ]
 );
 
 export const movies = sqliteTable(
@@ -31,10 +31,10 @@ export const movies = sqliteTable(
     addedAt: text('added_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
-  (table) => ({
-    titleIdx: index('movies_title_idx').on(table.title),
-    yearIdx: index('movies_release_year_idx').on(table.releaseYear)
-  })
+  (table) => [
+    index('movies_title_idx').on(table.title),
+    index('movies_release_year_idx').on(table.releaseYear)
+  ]
 );
 
 export const tvShows = sqliteTable(
@@ -52,9 +52,9 @@ export const tvShows = sqliteTable(
     addedAt: text('added_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
-  (table) => ({
-    titleIdx: index('tv_shows_title_idx').on(table.title)
-  })
+  (table) => [
+    index('tv_shows_title_idx').on(table.title)
+  ]
 );
 
 export const seasons = sqliteTable(
@@ -67,9 +67,9 @@ export const seasons = sqliteTable(
     overview: text('overview'),
     posterPath: text('poster_path')
   },
-  (table) => ({
-    showSeasonUnique: uniqueIndex('seasons_show_number_unique').on(table.showId, table.seasonNumber)
-  })
+  (table) => [
+    uniqueIndex('seasons_show_number_unique').on(table.showId, table.seasonNumber)
+  ]
 );
 
 export const episodes = sqliteTable(
@@ -86,13 +86,13 @@ export const episodes = sqliteTable(
     airDate: text('air_date'),
     stillPath: text('still_path')
   },
-  (table) => ({
-    episodeUnique: uniqueIndex('episodes_show_season_episode_unique').on(
+  (table) => [
+    uniqueIndex('episodes_show_season_episode_unique').on(
       table.showId,
       table.seasonNumber,
       table.episodeNumber
     )
-  })
+  ]
 );
 
 export const mediaFiles = sqliteTable(
@@ -120,11 +120,11 @@ export const mediaFiles = sqliteTable(
     matchConfidence: real('match_confidence').notNull().default(0),
     matchStatus: text('match_status').notNull().default('unmatched')
   },
-  (table) => ({
-    pathUnique: uniqueIndex('media_files_path_unique').on(table.absolutePath),
-    movieIdx: index('media_files_movie_idx').on(table.matchedMovieId),
-    showIdx: index('media_files_show_idx').on(table.matchedShowId)
-  })
+  (table) => [
+    uniqueIndex('media_files_path_unique').on(table.absolutePath),
+    index('media_files_movie_idx').on(table.matchedMovieId),
+    index('media_files_show_idx').on(table.matchedShowId)
+  ]
 );
 
 export const genres = sqliteTable('genres', {
@@ -149,9 +149,9 @@ export const watchProgress = sqliteTable(
     completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
     updatedAt: text('updated_at').notNull()
   },
-  (table) => ({
-    mediaFileUnique: uniqueIndex('watch_progress_media_file_unique').on(table.mediaFileId)
-  })
+  (table) => [
+    uniqueIndex('watch_progress_media_file_unique').on(table.mediaFileId)
+  ]
 );
 
 export const watchHistory = sqliteTable('watch_history', {
