@@ -514,7 +514,7 @@ export interface SkyMovieApi extends TorrentApi {
   windowMinimize(): Promise<void>;
   windowMaximize(): Promise<void>;
   windowClose(): Promise<void>;
-  downloadYouTubeVideo(req: { url: string; folderId: number }): Promise<void>;
+  downloadYouTubeVideo(req: { url: string; folderPath: string }): Promise<void>;
   onYouTubeDownloadProgress(callback: (event: YouTubeProgressEvent) => void): () => void;
 }
 

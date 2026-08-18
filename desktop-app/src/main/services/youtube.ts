@@ -19,14 +19,25 @@ export class YouTubeService {
     return join(app.getAppPath(), 'resources', 'bin', 'yt-dlp.exe');
   }
 
-  async downloadVideo(url: string, folderId: number, wc: WebContents): Promise<void> {
+  async downloadVideo(url: string, folderPath: string, wc: WebContents): Promise<void> {
     const ytdlp = this.getYtDlpPath();
     
     // 1. Get Folder Path
     const { drizzle: db } = getDatabaseContext();
-    const folderRes = db.select().from(libraryFolders).where(eq(libraryFolders.id, folderId)).get();
+    let folderRes = db.select().from(libraryFolders).where(eq(libraryFolders.path, folderPath)).get();
     if (!folderRes) {
-      throw new Error(`Library folder with ID ${folderId} not found`);
+      const now = new Date().toISOString();
+      folderRes = db.insert(libraryFolders).values({
+        path: folderPath,
+        name: folderPath.split('\\').pop() || folderPath.split('/').pop() || folderPath,
+        mediaKind: 'mixed',
+        createdAt: now,
+        updatedAt: now
+      }).returning().get();
+    }
+    
+    if (!folderRes) {
+      throw new Error(`Failed to resolve library folder for path: ${folderPath}`);
     }
     const destDir = folderRes.path;
 
@@ -111,7 +122,7 @@ export class YouTubeService {
 
             // Insert Media File
             db.insert(mediaFiles).values({
-              libraryFolderId: folderId,
+              libraryFolderId: folderRes.id,
               mediaKind: 'movie',
               absolutePath: downloadedFilePath,
               relativePath: fileName,

@@ -239,8 +239,8 @@ export function registerIpcHandlers(services: IpcServices): void {
     event.returnValue = null;
   });
 
-  h(ipcChannels.downloadYouTubeVideo, (e, req: { url: string; folderId: number }) =>
-    safe(ipcChannels.downloadYouTubeVideo, () => youtubeService.downloadVideo(req.url, req.folderId, e.sender))
+  h(ipcChannels.downloadYouTubeVideo, (e, req: { url: string; folderPath: string }) =>
+    safe(ipcChannels.downloadYouTubeVideo, () => youtubeService.downloadVideo(req.url, req.folderPath, e.sender))
   );
 }
 

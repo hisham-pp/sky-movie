@@ -13,8 +13,8 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
   onAdded(): void;
 }) {
   const [url, setUrl] = useState('');
-  const [folders, setFolders] = useState<{ id: number; path: string; name: string }[]>([]);
-  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
+  const [folders, setFolders] = useState<string[]>([]);
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
   
   const [progress, setProgress] = useState<YouTubeProgressEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
       window.skyMovie.getSettings().then((settings: any) => {
         setFolders(settings.libraryFolders || []);
         if (settings.libraryFolders && settings.libraryFolders.length > 0) {
-          setSelectedFolderId(settings.libraryFolders[0].id);
+          setSelectedFolderPath(settings.libraryFolders[0]);
         }
       });
       
@@ -56,16 +56,16 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
   }, [isOpen, url, onAdded, onClose]);
 
   const handleDownload = useCallback(() => {
-    if (!url || !selectedFolderId) return;
+    if (!url || !selectedFolderPath) return;
     setError(null);
     setIsDownloading(true);
     
-    window.skyMovie.downloadYouTubeVideo({ url, folderId: selectedFolderId })
+    window.skyMovie.downloadYouTubeVideo({ url, folderPath: selectedFolderPath })
       .catch((err: any) => {
         setError(err.message);
         setIsDownloading(false);
       });
-  }, [url, selectedFolderId]);
+  }, [url, selectedFolderPath]);
 
   if (!isOpen) return null;
 
@@ -95,12 +95,12 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
               <label className="text-sm font-medium text-white/70">Save To Folder</label>
               <select
                 className="w-full px-3 py-2 bg-black border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30"
-                value={selectedFolderId || ''}
-                onChange={(e) => setSelectedFolderId(parseInt(e.target.value))}
+                value={selectedFolderPath || ''}
+                onChange={(e) => setSelectedFolderPath(e.target.value)}
                 disabled={isDownloading}
               >
                 {folders.map(f => (
-                  <option key={f.id} value={f.id}>{f.name} ({f.path})</option>
+                  <option key={f} value={f}>{f}</option>
                 ))}
               </select>
             </div>
@@ -144,7 +144,7 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
                 variant="primary"
                 icon={<Download size={16} />}
                 onClick={handleDownload}
-                disabled={!url || !selectedFolderId || isDownloading}
+                disabled={!url || !selectedFolderPath || isDownloading}
                 className="bg-red-500 hover:bg-red-600 text-white border-none"
               >
                 {isDownloading ? 'Downloading...' : 'Download'}
