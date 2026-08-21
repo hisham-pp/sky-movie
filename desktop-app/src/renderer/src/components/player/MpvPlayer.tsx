@@ -96,27 +96,117 @@ export function MpvPlayer({
 
   // ── canvas draw loop ───────────────────────────────────────────────────────
 
-  const drawFrame = useCallback((jpeg: Uint8Array) => {
+  // WebGL context and texture state refs
+  const glRef = useRef<WebGLRenderingContext | WebGL2RenderingContext | null>(null);
+  const texRef = useRef<WebGLTexture | null>(null);
+  const progRef = useRef<WebGLProgram | null>(null);
+
+  const initWebGL = (canvas: HTMLCanvasElement) => {
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    if (!gl) return null;
+    
+    const vsSource = `
+      attribute vec2 a_position;
+      attribute vec2 a_texCoord;
+      varying vec2 v_texCoord;
+      void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+        v_texCoord = a_texCoord;
+      }
+    `;
+    const fsSource = `
+      precision mediump float;
+      uniform sampler2D u_image;
+      varying vec2 v_texCoord;
+      void main() {
+        gl_FragColor = texture2D(u_image, v_texCoord).bgra;
+      }
+    `;
+    
+    const compileShader = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      return shader;
+    };
+    
+    const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+    const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+    const prog = gl.createProgram();
+    if (!prog || !vs || !fs) return null;
+    
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    
+    const posBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,  1, -1, -1,  1,
+      -1,  1,  1, -1,  1,  1
+    ]), gl.STATIC_DRAW);
+    
+    const posLoc = gl.getAttribLocation(prog, 'a_position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    
+    const texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      0, 1,  1, 1,  0, 0,
+      0, 0,  1, 1,  1, 0
+    ]), gl.STATIC_DRAW);
+    
+    const texLoc = gl.getAttribLocation(prog, 'a_texCoord');
+    gl.enableVertexAttribArray(texLoc);
+    gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+    
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    
+    progRef.current = prog;
+    texRef.current = tex;
+    return gl;
+  };
+
+  const drawFrame = useCallback((rgba: Uint8Array, width: number, height: number) => {
     const canvas = canvasRef.current;
     if (!canvas || drawingRef.current) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
+    
     if (stateRef.current.buffering) {
       stateRef.current = { ...stateRef.current, buffering: false };
       setState(s => ({ ...s, buffering: false }));
     }
 
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+
+    let gl = glRef.current;
+    if (!gl || gl.isContextLost()) {
+      gl = initWebGL(canvas);
+      glRef.current = gl;
+    }
+    if (!gl) return;
+    
     drawingRef.current = true;
-    const blob = new Blob([jpeg.buffer as ArrayBuffer], { type: 'image/jpeg' });
-    createImageBitmap(blob).then(bitmap => {
-      if (canvas.width  !== bitmap.width)  canvas.width  = bitmap.width;
-      if (canvas.height !== bitmap.height) canvas.height = bitmap.height;
-      ctx.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      drawingRef.current = false;
-    }).catch(() => { 
-      drawingRef.current = false; 
+    
+    requestAnimationFrame(() => {
+      try {
+        gl.viewport(0, 0, width, height);
+        gl.bindTexture(gl.TEXTURE_2D, texRef.current);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      } catch (e) {
+        console.error('WebGL render error', e);
+      } finally {
+        drawingRef.current = false;
+      }
     });
   }, []);
 

@@ -460,7 +460,7 @@ export interface SkyMovieApi extends TorrentApi {
   mpvSetRenderSize(width: number, height: number): Promise<void>;
   mpvSetSubFile(path: string): Promise<void>;
   mpvSetAudioFilter(filter: string): Promise<void>;
-  onMpvFrame(callback: (jpeg: Uint8Array) => void): () => void;
+  onMpvFrame(callback: (rgba: Uint8Array, width: number, height: number) => void): () => void;
   onMpvEvent(callback: (ev: MpvEvent) => void): () => void;
   onMpvTracks(callback: (tracks: MpvTrack[]) => void): () => void;
   chooseFolder(title?: string): Promise<string | null>;

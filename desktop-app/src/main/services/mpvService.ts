@@ -370,21 +370,11 @@ export class MpvService {
     if (now - s.lastSendMs < 33) return;
     s.lastSendMs = now;
 
-    // Skip encoding if the renderer is busy (back-pressure handling)
+    // Skip sending if the renderer is busy (back-pressure handling)
     // This prevents memory accumulation during long playback sessions
     if (s.webContents.isDestroyed()) return;
 
     try {
-      const t0 = Date.now();
-      const img  = nativeImage.createFromBuffer(rgba, { width, height });
-      const jpeg = img.toJPEG(TIER_CFG.jpegQuality);
-      const encMs = Date.now() - t0;
-
-      if (encMs > 20) {
-        s.slowEncodes++;
-        log.warn(`[MpvService] slow JPEG encode: ${encMs}ms @ ${width}x${height} (total slow: ${s.slowEncodes})`);
-      }
-
       // Log frame throughput every 150 sent frames
       s.framesSent++;
       if (s.framesSent % 150 === 0) {
@@ -392,14 +382,13 @@ export class MpvService {
         log.info(
           `[MpvService] frames sent: ${s.framesSent} in ${elapsed.toFixed(1)}s ` +
           `(~${(s.framesSent / elapsed).toFixed(1)} fps), ` +
-          `jpeg size: ${(jpeg.length / 1024).toFixed(0)} KB, ` +
-          `slow encodes: ${s.slowEncodes}`
+          `buffer size: ${(rgba.length / 1024 / 1024).toFixed(1)} MB`
         );
       }
 
-      s.webContents.send('mpv:frame', jpeg);
+      s.webContents.send('mpv:frame', rgba, width, height);
     } catch (err) {
-      log.warn('[MpvService] frame encode/send error:', err);
+      log.warn('[MpvService] frame send error:', err);
     }
   }
 
