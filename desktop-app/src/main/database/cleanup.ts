@@ -60,15 +60,7 @@ export function pruneOrphans(db: SqliteDatabase): void {
          OR (media_kind = 'show'  AND show_id  NOT IN (SELECT id FROM tv_shows))
     `).run();
 
-    // 8. Watch progress for deleted files
-    db.prepare(`
-      DELETE FROM watch_progress WHERE media_file_id NOT IN (SELECT id FROM media_files)
-    `).run();
 
-    // 9. Watch history for deleted files
-    db.prepare(`
-      DELETE FROM watch_history WHERE media_file_id NOT IN (SELECT id FROM media_files)
-    `).run();
 
     // 10. Item tags for deleted movies/shows/episodes
     db.prepare(`

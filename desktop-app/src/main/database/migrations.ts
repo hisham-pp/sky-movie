@@ -134,7 +134,10 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
       position_seconds INTEGER NOT NULL,
       duration_seconds INTEGER NOT NULL,
       completed INTEGER NOT NULL DEFAULT 0,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      media_kind TEXT,
+      title TEXT,
+      poster_path TEXT
     );
 
     CREATE TABLE IF NOT EXISTS watch_history (
@@ -285,5 +288,42 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     }
   } catch (error) {
     console.warn('Migration for collection_items table skipped or failed:', error);
+  }
+
+  try {
+    // Check if media_kind column exists in watch_progress
+    const columns = db.pragma('table_info(watch_progress)') as Array<{ name: string }>;
+    const hasMediaKind = columns.some(col => col.name === 'media_kind');
+
+    if (!hasMediaKind) {
+      db.exec(`
+        ALTER TABLE watch_progress ADD COLUMN media_kind TEXT;
+        ALTER TABLE watch_progress ADD COLUMN title TEXT;
+        ALTER TABLE watch_progress ADD COLUMN poster_path TEXT;
+      `);
+
+      // Backfill data
+      db.exec(`
+        UPDATE watch_progress
+        SET 
+          media_kind = (SELECT media_kind FROM media_files WHERE media_files.id = watch_progress.media_file_id),
+          title = (
+            SELECT COALESCE(m.title, s.title, mf.file_name) 
+            FROM media_files mf 
+            LEFT JOIN movies m ON m.id = mf.matched_movie_id 
+            LEFT JOIN tv_shows s ON s.id = mf.matched_show_id 
+            WHERE mf.id = watch_progress.media_file_id
+          ),
+          poster_path = (
+            SELECT COALESCE(m.poster_path, s.poster_path) 
+            FROM media_files mf 
+            LEFT JOIN movies m ON m.id = mf.matched_movie_id 
+            LEFT JOIN tv_shows s ON s.id = mf.matched_show_id 
+            WHERE mf.id = watch_progress.media_file_id
+          )
+      `);
+    }
+  } catch (error) {
+    console.warn('Migration for watch_progress table skipped or failed:', error);
   }
 }

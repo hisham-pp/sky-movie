@@ -177,15 +177,26 @@ export class PlayerService {
     const previousProgress = this.getWatchProgress(update.mediaFileId);
     this.db
       .prepare(
-        `INSERT INTO watch_progress (media_file_id, position_seconds, duration_seconds, completed, updated_at)
-         VALUES (?, ?, ?, ?, ?)
+        `INSERT INTO watch_progress (media_file_id, position_seconds, duration_seconds, completed, updated_at, media_kind, title, poster_path)
+         SELECT 
+           ?, ?, ?, ?, ?, 
+           mf.media_kind,
+           COALESCE(m.title, s.title, mf.file_name),
+           COALESCE(m.poster_path, s.poster_path)
+         FROM media_files mf
+         LEFT JOIN movies m ON m.id = mf.matched_movie_id
+         LEFT JOIN tv_shows s ON s.id = mf.matched_show_id
+         WHERE mf.id = ?
          ON CONFLICT(media_file_id) DO UPDATE SET
           position_seconds = excluded.position_seconds,
           duration_seconds = excluded.duration_seconds,
           completed = excluded.completed,
-          updated_at = excluded.updated_at`
+          updated_at = excluded.updated_at,
+          media_kind = excluded.media_kind,
+          title = excluded.title,
+          poster_path = excluded.poster_path`
       )
-      .run(update.mediaFileId, update.positionSeconds, update.durationSeconds, Number(update.completed ?? false), now);
+      .run(update.mediaFileId, update.positionSeconds, update.durationSeconds, Number(update.completed ?? false), now, update.mediaFileId);
 
     if (update.completed && !previousProgress?.completed) {
       this.db
@@ -218,9 +229,9 @@ export class PlayerService {
            wp.updated_at,
            mf.matched_movie_id,
            mf.matched_show_id,
-           COALESCE(m.title, s.title, mf.file_name) AS title
+           COALESCE(m.title, s.title, mf.file_name, wp.title) AS title
          FROM watch_progress wp
-         JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN media_files mf ON mf.id = wp.media_file_id
          LEFT JOIN movies m ON m.id = mf.matched_movie_id
          LEFT JOIN tv_shows s ON s.id = mf.matched_show_id
          ORDER BY wp.updated_at DESC
@@ -262,14 +273,14 @@ export class PlayerService {
            wp.duration_seconds,
            wp.completed,
            wp.updated_at AS last_watched_at,
-           mf.media_kind,
+           COALESCE(mf.media_kind, wp.media_kind) AS media_kind,
            mf.matched_movie_id,
            mf.matched_show_id,
-           COALESCE(m.title, s.title, mf.file_name) AS title,
-           COALESCE(m.poster_path, s.poster_path)   AS poster_path,
+           COALESCE(m.title, s.title, mf.file_name, wp.title) AS title,
+           COALESCE(m.poster_path, s.poster_path, wp.poster_path) AS poster_path,
            COUNT(wh.id) AS watch_count
          FROM watch_progress wp
-         JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN media_files mf ON mf.id = wp.media_file_id
          LEFT JOIN movies   m  ON m.id  = mf.matched_movie_id
          LEFT JOIN tv_shows s  ON s.id  = mf.matched_show_id
          LEFT JOIN watch_history wh ON wh.media_file_id = wp.media_file_id

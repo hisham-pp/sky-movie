@@ -151,7 +151,10 @@ export const watchProgress = sqliteTable(
     positionSeconds: integer('position_seconds').notNull(),
     durationSeconds: integer('duration_seconds').notNull(),
     completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
-    updatedAt: text('updated_at').notNull()
+    updatedAt: text('updated_at').notNull(),
+    mediaKind: text('media_kind'),
+    title: text('title'),
+    posterPath: text('poster_path')
   },
   (table) => [
     uniqueIndex('watch_progress_media_file_unique').on(table.mediaFileId)
