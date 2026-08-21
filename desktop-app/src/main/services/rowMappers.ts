@@ -128,7 +128,7 @@ export function defaultSettings(deviceId: string): AppSettings {
     libraryFolders: [],
     deviceId,
     autoDownloadUpdates: false,
-    hideSidebar: false,
+    hideSidebar: true,
     hardwareAcceleration: true,
     preferredAudioLanguage: '',
     preferredSubtitleLanguage: '',
