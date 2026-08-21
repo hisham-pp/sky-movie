@@ -26,15 +26,11 @@ import { GlassSelect, Switch, Tooltip } from '../common';
 import { formatBytes } from '../../utils/format';
 import { LAUNCH_ONBOARDING_EVENT } from '../../config/events';
 
-type SettingsTab = 'appearance' | 'library' | 'metadata' | 'backups' | 'downloads' | 'local-data' | 'updates' | 'help';
+type SettingsTab = 'appearance' | 'library' | 'updates' | 'help';
 
 const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
   { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
-  { id: 'library', label: 'Library', icon: <Library size={16} /> },
-  { id: 'metadata', label: 'Metadata', icon: <Tag size={16} /> },
-  { id: 'backups', label: 'Backups', icon: <DatabaseBackup size={16} /> },
-  { id: 'downloads', label: 'Downloads', icon: <FolderDown size={16} /> },
-  { id: 'local-data', label: 'Local Data', icon: <Database size={16} /> },
+  { id: 'library', label: 'Library & Data', icon: <Library size={16} /> },
   { id: 'updates', label: 'Updates', icon: <Zap size={16} /> },
   { id: 'help', label: 'Help', icon: <LifeBuoy size={16} /> },
 ];
@@ -345,11 +341,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                 )}
               </div>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'metadata' && (
-          <div className="settings-sections">
             <div className="settings-section">
               <div className="settings-section-heading">
                 <div>
@@ -379,11 +371,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                 </label>
               </div>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'backups' && (
-          <div className="settings-sections">
             <div className="settings-section">
               <div className="settings-section-heading">
                 <div>
@@ -402,11 +390,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                 </button>
               </div>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'downloads' && (
-          <div className="settings-sections">
             <div className="settings-section">
               <div className="settings-section-heading">
                 <div>
@@ -419,11 +403,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                 Download files
               </button>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'local-data' && (
-          <div className="settings-sections">
             <div className="settings-section danger-zone">
               <div className="settings-section-heading">
                 <div>
