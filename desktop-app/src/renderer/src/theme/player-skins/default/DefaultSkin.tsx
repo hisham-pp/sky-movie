@@ -469,6 +469,18 @@ function DefaultControls({
                         {s.label} (external)
                       </button>
                     ))}
+                    <button
+                      className="default-menu-item"
+                      onClick={async () => {
+                        const file = await queries.chooseSubtitleFile();
+                        if (file) {
+                          onSetSubFile(file);
+                          onSetShowMenu(null);
+                        }
+                      }}
+                    >
+                      Import subtitle...
+                    </button>
                   </div>
 
                   {/* Enhancement */}

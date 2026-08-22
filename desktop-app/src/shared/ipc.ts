@@ -465,6 +465,7 @@ export interface SkyMovieApi extends TorrentApi {
   onMpvTracks(callback: (tracks: MpvTrack[]) => void): () => void;
   chooseFolder(title?: string): Promise<string | null>;
   chooseFolders(title?: string): Promise<string[]>;
+  chooseSubtitleFile(title?: string): Promise<string | null>;
   scanLibrary(request?: ScanLibraryRequest | string): Promise<ScanResult | null>;
   scanLibraries(request?: ScanLibrariesRequest | string[]): Promise<ScanResult[]>;
   getMovies(query?: string): Promise<Movie[]>;
@@ -521,6 +522,7 @@ export interface SkyMovieApi extends TorrentApi {
 export const ipcChannels = {
   chooseFolder: 'dialog:choose-folder',
   chooseFolders: 'dialog:choose-folders',
+  chooseSubtitleFile: 'dialog:choose-subtitle-file',
   scanLibrary: 'library:scan',
   scanLibraries: 'library:scan-many',
   getMovies: 'library:get-movies',

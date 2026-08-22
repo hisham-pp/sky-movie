@@ -19,19 +19,55 @@ function scanSidecarSubtitles(mediaPath: string): SidecarSubtitle[] {
   try {
     const dir = dirname(mediaPath);
     const stem = basename(mediaPath, extname(mediaPath)).toLowerCase();
-    const files = readdirSync(dir);
     const results: SidecarSubtitle[] = [];
 
-    for (const file of files) {
-      const ext = extname(file).toLowerCase() as '.srt' | '.vtt' | '.ass' | '.ssa';
-      if (!SUBTITLE_EXTS.has(ext)) continue;
-      const fileStem = basename(file, ext).toLowerCase();
-      // Match files that start with the same stem (e.g. movie.en.srt, movie.srt)
-      if (!fileStem.startsWith(stem)) continue;
-      const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
-      const label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
-      const url = pathToFileURL(join(dir, file)).toString();
-      results.push({ label, url, type: ext === '.ssa' ? 'ass' : ext.slice(1) as 'srt' | 'vtt' | 'ass' });
+    const dirsToScan = [dir];
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          dirsToScan.push(join(dir, entry.name));
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    for (const scanDir of dirsToScan) {
+      try {
+        const files = readdirSync(scanDir, { withFileTypes: true });
+        for (const file of files) {
+          if (file.isDirectory()) continue;
+          const ext = extname(file.name).toLowerCase() as '.srt' | '.vtt' | '.ass' | '.ssa';
+          if (!SUBTITLE_EXTS.has(ext)) continue;
+          
+          const fileStem = basename(file.name, ext).toLowerCase();
+          let label = 'Default';
+          
+          if (scanDir === dir) {
+            // In main folder, require stem match to avoid loading subtitles for other movies
+            if (!fileStem.startsWith(stem)) continue;
+            const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
+            label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+          } else {
+            // In a subfolder, accept all subtitles (usually dedicated to this movie)
+            if (fileStem.startsWith(stem)) {
+              const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
+              label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+              if (label === 'Default') {
+                label = `${basename(scanDir)}`;
+              }
+            } else {
+              label = `${basename(scanDir)} - ${fileStem}`;
+            }
+          }
+          
+          const url = pathToFileURL(join(scanDir, file.name)).toString();
+          results.push({ label, url, type: ext === '.ssa' ? 'ass' : ext.slice(1) as 'srt' | 'vtt' | 'ass' });
+        }
+      } catch {
+        // ignore read errors for specific dirs
+      }
     }
 
     return results;

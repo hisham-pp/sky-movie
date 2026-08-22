@@ -3,6 +3,7 @@ import { bind } from './client';
 export const playMedia = bind('playMedia');
 export const openMediaExternally = bind('openMediaExternally');
 export const mpvIsAvailable = bind('mpvIsAvailable');
+export const chooseSubtitleFile = bind('chooseSubtitleFile');
 export const mpvOpen = bind('mpvOpen');
 export const mpvClose = bind('mpvClose');
 export const mpvPlay = bind('mpvPlay');

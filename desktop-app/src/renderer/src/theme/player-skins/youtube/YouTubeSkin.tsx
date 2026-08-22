@@ -486,6 +486,20 @@ function YouTubeControls({
                   </button>
                 ))}
 
+                <button
+                  className="yt-settings-item"
+                  onClick={async () => {
+                    const file = await queries.chooseSubtitleFile();
+                    if (file) {
+                      onSetSubFile(file);
+                      setPage('main');
+                      onSetShowMenu(null);
+                    }
+                  }}
+                >
+                  <span className="yt-settings-item-label">Import subtitle...</span>
+                </button>
+
                 <p className="yt-settings-note">
                   This setting only applies to the current file.
                 </p>

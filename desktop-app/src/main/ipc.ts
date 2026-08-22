@@ -63,6 +63,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   h(ipcChannels.chooseFolders, (_e, title?: string) =>
     safe(ipcChannels.chooseFolders, () => chooseDirectories(services.getMainWindow(), title ?? 'Choose library folders'))
   );
+  h(ipcChannels.chooseSubtitleFile, (_e, title?: string) =>
+    safe(ipcChannels.chooseSubtitleFile, () => chooseSubtitleFileDialog(services.getMainWindow(), title ?? 'Choose subtitle file'))
+  );
 
   h(ipcChannels.scanLibrary, async (_e, requestInput?: string | ScanLibraryRequest) =>
     safe(ipcChannels.scanLibrary, async () => {
@@ -273,6 +276,20 @@ async function chooseDirectory(window: BrowserWindow | null, title: string): Pro
   const options: OpenDialogOptions = {
     title,
     properties: ['openDirectory', 'createDirectory']
+  };
+  const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+
+  return result.canceled ? null : result.filePaths[0] ?? null;
+}
+
+async function chooseSubtitleFileDialog(window: BrowserWindow | null, title: string): Promise<string | null> {
+  const options: OpenDialogOptions = {
+    title,
+    properties: ['openFile'],
+    filters: [
+      { name: 'Subtitles', extensions: ['srt', 'vtt', 'ass', 'ssa'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
   };
   const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
 
