@@ -29,6 +29,7 @@ import { ipcChannels } from '../shared/ipc';
 const api: SkyMovieApi = {
   chooseFolder: (title?: string) => ipcRenderer.invoke(ipcChannels.chooseFolder, title),
   chooseFolders: (title?: string) => ipcRenderer.invoke(ipcChannels.chooseFolders, title),
+  chooseSubtitleFile: (title?: string) => ipcRenderer.invoke(ipcChannels.chooseSubtitleFile, title),
   scanLibrary: (request) => ipcRenderer.invoke(ipcChannels.scanLibrary, request),
   scanLibraries: (request) => ipcRenderer.invoke(ipcChannels.scanLibraries, request),
   getMovies: (query?: string) => ipcRenderer.invoke(ipcChannels.getMovies, query),
