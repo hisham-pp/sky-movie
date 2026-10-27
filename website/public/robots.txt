@@ -2,8 +2,10 @@
 User-agent: *
 Allow: /
 
-# Disallow specific paths if any
+# Disallow internal API or build routes if any
 Disallow: /api/
 
-# Sitemap location
-Sitemap: https://sky-movie.app/sitemap.xml
+# Host and Sitemap locations
+Host: https://sky-movie-website.vercel.app
+Sitemap: https://sky-movie-website.vercel.app/sitemap.xml
+

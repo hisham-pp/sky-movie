@@ -40,8 +40,37 @@ interface ReleaseManifest {
 }
 
 export const metadata: Metadata = {
-  title: "What's New | Sky Movie",
-  description: "Release history, desktop download changes, source commit messages, and commit SHAs for Sky Movie."
+  title: "Release History & Changelog | Sky Movie",
+  description:
+    "Explore the latest desktop updates, release changelogs, new features, and platform download assets for Sky Movie.",
+  alternates: {
+    canonical: "/whats-new",
+  },
+  openGraph: {
+    title: "Sky Movie Release History & Changelog",
+    description:
+      "Explore the latest desktop updates, release changelogs, new features, and platform download assets for Sky Movie.",
+    url: "https://sky-movie-website.vercel.app/whats-new",
+  },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sky-movie-website.vercel.app",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Release History",
+      item: "https://sky-movie-website.vercel.app/whats-new",
+    },
+  ],
 };
 
 const releaseManifest = releaseManifestJson as ReleaseManifest;
@@ -49,6 +78,10 @@ const releaseManifest = releaseManifestJson as ReleaseManifest;
 export default function WhatsNewPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-surface/40 flex justify-between items-center px-8 lg:px-16 h-20">
         <div className="flex items-center gap-4">
