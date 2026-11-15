@@ -154,6 +154,10 @@ export function registerIpcHandlers(services: IpcServices): void {
     safe(ipcChannels.clearWatchHistory, () => services.player.clearWatchHistory())
   );
 
+  h(ipcChannels.deleteWatchHistoryItem, (_e, mediaFileId: number) =>
+    safe(ipcChannels.deleteWatchHistoryItem, () => services.player.deleteWatchHistoryItem(mediaFileId))
+  );
+
   h(ipcChannels.exportLibrary, async (_e, request?: SyncRequest) =>
     safe(ipcChannels.exportLibrary, async () => {
       const destinationPath =

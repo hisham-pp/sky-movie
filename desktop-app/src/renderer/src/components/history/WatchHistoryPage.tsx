@@ -12,6 +12,7 @@ interface Props {
   activeMediaFileId: number | null;
   onPlay(item: WatchHistoryItem): void;
   onClear(): void;
+  onDeleteItem(mediaFileId: number): void;
 }
 
 const PosterPlaceholder = memo(function PosterPlaceholder({ kind }: { kind: string }) {
@@ -26,12 +27,14 @@ interface HistoryItemProps {
   item: WatchHistoryItem;
   isPlaying: boolean;
   onPlay(item: WatchHistoryItem): void;
+  onDelete(mediaFileId: number): void;
 }
 
 const HistoryGridItem = memo(function HistoryGridItem({
   item,
   isPlaying,
-  onPlay
+  onPlay,
+  onDelete
 }: HistoryItemProps) {
   const progress = useMemo(
     () => (item.durationSeconds > 0 ? Math.min(100, (item.positionSeconds / item.durationSeconds) * 100) : 0),
@@ -63,6 +66,19 @@ const HistoryGridItem = memo(function HistoryGridItem({
             <RotateCcw size={11} /> {item.watchCount}×
           </span>
         ) : null}
+
+        <Tooltip content="Remove from history">
+          <button
+            className="wh-tile-del-btn"
+            aria-label="Remove from history"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item.mediaFileId);
+            }}
+          >
+            <Trash2 size={13} />
+          </button>
+        </Tooltip>
 
         {!item.completed && item.durationSeconds > 0 && (
           <div className="wh-tile-progress-bar">
@@ -97,7 +113,7 @@ const HistoryGridItem = memo(function HistoryGridItem({
   );
 });
 
-const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay }: HistoryItemProps) {
+const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelete }: HistoryItemProps) {
   const progress = useMemo(
     () => (item.durationSeconds > 0 ? Math.min(100, (item.positionSeconds / item.durationSeconds) * 100) : 0),
     [item.positionSeconds, item.durationSeconds],
@@ -107,6 +123,13 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay }: Histo
   const handlePlayClick = useCallback(
     (e: React.MouseEvent) => { e.stopPropagation(); onPlay(item); },
     [item, onPlay],
+  );
+  const handleDeleteClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onDelete(item.mediaFileId);
+    },
+    [item.mediaFileId, onDelete],
   );
 
   return (
@@ -156,15 +179,26 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay }: Histo
         )}
       </div>
 
-      <Tooltip content={item.completed ? 'Play again' : 'Resume'}>
-        <button
-          className="wh-play-btn"
-          onClick={handlePlayClick}
-          aria-label={item.completed ? 'Play again' : 'Resume'}
-        >
-          <Play size={16} fill="currentColor" />
-        </button>
-      </Tooltip>
+      <div className="wh-item-actions flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <Tooltip content={item.completed ? 'Play again' : 'Resume'}>
+          <button
+            className="wh-play-btn"
+            onClick={handlePlayClick}
+            aria-label={item.completed ? 'Play again' : 'Resume'}
+          >
+            <Play size={16} fill="currentColor" />
+          </button>
+        </Tooltip>
+        <Tooltip content="Remove from history">
+          <button
+            className="wh-del-btn"
+            onClick={handleDeleteClick}
+            aria-label="Remove from history"
+          >
+            <Trash2 size={14} />
+          </button>
+        </Tooltip>
+      </div>
     </div>
   );
 });
@@ -175,6 +209,7 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
   activeMediaFileId,
   onPlay,
   onClear,
+  onDeleteItem,
 }: Props) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [filter, setFilter] = useState<'all' | 'completed' | 'in-progress'>('all');
@@ -278,6 +313,7 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
                 item={item}
                 isPlaying={activeMediaFileId === item.mediaFileId}
                 onPlay={onPlay}
+                onDelete={onDeleteItem}
               />
             ))}
           </div>
@@ -289,6 +325,7 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
                 item={item}
                 isPlaying={activeMediaFileId === item.mediaFileId}
                 onPlay={onPlay}
+                onDelete={onDeleteItem}
               />
             ))}
           </div>

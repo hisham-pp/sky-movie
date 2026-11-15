@@ -357,6 +357,11 @@ export class PlayerService {
     this.db.prepare('DELETE FROM watch_progress').run();
   }
 
+  deleteWatchHistoryItem(mediaFileId: number): void {
+    this.db.prepare('DELETE FROM watch_history WHERE media_file_id = ?').run(mediaFileId);
+    this.db.prepare('DELETE FROM watch_progress WHERE media_file_id = ?').run(mediaFileId);
+  }
+
   private getWatchProgress(mediaFileId: number): WatchProgressSnapshot | null {
     const row = this.db
       .prepare(

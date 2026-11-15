@@ -57,6 +57,7 @@ const api: SkyMovieApi = {
   getLastWatched: () => ipcRenderer.invoke(ipcChannels.getLastWatched),
   getWatchHistory: () => ipcRenderer.invoke(ipcChannels.getWatchHistory),
   clearWatchHistory: () => ipcRenderer.invoke(ipcChannels.clearWatchHistory),
+  deleteWatchHistoryItem: (mediaFileId: number) => ipcRenderer.invoke(ipcChannels.deleteWatchHistoryItem, mediaFileId),
   exportLibrary: (request?: SyncRequest) => ipcRenderer.invoke(ipcChannels.exportLibrary, request),
   importLibrary: (path?: string) => ipcRenderer.invoke(ipcChannels.importLibrary, path),
   syncLibrary: (request: SyncRequest) => ipcRenderer.invoke(ipcChannels.syncLibrary, request),

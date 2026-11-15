@@ -531,6 +531,7 @@ export interface SkyMovieApi extends TorrentApi {
   getLastWatched(): Promise<LastWatchedInfo | null>;
   getWatchHistory(): Promise<WatchHistoryItem[]>;
   clearWatchHistory(): Promise<void>;
+  deleteWatchHistoryItem(mediaFileId: number): Promise<void>;
   exportLibrary(request?: SyncRequest): Promise<SyncResult | null>;
   importLibrary(path?: string): Promise<SyncResult | null>;
   syncLibrary(request: SyncRequest): Promise<SyncResult | null>;
@@ -589,6 +590,7 @@ export const ipcChannels = {
   getLastWatched: 'watch:get-last-watched',
   getWatchHistory: 'watch:get-history',
   clearWatchHistory: 'watch:clear-history',
+  deleteWatchHistoryItem: 'watch:delete-history-item',
   exportLibrary: 'sync:export-library',
   importLibrary: 'sync:import-library',
   syncLibrary: 'sync:sync-library',
