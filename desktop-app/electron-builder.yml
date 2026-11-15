@@ -16,12 +16,6 @@ asar: true
 asarUnpack:
   - '**/*.node'
 
-extraResources:
-  - from: resources/mpv
-    to: mpv
-    filter:
-      - '**/*'
-
 npmRebuild: true
 buildDependenciesFromSource: false
 
@@ -33,15 +27,15 @@ win:
     - nsis
     - dir
   artifactName: 'Sky-Movie-${version}-${arch}-Setup.${ext}'
-  # Code signing configuration (requires certificate)
-  # Uncomment and configure when you have a code signing certificate
-  # certificateFile: path/to/certificate.pfx
-  # certificatePassword: ${env.WINDOWS_CERTIFICATE_PASSWORD}
-  # Or use certificateSha1 for certificates in Windows certificate store
-  # certificateSha1: ${env.WINDOWS_CERTIFICATE_SHA1}
-  # Sign the NSIS installer and uninstaller
-  # sign: path/to/signtool.exe
-  # signDlls: true
+  extraResources:
+    - from: resources/mpv
+      to: mpv
+      filter:
+        - '**/*'
+    - from: resources/bin
+      to: bin
+      filter:
+        - '**/*'
 
 mac:
   icon: build/favicon.png
@@ -50,18 +44,35 @@ mac:
     - dmg
     - zip
   artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
-  # Code signing for macOS (requires Apple Developer account)
-  # Uncomment and configure when you have signing credentials
-  # identity: "Developer ID Application: Your Name (TEAM_ID)"
-  # hardenedRuntime: true
-  # gatekeeperAssess: false
-  # entitlements: build/entitlements.mac.plist
-  # entitlementsInherit: build/entitlements.mac.plist
-  # Notarization (required for macOS 10.15+)
-  # notarize:
-  #   teamId: ${env.APPLE_TEAM_ID}
-  #   appleId: ${env.APPLE_ID}
-  #   appleIdPassword: ${env.APPLE_APP_SPECIFIC_PASSWORD}
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.inherit.plist
+  extraResources:
+    - from: resources/mpv
+      to: mpv
+      filter:
+        - '*.node'
+        - '!*.dll'
+        - '!*.lib'
+    - from: resources/bin
+      to: bin
+      filter:
+        - '!*.exe'
+
+dmg:
+  artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+  format: UDZO
+  window:
+    width: 540
+    height: 380
 
 linux:
   icon: build/favicon.png
@@ -73,6 +84,17 @@ linux:
     - deb
     - tar.gz
   artifactName: 'Sky-Movie-${version}-${arch}.${ext}'
+  extraResources:
+    - from: resources/mpv
+      to: mpv
+      filter:
+        - '*.node'
+        - '!*.dll'
+        - '!*.lib'
+    - from: resources/bin
+      to: bin
+      filter:
+        - '!*.exe'
 
 deb:
   depends:

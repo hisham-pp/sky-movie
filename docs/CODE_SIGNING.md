@@ -15,12 +15,16 @@ Publisher: Unknown publisher
 ```
 "Sky Movie" cannot be opened because it is from an unidentified developer
 ```
+or on macOS (Sonoma / Sequoia / Apple Silicon):
+```
+"Sky Movie" is damaged and can't be opened. You should move it to the Trash.
+```
 
-These warnings appear because the application binaries are not digitally signed with a trusted certificate.
+These warnings appear because the application binaries are not digitally signed with a trusted commercial certificate or notarized with an Apple Developer account ($99/year). The app and disk image are not actually damaged.
 
 ## Solutions
 
-### For Users (Temporary Workaround)
+### For Users (Workaround)
 
 **Windows:**
 1. Click "More info" on the SmartScreen warning
@@ -28,10 +32,18 @@ These warnings appear because the application binaries are not digitally signed 
 3. The app will install normally
 
 **macOS:**
-1. Right-click the .dmg or .app file
-2. Select "Open"
-3. Click "Open" in the dialog
-4. Or use Terminal: `xattr -cr /path/to/Sky\ Movie.app`
+When opening an unnotarized app downloaded from the web, macOS attaches a `com.apple.quarantine` attribute. To run it:
+1. Drag `Sky Movie` from the DMG into your `/Applications` folder.
+2. Open **Terminal** and run:
+   ```bash
+   xattr -cr /Applications/Sky\ Movie.app
+   ```
+   *(This strips the quarantine attribute so Gatekeeper allows the app to run).*
+3. Alternatively, for the DMG installer file itself:
+   ```bash
+   xattr -d com.apple.quarantine ~/Downloads/Sky-Movie-*.dmg
+   ```
+4. You can also right-click `/Applications/Sky Movie.app` → **Open**, or go to **System Settings** → **Privacy & Security** → click **"Open Anyway"**.
 
 ### For Developers (Permanent Solution)
 

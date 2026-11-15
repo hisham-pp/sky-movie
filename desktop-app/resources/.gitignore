@@ -1,2 +1,6 @@
 *
 !.gitignore
+!mpv/
+!mpv/.gitkeep
+!bin/
+!bin/.gitkeep

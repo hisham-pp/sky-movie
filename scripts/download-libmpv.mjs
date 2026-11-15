@@ -41,6 +41,11 @@ const NEED = {
   renderH: join(INC_DIR, 'render.h'),
 };
 
+if (process.platform !== 'win32') {
+  console.log(`download-libmpv: Skipping Windows libmpv download on ${process.platform} (system package manager provides libmpv).`);
+  process.exit(0);
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function ensureDir(p) {
