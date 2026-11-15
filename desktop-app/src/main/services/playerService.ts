@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import type { LastWatchedInfo, WatchHistoryItem, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, SidecarSubtitle } from '../../shared/ipc';
 import type { SqliteDatabase } from '../database/client';
 import { CatalogService } from './catalogService';
+import { toImageUrl } from './rowMappers';
 
 interface ByteRange {
   start: number;
@@ -343,7 +344,7 @@ export class PlayerService {
       matchedShowId: r.matched_show_id,
       title: r.title,
       mediaKind: r.media_kind as 'movie' | 'show',
-      posterPath: r.poster_path,
+      posterPath: toImageUrl(r.poster_path),
       positionSeconds: r.position_seconds,
       durationSeconds: r.duration_seconds,
       completed: Boolean(r.completed),

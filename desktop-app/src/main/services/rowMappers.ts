@@ -17,7 +17,7 @@ const nullableString = (value: unknown): string | null => (value == null ? null 
 
 // Legacy rows stored file:// URLs; convert them to sky-image:// so the
 // sandboxed renderer can load them via the registered protocol handler.
-function toImageUrl(value: unknown): string | null {
+export function toImageUrl(value: unknown): string | null {
   if (value == null) return null;
   const s = String(value);
   if (s.startsWith('sky-image://')) return s;

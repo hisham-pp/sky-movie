@@ -36,10 +36,13 @@ const HistoryGridItem = memo(function HistoryGridItem({
   onPlay,
   onDelete
 }: HistoryItemProps) {
+  const [imgFailed, setImgFailed] = useState(false);
   const progress = useMemo(
     () => (item.durationSeconds > 0 ? Math.min(100, (item.positionSeconds / item.durationSeconds) * 100) : 0),
     [item.positionSeconds, item.durationSeconds],
   );
+
+  const hasImage = Boolean(item.posterPath) && !imgFailed;
 
   return (
     <div
@@ -47,11 +50,21 @@ const HistoryGridItem = memo(function HistoryGridItem({
       onClick={() => onPlay(item)}
     >
       <div className="poster wh-grid-poster">
-        {item.posterPath ? (
-          <img src={item.posterPath} alt={item.title} loading="lazy" decoding="async" />
+        {hasImage ? (
+          <img
+            src={item.posterPath!}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={() => setImgFailed(true)}
+          />
         ) : (
           <div className="wh-poster-placeholder">
-            {item.mediaKind === 'show' ? <Tv size={34} /> : <Film size={34} />}
+            <div className="wh-placeholder-glow" />
+            <div className="wh-placeholder-icon">
+              {item.mediaKind === 'show' ? <Tv size={32} /> : <Film size={32} />}
+            </div>
+            <div className="wh-placeholder-title">{item.title}</div>
           </div>
         )}
         <span className="tile-badge">
@@ -114,6 +127,7 @@ const HistoryGridItem = memo(function HistoryGridItem({
 });
 
 const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelete }: HistoryItemProps) {
+  const [imgFailed, setImgFailed] = useState(false);
   const progress = useMemo(
     () => (item.durationSeconds > 0 ? Math.min(100, (item.positionSeconds / item.durationSeconds) * 100) : 0),
     [item.positionSeconds, item.durationSeconds],
@@ -132,13 +146,22 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelet
     [item.mediaFileId, onDelete],
   );
 
+  const hasImage = Boolean(item.posterPath) && !imgFailed;
+
   return (
     <div
       className={`wh-item${isPlaying ? ' wh-item--playing' : ''}`}
       onClick={handleClick}
     >
-      {item.posterPath ? (
-        <img className="wh-poster" src={item.posterPath} alt={item.title} loading="lazy" />
+      {hasImage ? (
+        <img
+          className="wh-poster"
+          src={item.posterPath!}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={() => setImgFailed(true)}
+        />
       ) : (
         <PosterPlaceholder kind={item.mediaKind} />
       )}
@@ -238,12 +261,15 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
   return (
     <div className="browse-grid">
       <section className="library-list wh-page-scroller">
-        <div className="wh-header-clean mt-6 mb-5">
+        <div className="wh-header-clean">
           <div className="wh-header-title">
-            <History size={26} className="text-[var(--primary)]" />
-            <div>
+            <div className="wh-header-icon">
+              <History size={26} />
+            </div>
+            <div className="wh-header-text">
               <span className="playlist-browse-kicker">Activity</span>
-              <h1 className="text-2xl font-bold text-[var(--ink)]">Watch History</h1>
+              <h1>Watch History</h1>
+              <p>Keep track of your viewing progress and jump right back in where you left off.</p>
             </div>
             {!loading && <span className="wh-count">{items.length}</span>}
           </div>
@@ -263,12 +289,13 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
           </div>
         </div>
 
-        <div className="filter-row justify-between mb-4">
-          <div className="flex items-center gap-2">
+        <div className="wh-controls-bar">
+          <div className="wh-filter-tabs">
             {(['all', 'in-progress', 'completed'] as const).map((f) => (
               <button
                 key={f}
-                className={`filter-toggle-btn${filter === f ? ' active' : ''}`}
+                type="button"
+                className={`wh-filter-tab${filter === f ? ' active' : ''}`}
                 onClick={() => setFilter(f)}
               >
                 {f === 'all' ? 'All Activity' : f === 'in-progress' ? 'In Progress' : 'Completed'}
@@ -277,12 +304,22 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
           </div>
           <div className="view-mode-toggle">
             <Tooltip content="Grid view">
-              <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')} aria-label="Grid view">
+              <button
+                type="button"
+                className={viewMode === 'grid' ? 'active' : ''}
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid view"
+              >
                 <Grid3x3 size={17} />
               </button>
             </Tooltip>
             <Tooltip content="List view">
-              <button className={viewMode === 'list' ? 'active' : ''} onClick={() => setViewMode('list')} aria-label="List view">
+              <button
+                type="button"
+                className={viewMode === 'list' ? 'active' : ''}
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+              >
                 <List size={17} />
               </button>
             </Tooltip>
