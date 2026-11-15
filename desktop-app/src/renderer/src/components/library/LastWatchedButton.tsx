@@ -70,15 +70,18 @@ export const LastWatchedButton = memo(function LastWatchedButton({
   if (!info || dismissed || activeMediaFileId === info.mediaFileId) return null;
 
   const actionLabel = info.completed ? 'Play again' : 'Continue play';
-  const tooltipText = info.completed
-    ? `Play again — ${info.title}`
-    : `Continue play at ${formatPosition(info.positionSeconds)} — ${info.title}`;
+  const actionText = info.completed
+    ? 'Play again'
+    : `Resume at ${formatPosition(info.positionSeconds)}`;
 
   const tooltipContent = (
-    <>
-      <div>{tooltipText}</div>
-      <div style={{ fontSize: '10px', opacity: 0.7, marginTop: '2px' }}>Ctrl + L</div>
-    </>
+    <div className="last-watched-tip">
+      <div className="last-watched-tip-action">{actionText}</div>
+      <div className="last-watched-tip-sub">
+        <span className="last-watched-tip-title">{info.title}</span>
+        <kbd className="last-watched-tip-kbd">Ctrl + L</kbd>
+      </div>
+    </div>
   );
 
   return (
@@ -90,7 +93,7 @@ export const LastWatchedButton = memo(function LastWatchedButton({
             className="last-watched-main"
             onClick={handlePlay}
             type="button"
-            aria-label={tooltipText}
+            aria-label={`${actionText} — ${info.title}`}
           >
             <span className="last-watched-play" aria-hidden="true">
               <svg className="tri" viewBox="0 0 24 24" fill="currentColor">
@@ -99,7 +102,7 @@ export const LastWatchedButton = memo(function LastWatchedButton({
             </span>
             <span className="last-watched-copy">
               <span className="last-watched-label">{actionLabel}</span>
-              <span className="last-watched-title" title={info.title}>
+              <span className="last-watched-title">
                 {info.title}
               </span>
               {!info.completed && (
@@ -111,17 +114,18 @@ export const LastWatchedButton = memo(function LastWatchedButton({
           </button>
         </Tooltip>
 
-        <button
-          className="last-watched-close"
-          onClick={handleDismiss}
-          aria-label="Dismiss"
-          title="Dismiss"
-          type="button"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+        <Tooltip content="Dismiss" placement="top">
+          <button
+            className="last-watched-close"
+            onClick={handleDismiss}
+            aria-label="Dismiss"
+            type="button"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
