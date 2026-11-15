@@ -32,18 +32,29 @@ export const Toolbar = memo(function Toolbar({
         </div>
       </div>
 
-      <div className="search" onClick={onOpenSearch}>
+      <div
+        className="search"
+        role="button"
+        tabIndex={0}
+        onMouseDown={(e) => {
+          // Prevent browser from focusing the readOnly toolbar input on mousedown,
+          // avoiding focus theft from the search modal
+          e.preventDefault();
+        }}
+        onClick={onOpenSearch}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpenSearch();
+          }
+        }}
+      >
         <Search size={18} />
         <input
           placeholder="Search library"
           readOnly
-          onClick={(e) => {
-            // stop bubbling to the parent .search onClick — onOpenSearch is a
-            // toggle, so firing twice opens and immediately closes the modal
-            e.stopPropagation();
-            e.currentTarget.blur();
-            onOpenSearch();
-          }}
+          tabIndex={-1}
+          style={{ pointerEvents: 'none' }}
         />
         <kbd className="search-shortcut">Ctrl+K</kbd>
       </div>
