@@ -80,6 +80,59 @@
   overflow: hidden;
 }
 
+/* ── Feathered Gaussian Progressive Blur for Top Bar ── */
+.topbar-feather-blur {
+  position: fixed;
+  top: 0;
+  left: 60px;
+  right: 0;
+  height: 140px;
+  pointer-events: none;
+  z-index: 9;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 10, 14, 0.72) 0%,
+    rgba(8, 10, 14, 0.45) 35%,
+    rgba(8, 10, 14, 0.12) 70%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  mask: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.sidebar-expanded .topbar-feather-blur {
+  left: 210px;
+}
+
+.app-shell.sidebar-hidden .topbar-feather-blur {
+  left: 0;
+}
+
+.topbar-feather-blur::before,
+.topbar-feather-blur::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Layer 1: Soft wide gaussian blur feathering down */
+.topbar-feather-blur::before {
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-mask: linear-gradient(180deg, #000 30%, transparent 100%);
+  mask: linear-gradient(180deg, #000 30%, transparent 100%);
+}
+
+/* Layer 2: Deep rich gaussian blur concentrated at the top */
+.topbar-feather-blur::after {
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-mask: linear-gradient(180deg, #000 15%, transparent 65%);
+  mask: linear-gradient(180deg, #000 15%, transparent 65%);
+}
+
 .toolbar {
   position: absolute;
   top: 30px;
