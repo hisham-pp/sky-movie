@@ -3,6 +3,7 @@ import { ListMusic, Plus } from 'lucide-react';
 import type { Playlist } from '@shared/ipc';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { SectionTitle } from './SectionTitle';
+import { Button } from '../common';
 
 export const BrowsePlaylistsPage = memo(function BrowsePlaylistsPage({
   playlists,
@@ -24,44 +25,51 @@ export const BrowsePlaylistsPage = memo(function BrowsePlaylistsPage({
   return (
     <div className="browse-grid">
       <section className="library-list">
-        <div className="playlist-browse-header mt-6">
+        <div className="playlist-browse-header">
           <div className="playlist-browse-header-icon">
             <ListMusic size={28} />
           </div>
           <div className="playlist-browse-header-text">
-            <span className="playlist-browse-kicker">Library</span>
+            <span className="playlist-browse-kicker">Collection</span>
             <h1>Playlists</h1>
             <p>Organize your favorite movies and TV shows into custom collections.</p>
           </div>
-          <button
-            className="playlist-browse-create-btn"
+          <Button
+            variant="primary"
+            size="medium"
+            icon={<Plus size={16} />}
             onClick={handleOpenCreate}
             disabled={busy}
           >
-            <Plus size={16} />
             New Playlist
-          </button>
+          </Button>
         </div>
 
         <SectionTitle title="Your Playlists" count={playlists.length} />
 
         {playlists.length > 0 ? (
-          <div className="playlist-browse-grid">
+          <div className="poster-grid playlist-browse-poster-grid">
             {playlists.map((playlist) => (
-              <button
+              <div
                 key={playlist.id}
-                className="playlist-browse-card"
+                className="tile playlist-tile"
                 onClick={() => onSelectPlaylist(playlist)}
               >
-                <div className="playlist-browse-card-icon">
-                  <ListMusic size={28} />
+                <div className="poster playlist-card-cover">
+                  <div className="playlist-cover-art">
+                    <ListMusic size={38} />
+                  </div>
+                  <span className="tile-badge">
+                    {playlist.itemCount} ITEM{playlist.itemCount !== 1 ? 'S' : ''}
+                  </span>
+                  <span className="tile-overlay">
+                    <strong>{playlist.name}</strong>
+                    <small>{playlist.description || `${playlist.itemCount} items`}</small>
+                  </span>
                 </div>
-                <div className="playlist-browse-card-body">
-                  <strong>{playlist.name}</strong>
-                  {playlist.description && <p>{playlist.description}</p>}
-                  <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
-                </div>
-              </button>
+                <strong>{playlist.name}</strong>
+                <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
+              </div>
             ))}
           </div>
         ) : (

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { Tooltip } from '../common';
+import { EmptyLibraryState } from '../library/EmptyLibraryState';
 import { formatBytes, formatSpeed, formatEta, statusLabel, statusColor } from './utils';
 
 export function DownloadsTab() {
@@ -34,7 +35,7 @@ export function DownloadsTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center py-20 text-white/30">
         <div className="w-5 h-5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin mr-3" />
         Loading…
       </div>
@@ -42,9 +43,9 @@ export function DownloadsTab() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Global stats bar */}
-      <div className="flex items-center gap-6 px-4 py-2.5 border-b border-white/5 text-xs text-white/50">
+      <div className="flex items-center gap-6 px-4 py-2.5 mb-4 rounded-xl bg-white/[0.03] border border-white/5 text-xs text-white/50">
         <span className="flex items-center gap-1.5">
           <ArrowDownToLine size={12} className="text-emerald-400" />
           {formatSpeed(stats.downloadSpeed)}
@@ -57,13 +58,14 @@ export function DownloadsTab() {
       </div>
 
       {activeTorrents.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-white/20">
-          <ArrowDownToLine size={44} className="mb-3 opacity-30" />
-          <p className="text-sm">No active downloads</p>
-          <p className="text-xs mt-1 opacity-70">Use Search to add torrents</p>
-        </div>
+        <EmptyLibraryState
+          icon={<ArrowDownToLine size={34} />}
+          label="No active downloads"
+          title="Everything is downloaded"
+          description="Use the Search tab above to discover films and series from torrent providers."
+        />
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        <div className="space-y-3">
           {activeTorrents.map((torrent) => (
             <TorrentCard
               key={torrent.id}
