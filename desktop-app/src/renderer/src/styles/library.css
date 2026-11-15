@@ -121,11 +121,6 @@
   display: none;
 }
 
-.hero-strip > :not(.hero-backdrop-fixed) {
-  position: relative;
-  z-index: 2;
-}
-
 .hero-copy {
   position: absolute;
   top: 80px;
