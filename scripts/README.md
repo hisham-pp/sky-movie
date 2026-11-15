@@ -132,11 +132,14 @@ All release workflows support:
 
 ## Environment Files
 
-Release scripts load environment variables from:
+Environment configuration is managed via `.env` files. Examples for every environment type are provided in `envs.example/` and at the root:
 
-- `envs/.env.r2` - Cloudflare R2 configuration
-- `envs/.env.drive` - Google Drive configuration (deprecated)
+- `.env.example` - Master environment file showing all variables across the project
+- `envs/.env.r2` (from `envs.example/.env.r2.example`) - Cloudflare R2 distribution
+- `envs/.env.github` (from `envs.example/.env.github.example`) - GitHub Releases automation
+- `envs/.env.desktop` / `desktop-app/.env` (from `envs.example/.env.desktop.example`) - TMDB API key & app debugging
+- `envs/.env.gpg` (from `envs.example/.env.gpg.example`) - Linux package GPG signing
+- `envs/.env.codesign` (from `envs.example/.env.codesign.example`) - Windows/macOS code signing & notarization
+- `envs/.env.drive` (from `envs.example/.env.drive.example`) - Google Drive distribution (deprecated)
 
-Template files are in `envs.example/`.
-
-**Security**: Never commit actual `.env` files. They're in `.gitignore`.
+**Security**: Never commit actual `.env` files. They are excluded in `.gitignore`.

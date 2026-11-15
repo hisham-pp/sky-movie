@@ -24,7 +24,15 @@ website/next-dev.log
 *.stackdump
 
 # Env / secrets
+.env
+.env.local
+.env.*.local
+desktop-app/.env
+desktop-app/.env.local
 envs/*
+!envs/*.example
+!envs/.*.example
+!envs/.gitkeep
 
 # Misc
 *.asar
