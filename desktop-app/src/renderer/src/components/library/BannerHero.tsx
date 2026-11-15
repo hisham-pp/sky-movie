@@ -73,6 +73,16 @@ export const BannerHero = memo(function BannerHero({
 }) {
   return (
     <div className="hero-strip browse-hero">
+      <svg
+        style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}
+        aria-hidden="true"
+        focusable="false"
+      >
+        <filter id="banner-sharpen" colorInterpolationFilters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="blurred" />
+          <feComposite in="SourceGraphic" in2="blurred" operator="arithmetic" k1="0" k2="1.45" k3="-0.45" k4="0" />
+        </filter>
+      </svg>
       <BannerBackdrop src={backdropPath} />
       <div className="hero-copy">
         <div>
