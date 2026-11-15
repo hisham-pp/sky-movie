@@ -4,6 +4,10 @@ import { net } from 'electron';
 import type {
   ApplyMovieMetadataRequest,
   ApplyTvMetadataRequest,
+  GetMediaRelationsAndRecommendationsRequest,
+  MediaRelationItem,
+  MediaRecommendationItem,
+  MediaRelationsAndRecommendationsResult,
   MetadataUpdate,
   Movie,
   MovieMetadataSearchRequest,
@@ -453,6 +457,427 @@ export class MetadataProviderManager {
     }
 
     return mapShow(row);
+  }
+
+  async getMediaRelationsAndRecommendations(
+    request: GetMediaRelationsAndRecommendationsRequest
+  ): Promise<MediaRelationsAndRecommendationsResult> {
+    const relations: MediaRelationItem[] = [];
+    const recommendations: MediaRecommendationItem[] = [];
+    const seenRelationIds = new Set<string>();
+    const seenRecIds = new Set<string>();
+
+    const queryTitle = request.title.trim();
+    if (!queryTitle) {
+      return { relations: [], recommendations: [] };
+    }
+
+    // 1. Fetch from AniList (Public GraphQL - amazing for anime)
+    try {
+      const anilistQuery = `
+        query ($q: String) {
+          Media(search: $q, type: ANIME) {
+            id
+            title { english romaji native }
+            format
+            episodes
+            averageScore
+            season
+            seasonYear
+            coverImage { large extraLarge }
+            relations {
+              edges {
+                relationType
+                node {
+                  id
+                  title { english romaji }
+                  format
+                  episodes
+                  averageScore
+                  season
+                  seasonYear
+                  coverImage { large extraLarge }
+                }
+              }
+            }
+            recommendations(perPage: 16, sort: RATING_DESC) {
+              nodes {
+                mediaRecommendation {
+                  id
+                  title { english romaji }
+                  format
+                  episodes
+                  averageScore
+                  seasonYear
+                  coverImage { large extraLarge }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const aniRes = await requestUrl('https://graphql.anilist.co', 'AniList GraphQL', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ query: anilistQuery, variables: { q: queryTitle } })
+      });
+
+      if (aniRes.ok) {
+        const aniData = (await aniRes.json()) as {
+          data?: {
+            Media?: {
+              id: number;
+              relations?: {
+                edges?: Array<{
+                  relationType: string;
+                  node: {
+                    id: number;
+                    title?: { english?: string | null; romaji?: string | null };
+                    format?: string | null;
+                    episodes?: number | null;
+                    averageScore?: number | null;
+                    season?: string | null;
+                    seasonYear?: number | null;
+                    coverImage?: { large?: string | null; extraLarge?: string | null };
+                  };
+                }>;
+              };
+              recommendations?: {
+                nodes?: Array<{
+                  mediaRecommendation?: {
+                    id: number;
+                    title?: { english?: string | null; romaji?: string | null };
+                    format?: string | null;
+                    averageScore?: number | null;
+                    seasonYear?: number | null;
+                    coverImage?: { large?: string | null; extraLarge?: string | null };
+                  };
+                }>;
+              };
+            };
+          };
+        };
+
+        const media = aniData?.data?.Media;
+        if (media) {
+          const edges = media.relations?.edges ?? [];
+          for (const edge of edges) {
+            const node = edge.node;
+            if (!node) continue;
+            if (node.format === 'MANGA' || node.format === 'NOVEL' || node.format === 'ONE_SHOT') {
+              continue;
+            }
+            const itemTitle = node.title?.english || node.title?.romaji || 'Unknown';
+            const dedupeKey = `anilist-${node.id}`;
+            if (seenRelationIds.has(dedupeKey)) continue;
+            seenRelationIds.add(dedupeKey);
+
+            let relType: MediaRelationItem['relationType'] = 'other';
+            let relLabel = 'Related';
+            const upper = edge.relationType?.toUpperCase() || '';
+            if (upper === 'PREQUEL') {
+              relType = 'prequel';
+              relLabel = 'Prequel';
+            } else if (upper === 'SEQUEL') {
+              relType = 'sequel';
+              relLabel = 'Sequel';
+            } else if (upper === 'SIDE_STORY') {
+              relType = 'side_story';
+              relLabel = 'Side Story';
+            } else if (upper === 'SPIN_OFF') {
+              relType = 'spin_off';
+              relLabel = 'Spin-off';
+            } else if (upper === 'ALTERNATIVE') {
+              relType = 'alternative';
+              relLabel = 'Alternative';
+            } else if (upper === 'PARENT') {
+              relType = 'parent';
+              relLabel = 'Parent Story';
+            } else if (upper === 'SUMMARY') {
+              relType = 'other';
+              relLabel = 'Recap';
+            }
+
+            const seasonPart = node.season ? node.season.charAt(0) + node.season.slice(1).toLowerCase() : '';
+            const seasonLabel = seasonPart && node.seasonYear
+              ? `${seasonPart} ${node.seasonYear}`
+              : (node.seasonYear ? String(node.seasonYear) : null);
+
+            relations.push({
+              id: dedupeKey,
+              title: itemTitle,
+              relationType: relType,
+              relationLabel: relLabel,
+              mediaKind: node.format === 'MOVIE' ? 'movie' : 'show',
+              posterPath: node.coverImage?.large || node.coverImage?.extraLarge || null,
+              releaseYear: node.seasonYear ?? null,
+              seasonLabel,
+              episodesCount: node.episodes ?? null,
+              rating: node.averageScore ? Number((node.averageScore / 10).toFixed(1)) : null
+            });
+          }
+
+          const recNodes = media.recommendations?.nodes ?? [];
+          for (const rec of recNodes) {
+            const node = rec.mediaRecommendation;
+            if (!node) continue;
+            if (node.format === 'MANGA' || node.format === 'NOVEL' || node.format === 'ONE_SHOT') {
+              continue;
+            }
+            const itemTitle = node.title?.english || node.title?.romaji || 'Unknown';
+            const dedupeKey = `anilist-${node.id}`;
+            if (seenRecIds.has(dedupeKey)) continue;
+            seenRecIds.add(dedupeKey);
+
+            recommendations.push({
+              id: dedupeKey,
+              title: itemTitle,
+              mediaKind: node.format === 'MOVIE' ? 'movie' : 'show',
+              posterPath: node.coverImage?.large || node.coverImage?.extraLarge || null,
+              releaseYear: node.seasonYear ?? null,
+              rating: node.averageScore ? Number((node.averageScore / 10).toFixed(1)) : null
+            });
+          }
+        }
+      }
+    } catch {
+      // AniList unavailable or offline — continue to TMDB
+    }
+
+    // 2. Fetch from TMDB (for movies, live action shows, or if TMDB has collections/recommendations)
+    try {
+      const settings = this.settings.getSettings();
+      const apiKey = settings.tmdbApiKey?.trim() || process.env.VITE_TMDB_API_KEY?.trim() || '';
+      if (apiKey) {
+        const auth = getAuth(apiKey);
+        const language = settings.tmdbLanguage || 'en-US';
+        const imageBase = await this.getImageBaseUrl(apiKey, 'poster');
+
+        if (request.mediaKind === 'movie') {
+          // Resolve TMDB movie ID
+          let tmdbMovieId: number | null = null;
+          const movieRow = this.db.prepare('SELECT poster_path, backdrop_path, release_year FROM movies WHERE id = ?').get(request.id) as { poster_path?: string; backdrop_path?: string; release_year?: number } | undefined;
+          const match = (movieRow?.poster_path || movieRow?.backdrop_path || '').match(/tmdb-(\d+)-(?:poster|backdrop)/);
+          if (match) {
+            tmdbMovieId = parseInt(match[1], 10);
+          }
+          if (!tmdbMovieId) {
+            const searchRes = await fetchTmdbMovieSearch(apiKey, language, queryTitle, request.year ?? movieRow?.release_year ?? null);
+            if (searchRes.results.length > 0) {
+              tmdbMovieId = searchRes.results[0].id;
+            }
+          }
+
+          if (tmdbMovieId) {
+            const params = new URLSearchParams({
+              ...auth.params,
+              language,
+              append_to_response: 'recommendations,similar'
+            });
+            const detailsRes = await requestUrl(
+              `https://api.themoviedb.org/3/movie/${tmdbMovieId}?${params.toString()}`,
+              'TMDB movie details for relations',
+              { headers: auth.headers }
+            );
+
+            if (detailsRes.ok) {
+              const details = (await detailsRes.json()) as {
+                id: number;
+                title: string;
+                release_date?: string;
+                belongs_to_collection?: { id: number; name: string } | null;
+                recommendations?: { results?: TmdbMovieSearchItem[] };
+                similar?: { results?: TmdbMovieSearchItem[] };
+              };
+
+              // Franchise / Collection relations
+              if (details.belongs_to_collection?.id) {
+                try {
+                  const colParams = new URLSearchParams({ ...auth.params, language });
+                  const colRes = await requestUrl(
+                    `https://api.themoviedb.org/3/collection/${details.belongs_to_collection.id}?${colParams.toString()}`,
+                    'TMDB collection',
+                    { headers: auth.headers }
+                  );
+                  if (colRes.ok) {
+                    const colData = (await colRes.json()) as {
+                      name: string;
+                      parts?: Array<{
+                        id: number;
+                        title: string;
+                        release_date?: string;
+                        poster_path?: string | null;
+                        vote_average?: number;
+                      }>;
+                    };
+                    const currentYear = parseYear(details.release_date);
+                    const parts = (colData.parts ?? []).filter((p) => p.id !== tmdbMovieId);
+
+                    for (const part of parts) {
+                      const partYear = parseYear(part.release_date);
+                      const dedupeKey = `tmdb-m-${part.id}`;
+                      if (seenRelationIds.has(dedupeKey)) continue;
+                      seenRelationIds.add(dedupeKey);
+
+                      let relType: MediaRelationItem['relationType'] = 'other';
+                      let relLabel = 'Franchise';
+                      if (currentYear && partYear) {
+                        if (partYear < currentYear) {
+                          relType = 'prequel';
+                          relLabel = 'Prequel';
+                        } else if (partYear > currentYear) {
+                          relType = 'sequel';
+                          relLabel = 'Sequel';
+                        }
+                      }
+
+                      relations.push({
+                        id: dedupeKey,
+                        title: part.title,
+                        relationType: relType,
+                        relationLabel: relLabel,
+                        mediaKind: 'movie',
+                        posterPath: part.poster_path ? `${imageBase}${part.poster_path}` : null,
+                        releaseYear: partYear,
+                        seasonLabel: partYear ? String(partYear) : null,
+                        rating: part.vote_average ? Number(part.vote_average.toFixed(1)) : null
+                      });
+                    }
+                  }
+                } catch { /* collection lookup failed */ }
+              }
+
+              // Movie recommendations
+              const recs = [
+                ...(details.recommendations?.results ?? []),
+                ...(details.similar?.results ?? [])
+              ];
+              for (const item of recs) {
+                if (item.id === tmdbMovieId) continue;
+                const dedupeKey = `tmdb-m-${item.id}`;
+                if (seenRecIds.has(dedupeKey)) continue;
+                seenRecIds.add(dedupeKey);
+
+                recommendations.push({
+                  id: dedupeKey,
+                  title: item.title,
+                  mediaKind: 'movie',
+                  posterPath: item.poster_path ? `${imageBase}${item.poster_path}` : null,
+                  releaseYear: parseYear(item.release_date),
+                  rating: item.vote_average ? Number(item.vote_average.toFixed(1)) : null,
+                  overview: item.overview ?? null
+                });
+              }
+            }
+          }
+        } else {
+          // TV Show
+          let tmdbShowId: number | null = null;
+          const showRow = this.db.prepare('SELECT poster_path, backdrop_path, first_air_year FROM tv_shows WHERE id = ?').get(request.id) as { poster_path?: string; backdrop_path?: string; first_air_year?: number } | undefined;
+          const match = (showRow?.poster_path || showRow?.backdrop_path || '').match(/tmdb-tv-(\d+)-(?:poster|backdrop)/);
+          if (match) {
+            tmdbShowId = parseInt(match[1], 10);
+          }
+          if (!tmdbShowId) {
+            const searchRes = await fetchTmdbTvSearch(apiKey, language, queryTitle, request.year ?? showRow?.first_air_year ?? null);
+            if (searchRes.results.length > 0) {
+              tmdbShowId = searchRes.results[0].id;
+            }
+          }
+
+          if (tmdbShowId) {
+            const params = new URLSearchParams({
+              ...auth.params,
+              language,
+              append_to_response: 'recommendations,similar'
+            });
+            const detailsRes = await requestUrl(
+              `https://api.themoviedb.org/3/tv/${tmdbShowId}?${params.toString()}`,
+              'TMDB TV details for relations',
+              { headers: auth.headers }
+            );
+
+            if (detailsRes.ok) {
+              const details = (await detailsRes.json()) as {
+                id: number;
+                name: string;
+                recommendations?: { results?: TmdbTvSearchItem[] };
+                similar?: { results?: TmdbTvSearchItem[] };
+              };
+
+              const recs = [
+                ...(details.recommendations?.results ?? []),
+                ...(details.similar?.results ?? [])
+              ];
+              for (const item of recs) {
+                if (item.id === tmdbShowId) continue;
+                const dedupeKey = `tmdb-tv-${item.id}`;
+                if (seenRecIds.has(dedupeKey)) continue;
+                seenRecIds.add(dedupeKey);
+
+                recommendations.push({
+                  id: dedupeKey,
+                  title: item.name,
+                  mediaKind: 'show',
+                  posterPath: item.poster_path ? `${imageBase}${item.poster_path}` : null,
+                  releaseYear: parseYear(item.first_air_date),
+                  rating: item.vote_average ? Number(item.vote_average.toFixed(1)) : null,
+                  overview: item.overview ?? null
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // TMDB lookup failed or offline
+    }
+
+    // 3. Mark items that exist in the local library!
+    try {
+      const localMovies = this.db
+        .prepare('SELECT id, title, release_year FROM movies')
+        .all() as Array<{ id: number; title: string; release_year?: number | null }>;
+      const localShows = this.db
+        .prepare('SELECT id, title, first_air_year FROM tv_shows')
+        .all() as Array<{ id: number; title: string; first_air_year?: number | null }>;
+
+      const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      const checkInLibrary = (item: MediaRelationItem | MediaRecommendationItem) => {
+        const itemNorm = normalize(item.title);
+        if (!itemNorm) return;
+
+        // Try movie match
+        const foundMovie = localMovies.find((m) => normalize(m.title) === itemNorm);
+        if (foundMovie) {
+          item.inLibrary = true;
+          item.libraryItemId = foundMovie.id;
+          item.mediaKind = 'movie';
+          return;
+        }
+
+        // Try show match
+        const foundShow = localShows.find((s) => normalize(s.title) === itemNorm);
+        if (foundShow) {
+          item.inLibrary = true;
+          item.libraryItemId = foundShow.id;
+          item.mediaKind = 'show';
+          return;
+        }
+      };
+
+      relations.forEach(checkInLibrary);
+      recommendations.forEach(checkInLibrary);
+    } catch {
+      // local check error
+    }
+
+    return {
+      relations: relations.slice(0, 10),
+      recommendations: recommendations.slice(0, 24)
+    };
   }
 
   private async getImageBaseUrl(apiKey: string, kind: 'poster' | 'backdrop' | 'profile'): Promise<string> {

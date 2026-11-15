@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Search, Download, Copy, Filter, X, ChevronDown, Film, Tv, Clock, Trash2, CirclePlay } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { TorrentCategory, TorrentSearchResult } from '@shared/ipc';
 import { useTorrentSearch, useTorrentDownloads } from '../../hooks/useTorrent';
 import { useTmdbSuggestions, type TmdbSuggestion } from '../../hooks/useTmdbSuggestions';
@@ -50,11 +50,22 @@ type DropdownItem =
 
 export function SearchTab() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const urlQ = searchParams.get('q');
+  const [query, setQuery] = useState(urlQ?.trim() || '');
   // The query the torrent providers were actually searched with. A single
   // effect re-runs the provider search whenever this or a filter changes, so
   // typing only drives suggestions — providers are hit on explicit intent.
-  const [submitted, setSubmitted] = useState('');
+  const [submitted, setSubmitted] = useState(urlQ?.trim() || '');
+
+  useEffect(() => {
+    if (urlQ && urlQ.trim() && urlQ.trim() !== submitted) {
+      const q = urlQ.trim();
+      setQuery(q);
+      setSubmitted(q);
+      addRecentSearch(q);
+    }
+  }, [urlQ]);
   const [category, setCategory] = useState<Category>('all');
   const [quality, setQuality] = useState('all');
   const [sortBy, setSortBy] = useState<SortBy>('seeds');

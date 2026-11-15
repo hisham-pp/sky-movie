@@ -221,6 +221,47 @@ export interface ApplyTvMetadataRequest {
   providerId: number;
 }
 
+export interface GetMediaRelationsAndRecommendationsRequest {
+  mediaKind: 'movie' | 'show';
+  id: number;
+  title: string;
+  year?: number | null;
+}
+
+export interface MediaRelationItem {
+  id: number | string;
+  title: string;
+  relationType: 'prequel' | 'sequel' | 'side_story' | 'spin_off' | 'alternative' | 'parent' | 'other';
+  relationLabel: string;
+  mediaKind: 'movie' | 'show';
+  posterPath: string | null;
+  backdropPath?: string | null;
+  releaseYear?: number | null;
+  seasonLabel?: string | null;
+  episodesCount?: number | null;
+  rating?: number | null;
+  inLibrary?: boolean;
+  libraryItemId?: number;
+}
+
+export interface MediaRecommendationItem {
+  id: number | string;
+  title: string;
+  mediaKind: 'movie' | 'show';
+  posterPath: string | null;
+  backdropPath?: string | null;
+  releaseYear?: number | null;
+  rating?: number | null;
+  overview?: string | null;
+  inLibrary?: boolean;
+  libraryItemId?: number;
+}
+
+export interface MediaRelationsAndRecommendationsResult {
+  relations: MediaRelationItem[];
+  recommendations: MediaRecommendationItem[];
+}
+
 export interface PlayMediaResult {
   mediaFileId: number;
   mediaUrl: string;
@@ -478,6 +519,7 @@ export interface SkyMovieApi extends TorrentApi {
   applyMovieMetadata(request: ApplyMovieMetadataRequest): Promise<Movie>;
   searchTvMetadata(request: TvMetadataSearchRequest): Promise<TvMetadataSearchResult[]>;
   applyTvMetadata(request: ApplyTvMetadataRequest): Promise<TvShow>;
+  getMediaRelationsAndRecommendations(request: GetMediaRelationsAndRecommendationsRequest): Promise<MediaRelationsAndRecommendationsResult>;
   markFileAsIgnored(fileId: number): Promise<void>;
   unmarkFileAsIgnored(fileId: number): Promise<void>;
   updateFileMatch(fileId: number, matchedMovieId: number | null, matchedShowId: number | null): Promise<void>;
@@ -535,6 +577,7 @@ export const ipcChannels = {
   applyMovieMetadata: 'metadata:apply-movie',
   searchTvMetadata: 'metadata:search-tv',
   applyTvMetadata: 'metadata:apply-tv',
+  getMediaRelationsAndRecommendations: 'metadata:get-relations-and-recommendations',
   markFileAsIgnored: 'metadata:mark-file-ignored',
   unmarkFileAsIgnored: 'metadata:unmark-file-ignored',
   updateFileMatch: 'metadata:update-file-match',
