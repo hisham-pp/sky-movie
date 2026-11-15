@@ -5,6 +5,16 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-11-15
+
+### Other
+
+- ci(release): use default GITHUB_TOKEN for release creation and non-fatal push (Hisham)
+- ci(release): use default github.token for checkout and artifact download (Hisham)
+- ci(release): allow release job to run when using from_run_id without build jobs (Hisham)
+- ci(release): make checkout and push fallback to github.token and allow publishing from existing run_id (Hisham)
+- docs(env): add .env.example templates for all environment types (Hisham)
+
 ## [0.11.0] - 2026-11-15
 
 ### Added
@@ -1168,3 +1178,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.10
 [0.10.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.11
 [0.11.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0
+[0.11.1]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.1
