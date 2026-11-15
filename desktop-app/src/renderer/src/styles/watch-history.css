@@ -1,3 +1,71 @@
+/* ── Enhanced Watch History Page ── */
+.wh-page-scroller {
+  padding-bottom: 80px;
+}
+
+.wh-header-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 48px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wh-poster-grid {
+  margin-top: 16px;
+}
+
+.wh-poster-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 30%, rgba(137, 206, 255, 0.12) 0%, transparent 70%), var(--surface-low);
+  color: var(--muted);
+}
+
+.wh-tile-status-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.wh-tile-status-badge.wh-done {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
+.wh-tile-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+
+.wh-tile-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+}
+
 .wh-page {
   display: flex;
   flex-direction: column;

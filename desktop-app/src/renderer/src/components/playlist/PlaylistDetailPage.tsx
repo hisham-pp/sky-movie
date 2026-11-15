@@ -109,53 +109,77 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
       )}
 
       <div className="detail-hero">
-
-
-        <div className="playlist-detail-layout">
-          <div className="detail-poster playlist-poster-large">
-            {items.length > 0 ? (
-              <div className="playlist-poster-grid">
-                {items.slice(0, 4).map((item, index) => {
-                  const posterPath = item.movie?.posterPath || item.show?.posterPath;
-                  return posterPath ? (
-                    <img key={item.id} src={posterPath} alt="" />
-                  ) : (
-                    <div key={item.id} className="playlist-poster-placeholder">
-                      {item.mediaKind === 'movie' ? <Film size={20} /> : <Tv size={20} />}
+        <div className="movie-detail-layout playlist-detail-layout">
+          <div className="detail-poster-section">
+            <div className="detail-poster playlist-poster-large">
+              {items.length > 0 ? (
+                <div className="playlist-poster-grid">
+                  {items.slice(0, 4).map((item) => {
+                    const posterPath = item.movie?.posterPath || item.show?.posterPath;
+                    return posterPath ? (
+                      <img key={item.id} src={posterPath} alt="" />
+                    ) : (
+                      <div key={item.id} className="playlist-poster-placeholder">
+                        {item.mediaKind === 'movie' ? <Film size={20} /> : <Tv size={20} />}
+                      </div>
+                    );
+                  })}
+                  {items.length < 4 && Array.from({ length: 4 - Math.min(items.length, 4) }).map((_, i) => (
+                    <div key={`empty-${i}`} className="playlist-poster-placeholder">
+                      <ListMusic size={20} />
                     </div>
-                  );
-                })}
-                {items.length < 4 && Array.from({ length: 4 - Math.min(items.length, 4) }).map((_, i) => (
-                  <div key={`empty-${i}`} className="playlist-poster-placeholder">
-                    <ListMusic size={20} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <ListMusic size={48} />
-            )}
+                  ))}
+                </div>
+              ) : (
+                <ListMusic size={48} />
+              )}
+            </div>
+            <div className="detail-actions">
+              <Tooltip content={items.length === 0 ? 'No items to play' : 'Play all items'}>
+                <Button
+                  variant="primary"
+                  size="small"
+                  icon={<Play size={14} />}
+                  onClick={handlePlayAll}
+                  disabled={busy || items.length === 0}
+                />
+              </Tooltip>
+              <Tooltip content="Add movies or series">
+                <Button
+                  variant="secondary"
+                  size="small"
+                  icon={<Plus size={14} />}
+                  onClick={handleOpenAddDialog}
+                  disabled={busy}
+                />
+              </Tooltip>
+              <Tooltip content="Edit playlist">
+                <Button
+                  variant="secondary"
+                  size="small"
+                  icon={<Edit2 size={14} />}
+                  onClick={onEdit}
+                  disabled={busy}
+                />
+              </Tooltip>
+              <Tooltip content="Delete playlist">
+                <Button
+                  variant="danger"
+                  size="small"
+                  icon={<Trash2 size={14} />}
+                  onClick={onDelete}
+                  disabled={busy}
+                />
+              </Tooltip>
+            </div>
           </div>
           <div className="detail-copy">
-            <span className="detail-kicker">Playlist</span>
             <h2>{playlist.name}</h2>
-            <p>{playlist.description || 'No description provided'}</p>
             <div className="hero-chips">
               <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
+              <span>Curated Playlist</span>
             </div>
-            <div className="playlist-actions">
-              <Button variant="primary" size="medium" icon={<Play />} onClick={handlePlayAll} disabled={busy || items.length === 0}>
-                Play All
-              </Button>
-              <Button variant="secondary" size="medium" icon={<Plus />} onClick={handleOpenAddDialog} disabled={busy}>
-                Add Items
-              </Button>
-              <Button variant="secondary" size="medium" icon={<Edit2 />} onClick={onEdit} disabled={busy}>
-                Edit
-              </Button>
-              <Button variant="danger" size="medium" icon={<Trash2 />} onClick={onDelete} disabled={busy}>
-                Delete
-              </Button>
-            </div>
+            <p className="detail-overview">{playlist.description || 'Custom collection of your favorite movies and television shows.'}</p>
           </div>
         </div>
       </div>

@@ -1,3 +1,51 @@
+/* ── Torrent Page Cinema Layout ── */
+.torrent-page-scroller {
+  padding-bottom: 80px;
+}
+
+.torrent-header-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 48px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.torrent-header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.torrent-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.torrent-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--surface-high);
+  color: var(--primary);
+  margin-left: 4px;
+}
+
+.torrent-tab-btn.active .torrent-tab-count {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
 .torrent-stream-page {
   position: relative;
   display: flex;

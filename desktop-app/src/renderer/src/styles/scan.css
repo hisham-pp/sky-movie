@@ -18,7 +18,7 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 34px 40px 40px;
+  padding: 48px 48px 80px;
 }
 
 .scan-hero {
@@ -144,7 +144,7 @@
 .scan-hero-modern {
   position: relative;
   overflow: hidden;
-  margin: 0 -40px 32px;
+  margin: -48px -48px 32px;
   border-radius: 0;
 }
 
@@ -194,7 +194,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   gap: 40px;
   align-items: stretch;
-  padding: 48px 40px;
+  padding: 48px 48px 40px;
   background: linear-gradient(135deg, var(--bg-deep) 0%, var(--surface-lowest) 100%);
   border-bottom: 1px solid var(--line);
 }

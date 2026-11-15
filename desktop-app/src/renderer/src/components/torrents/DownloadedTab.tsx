@@ -4,6 +4,7 @@ import type { TorrentInfo } from '@shared/ipc';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatBytes } from './utils';
 import { GlassSelect, Tooltip } from '../common';
+import { EmptyLibraryState } from '../library/EmptyLibraryState';
 
 export function DownloadedTab() {
   const { torrents, remove, deleteFiles, openFolder } = useTorrentDownloads();
@@ -24,42 +25,47 @@ export function DownloadedTab() {
   const totalSize = useMemo(() => completed.reduce((acc, t) => acc + t.totalSize, 0), [completed]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-        <div className="relative flex-1">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30" />
+      <div className="filter-row justify-between mb-4">
+        <div className="filter-search flex-1 max-w-md">
+          <Search size={14} className="filter-search-icon" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter completed…"
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white/70 placeholder-white/25 focus:outline-none focus:border-white/20"
+            placeholder="Filter completed downloads…"
+            className="filter-search-input w-full"
           />
         </div>
-        <GlassSelect
-          size="sm"
-          ariaLabel="Sort downloads"
-          options={[
-            { value: 'date' as const, label: 'Recent first' },
-            { value: 'name' as const, label: 'Name' },
-            { value: 'size' as const, label: 'Size' },
-          ]}
-          value={sortBy}
-          onChange={setSortBy}
-        />
-        <span className="text-xs text-white/30 flex-shrink-0">
-          <HardDrive size={12} className="inline mr-1" />{formatBytes(totalSize)}
-        </span>
+        <div className="flex items-center gap-3">
+          <GlassSelect
+            size="sm"
+            ariaLabel="Sort downloads"
+            options={[
+              { value: 'date' as const, label: 'Recent first' },
+              { value: 'name' as const, label: 'Name' },
+              { value: 'size' as const, label: 'Size' },
+            ]}
+            value={sortBy}
+            onChange={setSortBy}
+          />
+          <span className="section-badge">
+            <HardDrive size={13} className="inline mr-1 text-[var(--primary)]" />
+            {formatBytes(totalSize)}
+          </span>
+        </div>
       </div>
 
       {completed.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-white/20">
-          <CheckCircle2 size={44} className="mb-3 opacity-30" />
-          <p className="text-sm">No completed downloads</p>
-        </div>
+        <EmptyLibraryState
+          icon={<CheckCircle2 size={34} />}
+          label="No completed downloads"
+          title={query ? 'No matching downloads' : 'No finished downloads yet'}
+          description={query ? 'Try searching for something else.' : 'Completed transfers will appear here.'}
+        />
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        <div className="space-y-3">
           {completed.map((t) => (
             <CompletedCard
               key={t.id}

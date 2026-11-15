@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Download, CheckCircle2, Settings } from 'lucide-react';
+import { Search, Download, CheckCircle2, Settings, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { SearchTab } from './SearchTab';
 import { DownloadsTab } from './DownloadsTab';
 import { DownloadedTab } from './DownloadedTab';
 import { TorrentSettingsTab } from './TorrentSettingsTab';
+import { useTorrentDownloads } from '../../hooks/useTorrent';
+import { formatSpeed } from './utils';
 
 type Tab = 'search' | 'downloads' | 'downloaded' | 'settings';
 const VALID_TABS: Tab[] = ['search', 'downloads', 'downloaded', 'settings'];
@@ -18,6 +20,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function TorrentPage() {
+  const { stats } = useTorrentDownloads();
   const [searchParams] = useSearchParams();
   const paramTab = searchParams.get('tab') as Tab | null;
   const initialTab: Tab = (paramTab && VALID_TABS.includes(paramTab))
@@ -39,31 +42,67 @@ export function TorrentPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-transparent pt-[35px]">
-      {/* Tab bar */}
-      <div className="flex items-center border-b border-white/5 px-4 pt-12">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabChange(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all mr-1 ${activeTab === tab.id
-              ? 'border-[var(--primary)] text-white'
-              : 'border-transparent text-white/40 hover:text-white/65 hover:border-white/20'
-              }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className="browse-grid">
+      <section className="library-list torrent-page-scroller">
+        <div className="torrent-header-clean mt-6 mb-5">
+          <div className="torrent-header-title">
+            <Download size={26} className="text-[var(--primary)]" />
+            <div>
+              <span className="playlist-browse-kicker">Transfers</span>
+              <h1 className="text-2xl font-bold text-[var(--ink)]">Torrents & Downloads</h1>
+            </div>
+          </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'search' && <SearchTab />}
-        {activeTab === 'downloads' && <DownloadsTab />}
-        {activeTab === 'downloaded' && <DownloadedTab />}
-        {activeTab === 'settings' && <TorrentSettingsTab />}
-      </div>
+          <div className="torrent-header-stats">
+            <span className="section-badge">
+              <ArrowDownToLine size={13} className="text-emerald-400 mr-1 inline" />
+              {formatSpeed(stats.downloadSpeed)}
+            </span>
+            <span className="section-badge">
+              <ArrowUpFromLine size={13} className="text-blue-400 mr-1 inline" />
+              {formatSpeed(stats.uploadSpeed)}
+            </span>
+            {stats.activeTorrents > 0 && (
+              <span className="section-badge">
+                {stats.activeTorrents} active
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Cinema Tab Pills */}
+        <div className="filter-row torrent-nav-tabs mb-6">
+          {TABS.map((tab) => {
+            const count =
+              tab.id === 'downloads'
+                ? stats.activeTorrents
+                : tab.id === 'downloaded'
+                  ? (stats.totalTorrents - stats.activeTorrents)
+                  : undefined;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`filter-toggle-btn torrent-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+              >
+                {tab.icon}
+                {tab.label}
+                {typeof count === 'number' && count > 0 && (
+                  <span className="torrent-tab-count">{count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab content */}
+        <div className="torrent-tab-viewport">
+          {activeTab === 'search' && <SearchTab />}
+          {activeTab === 'downloads' && <DownloadsTab />}
+          {activeTab === 'downloaded' && <DownloadedTab />}
+          {activeTab === 'settings' && <TorrentSettingsTab />}
+        </div>
+      </section>
     </div>
   );
 }
