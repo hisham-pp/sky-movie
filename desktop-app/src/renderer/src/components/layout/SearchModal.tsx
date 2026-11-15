@@ -56,9 +56,32 @@ export const SearchModal = memo(function SearchModal({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
   const activeItemRef = useRef<HTMLButtonElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      const focusInput = () => {
+        if (inputRef.current && document.activeElement !== inputRef.current) {
+          inputRef.current.focus({ preventScroll: true });
+        }
+      };
+
+      // 1. Focus immediately
+      focusInput();
+
+      // 2. Focus on animation frame when modal DOM is committed
+      const rafId = requestAnimationFrame(focusInput);
+
+      // 3. Focus after event loop/mouseup ticks to override any click focus competition
+      const timerId1 = setTimeout(focusInput, 50);
+      const timerId2 = setTimeout(focusInput, 150);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timerId1);
+        clearTimeout(timerId2);
+      };
+    } else {
       setQuery('');
       setActiveIndex(-1);
     }
@@ -116,7 +139,21 @@ export const SearchModal = memo(function SearchModal({
       if (!isOpen) return;
       if (e.key === 'Escape') {
         onClose();
-      } else if (e.key === 'ArrowDown') {
+        return;
+      }
+
+      // If user starts typing a printable character while modal is open, auto-focus the input
+      if (
+        document.activeElement !== inputRef.current &&
+        e.key.length === 1 &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        inputRef.current?.focus({ preventScroll: true });
+      }
+
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
         setActiveIndex((i) => Math.min(i + 1, allItems.length - 1));
       } else if (e.key === 'ArrowUp') {
@@ -243,15 +280,29 @@ export const SearchModal = memo(function SearchModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} customContent={true}>
-      <div className="search-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="search-modal-header">
+      <div
+        className="search-modal"
+        onClick={(e) => {
+          e.stopPropagation();
+          const target = e.target as HTMLElement;
+          if (!target.closest('button') && !target.closest('.search-modal-item')) {
+            inputRef.current?.focus({ preventScroll: true });
+          }
+        }}
+      >
+        <div
+          className="search-modal-header"
+          onClick={() => {
+            inputRef.current?.focus({ preventScroll: true });
+          }}
+        >
           <Search size={20} />
           <input
+            ref={inputRef}
             type="text"
             placeholder="Search movies, shows, playlists..."
             value={query}
             onChange={handleQueryChange}
-            autoFocus
             className="search-modal-input"
           />
           <button className="search-modal-close" onClick={onClose}>
