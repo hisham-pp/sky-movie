@@ -1,8 +1,21 @@
-import { CheckCircle2, FolderCog, FolderSearch, HardDrive, Loader2, Settings, Film, Tv, Zap } from 'lucide-react';
+import { memo } from 'react';
+import {
+  FolderSearch,
+  HardDrive,
+  Loader2,
+  Settings,
+  Film,
+  Tv,
+  CheckCircle2,
+  FolderCog,
+  FileCheck2,
+  Compass,
+  AlertTriangle
+} from 'lucide-react';
 import type { LibraryScanMode, MatcherStrategy, ScanResult } from '@shared/ipc';
-import { Tooltip } from '../common';
+import { Button, Tooltip } from '../common';
 
-export function ScanPanel({
+export const ScanPanel = memo(function ScanPanel({
   libraryFolders,
   scanMode,
   matcherStrategy,
@@ -24,146 +37,207 @@ export function ScanPanel({
   const hasFolders = libraryFolders.length > 0;
 
   return (
-    <section className="scan-page">
-      <div className="scan-hero-modern">
-        <div className="scan-hero-bg">
-          <div className="scan-hero-glow" />
-          <div className="scan-hero-pattern" />
+    <div className="browse-grid">
+      <section className="library-list scan-page-scroller">
+        {/* Clean Header */}
+        <div className="scan-header-clean">
+          <div className="scan-header-title">
+            <div className="scan-header-icon">
+              <FolderSearch size={26} />
+            </div>
+            <div>
+              <span className="playlist-browse-kicker">Maintenance</span>
+              <h1>Library Scanner</h1>
+              <p>Discover, match, and organize local movies and TV series across your storage folders.</p>
+            </div>
+          </div>
+
+          <div className="scan-header-actions">
+            <Button
+              variant="secondary"
+              size="medium"
+              icon={<Settings size={16} />}
+              onClick={onOpenSettings}
+            >
+              Settings
+            </Button>
+            {hasFolders ? (
+              <Button
+                variant="primary"
+                size="medium"
+                icon={busy ? <Loader2 className="spin" size={16} /> : <FolderSearch size={16} />}
+                onClick={onScanLibraries}
+                disabled={busy}
+              >
+                {busy ? 'Scanning...' : 'Start Scan'}
+              </Button>
+            ) : null}
+          </div>
         </div>
-        
-        <div className="scan-hero-content">
-          <div className="scan-hero-text">
-            <span className="detail-kicker-modern">
-              <Zap size={16} />
-              Library scan
+
+        {/* Configuration Status Strip */}
+        <div className="scan-config-strip">
+          <div className="scan-config-item">
+            <span className="scan-config-label">Scan Mode</span>
+            <span className="scan-config-val">
+              {scanMode === 'movie' ? <Film size={14} /> : scanMode === 'show' ? <Tv size={14} /> : <FolderSearch size={14} />}
+              {formatScanMode(scanMode)}
             </span>
-            <h2>Refresh your local cinema vault.</h2>
-            <p>
-              Scan uses the folders configured in Settings, applies your finder strategy, and enriches new titles when metadata is configured.
-            </p>
-            <div className="hero-chips-modern">
-              <span className="chip-primary">
-                {scanMode === 'movie' ? <Film size={14} /> : scanMode === 'show' ? <Tv size={14} /> : <FolderSearch size={14} />}
-                {formatScanMode(scanMode)}
-              </span>
-              <span className="chip-secondary">{formatMatcherStrategy(matcherStrategy)}</span>
-              <span className="chip-secondary">{extractFileMetadata ? 'File metadata on' : 'File metadata off'}</span>
-            </div>
           </div>
 
-          <div className={`scan-action-card-modern ${busy ? 'scanning' : ''}`}>
-            <div className="scan-card-icon">
-              <FolderSearch size={38} />
-              {busy && <div className="scan-pulse" />}
-            </div>
-            <div className="scan-card-content">
-              <strong>{hasFolders ? `${libraryFolders.length} configured folder${libraryFolders.length === 1 ? '' : 's'}` : 'No folders configured'}</strong>
-              <p>{hasFolders ? 'Ready to scan the folders managed in Settings.' : 'Add folders in Settings before starting a scan.'}</p>
-            </div>
-            {hasFolders ? (
-              <button className="primary scan-button" disabled={busy} onClick={onScanLibraries}>
-                {busy ? (
-                  <>
-                    <Loader2 className="spin" size={18} />
-                    Scanning...
-                  </>
-                ) : (
-                  <>
-                    <FolderSearch size={18} />
-                    Start scan
-                  </>
-                )}
-              </button>
-            ) : (
-              <button className="primary scan-button" onClick={onOpenSettings}>
-                <Settings size={18} />
-                Open settings
-              </button>
-            )}
+          <div className="scan-config-sep" />
+
+          <div className="scan-config-item">
+            <span className="scan-config-label">Finder Strategy</span>
+            <span className="scan-config-val">
+              <Compass size={14} />
+              {formatMatcherStrategy(matcherStrategy)}
+            </span>
+          </div>
+
+          <div className="scan-config-sep" />
+
+          <div className="scan-config-item">
+            <span className="scan-config-label">Metadata</span>
+            <span className="scan-config-val">
+              <FileCheck2 size={14} />
+              {extractFileMetadata ? 'Enriched (On)' : 'Metadata (Off)'}
+            </span>
+          </div>
+
+          <div className="scan-config-sep" />
+
+          <div className="scan-config-item">
+            <span className="scan-config-label">Status</span>
+            <span className={`scan-status-pill ${busy ? 'scanning' : lastScan ? 'ready' : 'idle'}`}>
+              {busy ? (
+                <>
+                  <Loader2 className="spin" size={13} />
+                  Scanning Library...
+                </>
+              ) : lastScan ? (
+                <>
+                  <CheckCircle2 size={13} />
+                  Ready
+                </>
+              ) : (
+                'Idle'
+              )}
+            </span>
           </div>
         </div>
-      </div>
 
-      <div className="scan-grid-modern">
-        <section className="detail-card scan-folders-card">
-          <div className="section-title">
-            <h2>Configured Folders</h2>
-            <span className="count-badge">{libraryFolders.length}</span>
-          </div>
-          <div className="scan-folder-list-modern">
-            {hasFolders ? (
-              libraryFolders.map((folder, index) => (
-                <div key={folder} className="scan-folder-row-modern" style={{ animationDelay: `${index * 0.05}s` }}>
-                  <div className="folder-icon">
-                    <HardDrive size={18} />
+        {/* Content Section: Configured Folders + Last Scan Results */}
+        <div className="scan-main-grid">
+          {/* Configured Folders Panel */}
+          <div className="scan-panel-card">
+            <div className="scan-card-header">
+              <div className="scan-card-title">
+                <FolderCog size={18} />
+                <h2>Configured Folders</h2>
+              </div>
+              <span className="scan-count-pill">{libraryFolders.length}</span>
+            </div>
+
+            <div className="scan-folders-container">
+              {hasFolders ? (
+                libraryFolders.map((folder) => (
+                  <div key={folder} className="scan-folder-row-clean">
+                    <div className="folder-row-icon">
+                      <HardDrive size={16} />
+                    </div>
+                    <Tooltip content={folder} placement="top">
+                      <span className="folder-row-path">{folder}</span>
+                    </Tooltip>
+                    <span className="folder-active-pill">ACTIVE</span>
                   </div>
-                  <Tooltip content={folder}>
-                    <span>{folder}</span>
-                  </Tooltip>
+                ))
+              ) : (
+                <div className="scan-empty-state">
+                  <div className="scan-empty-icon">
+                    <FolderCog size={28} />
+                  </div>
+                  <h3>No Folders Configured</h3>
+                  <p>Add library folders in Settings to start discovering media files.</p>
+                  <Button variant="secondary" size="small" icon={<Settings size={14} />} onClick={onOpenSettings}>
+                    Configure Folders
+                  </Button>
                 </div>
-              ))
-            ) : (
-              <div className="detail-empty-modern">
-                <div className="empty-icon-wrapper">
-                  <FolderCog size={32} />
+              )}
+            </div>
+          </div>
+
+          {/* Last Scan Results Panel */}
+          <div className="scan-panel-card">
+            <div className="scan-card-header">
+              <div className="scan-card-title">
+                <CheckCircle2 size={18} />
+                <h2>Last Scan Results</h2>
+              </div>
+              <span className={`scan-result-status-pill ${lastScan ? 'done' : 'none'}`}>
+                {lastScan ? 'Completed' : 'No scan yet'}
+              </span>
+            </div>
+
+            <div className="scan-results-container">
+              {lastScan ? (
+                <div className="scan-metrics-grid">
+                  <div className="scan-metric-card">
+                    <div className="metric-header">
+                      <FolderSearch size={18} />
+                      <span className="metric-label">Scanned Files</span>
+                    </div>
+                    <strong className="metric-value">{lastScan.scannedFiles}</strong>
+                  </div>
+
+                  <div className="scan-metric-card">
+                    <div className="metric-header metric-emerald">
+                      <CheckCircle2 size={18} />
+                      <span className="metric-label">Imported</span>
+                    </div>
+                    <strong className="metric-value">{lastScan.importedFiles}</strong>
+                  </div>
+
+                  <div className="scan-metric-card">
+                    <div className="metric-header metric-sky">
+                      <Film size={18} />
+                      <span className="metric-label">Movies</span>
+                    </div>
+                    <strong className="metric-value">{lastScan.movieMatches}</strong>
+                  </div>
+
+                  <div className="scan-metric-card">
+                    <div className="metric-header metric-indigo">
+                      <Tv size={18} />
+                      <span className="metric-label">TV Series</span>
+                    </div>
+                    <strong className="metric-value">{lastScan.showMatches}</strong>
+                  </div>
+
+                  <div className={`scan-metric-card ${lastScan.unmatchedFiles > 0 ? 'metric-warning' : ''}`}>
+                    <div className="metric-header">
+                      {lastScan.unmatchedFiles > 0 ? <AlertTriangle size={18} /> : <HardDrive size={18} />}
+                      <span className="metric-label">Unmatched</span>
+                    </div>
+                    <strong className="metric-value">{lastScan.unmatchedFiles}</strong>
+                  </div>
                 </div>
-                <span>No folders configured yet</span>
-                <p>Add folders in Settings to start scanning your media library.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="detail-card scan-result-card-modern">
-          <div className="section-title">
-            <h2>Last Scan</h2>
-            <span className={`scan-status ${lastScan ? 'completed' : 'pending'}`}>
-              {lastScan ? 'Movies' : 'No scan yet'}
-            </span>
-          </div>
-          {lastScan ? (
-            <div className="scan-result-grid-modern">
-              <ScanMetricModern label="Scanned files" value={lastScan.scannedFiles} icon={<FolderSearch size={20} />} />
-              <ScanMetricModern label="Imported files" value={lastScan.importedFiles} icon={<CheckCircle2 size={20} />} />
-              <ScanMetricModern label="Movie matches" value={lastScan.movieMatches} icon={<Film size={20} />} />
-              <ScanMetricModern label="Show matches" value={lastScan.showMatches} icon={<Tv size={20} />} />
-              <ScanMetricModern label="Unmatched" value={lastScan.unmatchedFiles} icon={<HardDrive size={20} />} warning={lastScan.unmatchedFiles > 0} />
+              ) : (
+                <div className="scan-empty-state">
+                  <div className="scan-empty-icon">
+                    <FolderSearch size={28} />
+                  </div>
+                  <h3>No Scan Results Yet</h3>
+                  <p>Click "Start Scan" above to scan your configured directories.</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="detail-empty-modern">
-              <div className="empty-icon-wrapper">
-                <CheckCircle2 size={32} />
-              </div>
-              <span>No scan results yet</span>
-              <p>Run a scan to see import and match results here.</p>
-            </div>
-          )}
-        </section>
-      </div>
-    </section>
-  );
-}
-
-function ScanMetricModern({ label, value, icon, warning }: { label: string; value: number; icon: React.ReactNode; warning?: boolean }) {
-  return (
-    <div className={`scan-metric-modern ${warning ? 'warning' : ''}`}>
-      <div className="metric-icon">{icon}</div>
-      <div className="metric-content">
-        <strong>{value}</strong>
-        <span>{label}</span>
-      </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
-}
-
-function ScanMetric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="scan-metric">
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
+});
 
 function formatScanMode(scanMode: LibraryScanMode): string {
   if (scanMode === 'movie') {
