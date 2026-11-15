@@ -57,15 +57,16 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: saturate(0.95) contrast(1.05);
+  image-rendering: high-quality;
+  filter: url(#banner-sharpen) saturate(1.04) contrast(1.06);
   pointer-events: none;
-  opacity: 0.42;
+  opacity: 0.44;
   transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: opacity;
 }
 
 .hero-backdrop-fixed img.fading-in {
-  opacity: 0.42;
+  opacity: 0.44;
   animation: heroBackdropFadeIn 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -75,7 +76,7 @@
 }
 
 .hero-backdrop-fixed img.active {
-  opacity: 0.42;
+  opacity: 0.44;
 }
 
 @keyframes heroBackdropFadeIn {
@@ -83,7 +84,7 @@
     opacity: 0;
   }
   to {
-    opacity: 0.42;
+    opacity: 0.44;
   }
 }
 
@@ -123,7 +124,7 @@
 
 .hero-copy {
   position: absolute;
-  top: 80px;
+  top: 116px;
   left: 40px;
   z-index: 2;
   display: block;

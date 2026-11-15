@@ -881,7 +881,7 @@ export class MetadataProviderManager {
   }
 
   private async getImageBaseUrl(apiKey: string, kind: 'poster' | 'backdrop' | 'profile'): Promise<string> {
-    const fallbackSize = kind === 'backdrop' ? 'w780' : kind === 'profile' ? 'w185' : 'w342';
+    const fallbackSize = kind === 'backdrop' ? 'w1280' : kind === 'profile' ? 'w185' : 'w342';
     try {
       const auth = getAuth(apiKey);
       const params = new URLSearchParams(auth.params);
