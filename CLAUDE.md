@@ -28,7 +28,7 @@ Packaging (Windows dev machine): `pnpm package:win:dir` (unpacked, fast iteratio
 
 The `prepare:libmpv` / `build:native` steps run automatically inside `build`/`package` scripts; `build:ci` / `package:*:ci` variants skip them (CI restores those artifacts separately).
 
-Releases: `pnpm version:patch|minor|major` bumps both package.json files and CHANGELOG.md. Pushing a `v*` tag triggers `.github/workflows/release.yml` (all platforms → GitHub release). `pnpm release:github` / `pnpm release:r2` update `website/public/releases.json`. See `scripts/README.md`.
+Releases: `pnpm version:patch|minor|major` bumps both package.json files and CHANGELOG.md. Pushing a `v*` tag triggers `.github/workflows/release.yml` (all platforms → GitHub release). `pnpm release:github` / `pnpm release:r2` update `website/public/releases.json`. See `RELEASE.md` and `scripts/README.md`.
 
 ## Desktop app architecture
 

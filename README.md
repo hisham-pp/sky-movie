@@ -46,3 +46,8 @@ pnpm dev
 pnpm typecheck
 pnpm build
 ```
+
+## Releasing
+
+For instructions on releasing a new version (bumping versions, updating the changelog, and triggering automated CI builds), see the [Release Guide](RELEASE.md).
+
