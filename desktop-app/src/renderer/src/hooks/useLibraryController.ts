@@ -227,76 +227,96 @@ export function useLibraryController() {
     setPlayer(null);
   }
 
-  async function selectMovie(movie: Movie, playFileId?: number, autoPlay = true): Promise<boolean> {
+  async function selectMovieById(id: number, playFileId?: number, autoPlay = false): Promise<boolean> {
     if (!queueNavigationRef.current) playlistQueueRef.current = null;
-    const details = await queries.getMovieById(movie.id);
-    const selected = details.item ?? movie;
-    setSelectedMovie(selected);
-    setSelectedShow(null);
-    setSelectedEpisodes([]);
-    setSelectedTitle(selected.title);
-    setSelectedFiles(details.files);
-    setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
-    setMetadataResults([]);
+    try {
+      const details = await queries.getMovieById(id);
+      if (!details.item) return false;
+      const selected = details.item;
+      setSelectedMovie(selected);
+      setSelectedShow(null);
+      setSelectedEpisodes([]);
+      setSelectedTitle(selected.title);
+      setSelectedFiles(details.files);
+      setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
+      setMetadataResults([]);
 
-    // Clear player when selecting a different movie
-    setPlayer(null);
+      // Clear player when selecting a different movie
+      setPlayer(null);
 
-    // Auto-play only for explicit playback actions. Opening a detail view should
-    // preserve the selected item without immediately starting the movie.
-    if (autoPlay && details.files.length > 0) {
-      const targetFile =
-        (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
-        details.files[0];
-      const result = await queries.playMedia(targetFile.id);
-      setPlayer(result);
-      setStatus(`Playing ${result.title}`);
+      // Auto-play only for explicit playback actions. Opening a detail view should
+      // preserve the selected item without immediately starting the movie.
+      if (autoPlay && details.files.length > 0) {
+        const targetFile =
+          (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
+          details.files[0];
+        const result = await queries.playMedia(targetFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      }
       return true;
+    } catch (error) {
+      console.error(`Failed to select movie by id ${id}:`, error);
+      return false;
     }
-    return false;
+  }
+
+  async function selectMovie(movie: Movie, playFileId?: number, autoPlay = true): Promise<boolean> {
+    return selectMovieById(movie.id, playFileId, autoPlay);
   }
 
   async function viewMovieDetails(movie: Movie) {
-    await selectMovie(movie, undefined, false);
+    await selectMovieById(movie.id, undefined, false);
+  }
+
+  async function selectShowById(id: number, playFileId?: number, autoPlay = false): Promise<boolean> {
+    if (!queueNavigationRef.current) playlistQueueRef.current = null;
+    try {
+      const details = await queries.getShowById(id);
+      if (!details.item) return false;
+      const selected = details.item;
+      setSelectedShow(selected);
+      setSelectedMovie(null);
+      setSelectedEpisodes(details.episodes ?? []);
+      setSelectedTitle(selected.title);
+      setSelectedFiles(details.files);
+      setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
+      setMetadataResults([]);
+
+      // Clear player when selecting a different show
+      setPlayer(null);
+
+      // Auto-play only for explicit playback actions. Opening a detail view should
+      // not start a show until the user chooses to play it.
+      if (autoPlay && details.files.length > 0) {
+        const requestedFile =
+          playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
+        const resumeFile =
+          requestedFile ?? (await findSeriesResumeFile(details.episodes ?? [], details.files));
+        const firstEpisodeFile = resumeFile ?? details.files.find((file) => {
+          const fileName = file.fileName.toLowerCase();
+          return /s0*1e0*1|1x0*1/i.test(fileName);
+        }) ?? details.files[0];
+
+        const result = await queries.playMedia(firstEpisodeFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      }
+      return true;
+    } catch (error) {
+      console.error(`Failed to select show by id ${id}:`, error);
+      return false;
+    }
   }
 
   async function selectShow(show: TvShow, playFileId?: number, autoPlay = true): Promise<boolean> {
-    if (!queueNavigationRef.current) playlistQueueRef.current = null;
-    const details = await queries.getShowById(show.id);
-    const selected = details.item ?? show;
-    setSelectedShow(selected);
-    setSelectedMovie(null);
-    setSelectedEpisodes(details.episodes ?? []);
-    setSelectedTitle(selected.title);
-    setSelectedFiles(details.files);
-    setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
-    setMetadataResults([]);
-
-    // Clear player when selecting a different show
-    setPlayer(null);
-
-    // Auto-play only for explicit playback actions. Opening a detail view should
-    // not start a show until the user chooses to play it.
-    if (autoPlay && details.files.length > 0) {
-      const requestedFile =
-        playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
-      const resumeFile =
-        requestedFile ?? (await findSeriesResumeFile(details.episodes ?? [], details.files));
-      const firstEpisodeFile = resumeFile ?? details.files.find((file) => {
-        const fileName = file.fileName.toLowerCase();
-        return /s0*1e0*1|1x0*1/i.test(fileName);
-      }) ?? details.files[0];
-
-      const result = await queries.playMedia(firstEpisodeFile.id);
-      setPlayer(result);
-      setStatus(`Playing ${result.title}`);
-      return true;
-    }
-    return false;
+    return selectShowById(show.id, playFileId, autoPlay);
   }
 
   async function viewShowDetails(show: TvShow) {
-    await selectShow(show, undefined, false);
+    await selectShowById(show.id, undefined, false);
   }
 
   async function play(file: MediaFile) {
@@ -812,14 +832,35 @@ export function useLibraryController() {
     }
   }
 
-  async function selectPlaylist(playlist: Playlist): Promise<void> {
+  async function selectPlaylist(playlist: Playlist | null): Promise<void> {
     setSelectedPlaylist(playlist);
+    if (!playlist) {
+      setPlaylistItems([]);
+      return;
+    }
     try {
       const items = await queries.getPlaylistById(playlist.id);
       setPlaylistItems(items);
       setSelectedTitle(playlist.name);
     } catch (error) {
       setStatus(`Failed to load playlist: ${formatError(error)}`);
+    }
+  }
+
+  async function selectPlaylistById(id: number): Promise<boolean> {
+    try {
+      let target = playlists.find((p) => p.id === id);
+      if (!target) {
+        const nextPlaylists = await queries.getPlaylists();
+        setPlaylists(nextPlaylists);
+        target = nextPlaylists.find((p) => p.id === id);
+      }
+      if (!target) return false;
+      await selectPlaylist(target);
+      return true;
+    } catch (error) {
+      console.error(`Failed to select playlist by id ${id}:`, error);
+      return false;
     }
   }
 
@@ -999,8 +1040,11 @@ export function useLibraryController() {
     scanLibrary,
     scanLibraries,
     selectMovie,
+    selectMovieById,
     selectShow,
+    selectShowById,
     selectPlaylist,
+    selectPlaylistById,
     viewMovieDetails,
     viewShowDetails,
     backToLibrary,

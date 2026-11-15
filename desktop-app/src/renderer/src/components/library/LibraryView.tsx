@@ -109,99 +109,122 @@ export function LibraryView({
 
   const playingFile = player ? selectedFiles.find((file) => file.id === player.mediaFileId) : null;
 
-  if (showDetailView && view === 'movies' && selectedMovie) {
-    return (
-      <MovieDetailPage
-        movie={selectedMovie}
-        files={selectedFiles}
-        metadataQuery={metadataQuery}
-        metadataResults={metadataResults}
-        busy={busy}
-        player={player}
-        playingFile={playingFile}
-        playlists={playlists}
-        onBack={onBackToLibrary}
-        onMetadataQueryChange={onMetadataQueryChange}
-        onSearchMetadata={onSearchMetadata}
-        onApplyMetadata={onApplyMetadata}
-        onPlay={onPlay}
-        onOpenExternal={onOpenExternal}
-        onDeleteFile={onDeleteFile}
-        onShowInFolder={onShowInFolder}
-        onAddToPlaylist={onAddToPlaylist}
-        onToggleFavorite={onToggleFavorite}
-      />
-    );
-  }
-
-  if (showDetailView && view === 'shows' && selectedShow) {
-    return (
-      <SeriesDetailPage
-        show={selectedShow}
-        episodes={selectedEpisodes}
-        files={selectedFiles}
-        metadataQuery={metadataQuery}
-        metadataResults={metadataResults}
-        busy={busy}
-        player={player}
-        playingFile={playingFile}
-        playlists={playlists}
-        onBack={onBackToLibrary}
-        onMetadataQueryChange={onMetadataQueryChange}
-        onSearchMetadata={onSearchMetadata}
-        onApplyMetadata={onApplyMetadata}
-        onPlay={onPlay}
-        onOpenExternal={onOpenExternal}
-        onDeleteFile={onDeleteFile}
-        onShowInFolder={onShowInFolder}
-        onAddToPlaylist={onAddToPlaylist}
-        onToggleFavorite={onToggleFavorite}
-      />
-    );
-  }
-
-  if (showDetailView && view === 'playlists' && selectedPlaylist) {
-    return (
-      <>
-        <PlaylistDetailPage
-          playlist={selectedPlaylist}
-          items={playlistItems}
-          busy={busy}
-          movies={movies}
-          shows={shows}
-          onBack={() => {
-            onSelectPlaylist(null);
-            onBackToLibrary();
-          }}
-          onEdit={() => {
-            setEditingPlaylist(selectedPlaylist);
-            setShowEditModal(true);
-          }}
-          onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
-          onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
-          onReorderItem={onReorderPlaylistItem}
-          onAddToPlaylist={onAddToPlaylist}
-          onViewMovieDetails={onViewMovieDetails}
-          onViewShowDetails={onViewShowDetails}
-          onPlayAll={onPlayAllPlaylist}
-        />
-        {showEditModal && editingPlaylist && (
-          <EditPlaylistModal
-            playlist={editingPlaylist}
-            onClose={() => {
-              setShowEditModal(false);
-              setEditingPlaylist(null);
-            }}
-            onUpdate={(id, name, description) => {
-              onUpdatePlaylist(id, name, description);
-              setShowEditModal(false);
-              setEditingPlaylist(null);
-            }}
+  if (showDetailView) {
+    if (view === 'movies') {
+      if (selectedMovie) {
+        return (
+          <MovieDetailPage
+            movie={selectedMovie}
+            files={selectedFiles}
+            metadataQuery={metadataQuery}
+            metadataResults={metadataResults}
             busy={busy}
+            player={player}
+            playingFile={playingFile}
+            playlists={playlists}
+            onBack={onBackToLibrary}
+            onMetadataQueryChange={onMetadataQueryChange}
+            onSearchMetadata={onSearchMetadata}
+            onApplyMetadata={onApplyMetadata}
+            onPlay={onPlay}
+            onOpenExternal={onOpenExternal}
+            onDeleteFile={onDeleteFile}
+            onShowInFolder={onShowInFolder}
+            onAddToPlaylist={onAddToPlaylist}
+            onToggleFavorite={onToggleFavorite}
           />
-        )}
-      </>
-    );
+        );
+      }
+      return (
+        <div className="flex h-full w-full items-center justify-center p-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+        </div>
+      );
+    }
+
+    if (view === 'shows') {
+      if (selectedShow) {
+        return (
+          <SeriesDetailPage
+            show={selectedShow}
+            episodes={selectedEpisodes}
+            files={selectedFiles}
+            metadataQuery={metadataQuery}
+            metadataResults={metadataResults}
+            busy={busy}
+            player={player}
+            playingFile={playingFile}
+            playlists={playlists}
+            onBack={onBackToLibrary}
+            onMetadataQueryChange={onMetadataQueryChange}
+            onSearchMetadata={onSearchMetadata}
+            onApplyMetadata={onApplyMetadata}
+            onPlay={onPlay}
+            onOpenExternal={onOpenExternal}
+            onDeleteFile={onDeleteFile}
+            onShowInFolder={onShowInFolder}
+            onAddToPlaylist={onAddToPlaylist}
+            onToggleFavorite={onToggleFavorite}
+          />
+        );
+      }
+      return (
+        <div className="flex h-full w-full items-center justify-center p-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+        </div>
+      );
+    }
+
+    if (view === 'playlists') {
+      if (selectedPlaylist) {
+        return (
+          <>
+            <PlaylistDetailPage
+              playlist={selectedPlaylist}
+              items={playlistItems}
+              busy={busy}
+              movies={movies}
+              shows={shows}
+              onBack={() => {
+                onSelectPlaylist(null);
+                onBackToLibrary();
+              }}
+              onEdit={() => {
+                setEditingPlaylist(selectedPlaylist);
+                setShowEditModal(true);
+              }}
+              onDelete={() => onDeletePlaylist(selectedPlaylist.id)}
+              onRemoveItem={(itemId: number) => onRemoveFromPlaylist(selectedPlaylist.id, itemId)}
+              onReorderItem={onReorderPlaylistItem}
+              onAddToPlaylist={onAddToPlaylist}
+              onViewMovieDetails={onViewMovieDetails}
+              onViewShowDetails={onViewShowDetails}
+              onPlayAll={onPlayAllPlaylist}
+            />
+            {showEditModal && editingPlaylist && (
+              <EditPlaylistModal
+                playlist={editingPlaylist}
+                onClose={() => {
+                  setShowEditModal(false);
+                  setEditingPlaylist(null);
+                }}
+                onUpdate={(id, name, description) => {
+                  onUpdatePlaylist(id, name, description);
+                  setShowEditModal(false);
+                  setEditingPlaylist(null);
+                }}
+                busy={busy}
+              />
+            )}
+          </>
+        );
+      }
+      return (
+        <div className="flex h-full w-full items-center justify-center p-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+        </div>
+      );
+    }
   }
 
   return (
