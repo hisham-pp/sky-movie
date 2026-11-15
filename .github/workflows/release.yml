@@ -13,16 +13,16 @@ on:
       build_target:
         description: 'Runtime to build'
         required: true
-        default: windows-x64
+        default: all
         type: choice
         options:
+          - all
           - windows-x64
           - windows-arm64
           - macos-x64
           - macos-arm64
           - linux-x64
           - linux-arm64
-          - all
 
 jobs:
   select-builds:
@@ -35,9 +35,9 @@ jobs:
         id: matrix
         shell: bash
         run: |
-          target="${{ github.event.inputs.build_target || 'windows-x64' }}"
+          target="${{ github.event.inputs.build_target || 'all' }}"
           if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            target="windows-x64"
+            target="all"
           fi
 
           windows_x64='{"os":"windows-latest","platform":"windows","arch":"x64","packageCommand":"pnpm --filter @sky-movie/desktop-app run package:win:builder:ci --x64"}'
@@ -162,6 +162,7 @@ jobs:
           key: libmpv-${{ runner.arch }}-${{ hashFiles('scripts/download-libmpv.mjs') }}
 
       - name: Prepare libmpv
+        if: runner.os == 'Windows'
         run: pnpm --filter @sky-movie/desktop-app run prepare:libmpv
 
       - name: Build mpv native addon
@@ -176,6 +177,7 @@ jobs:
         run: ${{ matrix.packageCommand }}
         env:
           VITE_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       # - name: Sign DEB packages
       #   if: runner.os == 'Linux'

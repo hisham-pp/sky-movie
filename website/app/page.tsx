@@ -59,7 +59,7 @@ const faqItems = [
   {
     question: "How do I install Sky Movie on Windows, macOS, and Linux?",
     answer:
-      "On Windows, download and run the 64-bit installer (.exe). On macOS, download the .dmg package (native builds available for Apple Silicon M1/M2/M3 and Intel). On Linux, you can use the standalone .AppImage (make executable with chmod +x and run) or install the .deb package on Debian/Ubuntu systems.",
+      "On Windows, download and run the installer (.exe) — if Windows SmartScreen appears, click 'More info' then 'Run anyway'. On macOS, download the .dmg (native Apple Silicon or Intel), drag Sky Movie to Applications, and if Gatekeeper shows 'Sky Movie is damaged and can't be opened' (Apple's quarantine check for unsigned open-source apps), run 'xattr -cr /Applications/Sky\\ Movie.app' in Terminal or right-click > Open. On Linux, download the standalone .AppImage (run 'chmod +x' and execute) or install the .deb package.",
   },
   {
     question: "How does watch history and playback progress tracking work?",
@@ -796,9 +796,15 @@ export default function Home() {
                 Download the latest stable release for Windows, macOS, or Linux. Free, open source, and ready to scan your library.
               </p>
               {isBetaVersion(latestRelease?.version || "") && (
-                <div className="mt-6 max-w-2xl mx-auto p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-                  <p className="text-orange-400 text-sm">
-                    <strong>⚠️ Software Notice:</strong> On Windows, you may see a SmartScreen prompt because early releases are not code-signed. Click &quot;More info&quot; &rarr; &quot;Run anyway&quot;. The software is 100% open source under the MIT license.
+                <div className="mt-6 max-w-2xl mx-auto p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl space-y-2 text-left">
+                  <p className="text-orange-400 text-sm font-semibold">
+                    ⚠️ Open Source Security Notice
+                  </p>
+                  <p className="text-secondary text-xs leading-relaxed">
+                    <strong className="text-white">Windows:</strong> SmartScreen may show an &quot;Unknown Publisher&quot; warning. Click &quot;More info&quot; &rarr; &quot;Run anyway&quot;.
+                  </p>
+                  <p className="text-secondary text-xs leading-relaxed">
+                    <strong className="text-white">macOS:</strong> If Gatekeeper reports <em>&quot;Sky Movie is damaged and can&apos;t be opened&quot;</em> (Apple&apos;s quarantine message for unnotarized binaries), run this once in Terminal: <code className="bg-black/40 px-1.5 py-0.5 rounded text-primary font-mono text-[11px]">xattr -cr /Applications/Sky\ Movie.app</code>, or right-click the app &rarr; Open.
                   </p>
                 </div>
               )}

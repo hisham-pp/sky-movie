@@ -178,6 +178,9 @@ The workflow builds and packages standalone installers across all supported plat
 | **Linux** | `x64` | `.AppImage`, `.deb`, `.tar.gz` |
 | **Linux** | `arm64` | `.AppImage`, `.deb`, `.tar.gz` |
 
+> [!NOTE]
+> **macOS Gatekeeper:** Because releases are open-source and not notarized with an Apple Developer Program subscription, macOS Gatekeeper tags downloaded DMGs with `com.apple.quarantine` and may show *"Sky Movie is damaged and can't be opened."* Users can strip quarantine using `xattr -cr /Applications/Sky\ Movie.app` or right-click → Open. Detailed guidance is documented in [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md).
+
 ### GitHub Release Creation
 
 Once all platform builds succeed, the `release` job:

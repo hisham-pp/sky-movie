@@ -1,13 +1,14 @@
 /**
  * download-ytdlp.mjs
  *
- * Downloads the latest yt-dlp Windows binary and extracts it to:
- *   desktop-app/resources/bin/yt-dlp.exe
+ * Downloads the latest yt-dlp binary for the current platform and extracts it to:
+ *   desktop-app/resources/bin/yt-dlp.exe (Windows)
+ *   desktop-app/resources/bin/yt-dlp     (macOS / Linux)
  *
  * Run: node scripts/download-ytdlp.mjs
  */
 
-import { createWriteStream, existsSync, mkdirSync, statSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, statSync, chmodSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +21,10 @@ const __dirname  = dirname(fileURLToPath(import.meta.url));
 const ROOT       = join(__dirname, '..');
 const RES_DIR    = join(ROOT, 'desktop-app', 'resources', 'bin');
 const TMP_DIR    = join(ROOT, 'tmp', 'ytdlp-download');
-const DEST       = join(RES_DIR, 'yt-dlp.exe');
+
+const isWin = process.platform === 'win32';
+const BINARY_NAME = isWin ? 'yt-dlp.exe' : 'yt-dlp';
+const DEST       = join(RES_DIR, BINARY_NAME);
 
 function ensureDir(p) {
   if (!existsSync(p)) mkdirSync(p, { recursive: true });
@@ -65,9 +69,15 @@ async function tryGitHub() {
       'https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest'
     );
     const assets = release.assets ?? [];
-    const asset = assets.find(a => a.name === 'yt-dlp.exe');
+    const targetAssetNames = isWin
+      ? ['yt-dlp.exe']
+      : process.platform === 'darwin'
+        ? ['yt-dlp_macos', 'yt-dlp']
+        : ['yt-dlp_linux', 'yt-dlp'];
+
+    const asset = assets.find(a => targetAssetNames.includes(a.name));
     if (!asset) {
-      console.log('  No yt-dlp.exe asset found in latest release.');
+      console.log(`  No matching asset (${targetAssetNames.join(', ')}) found in latest release.`);
       return null;
     }
     console.log(`  Found: ${asset.name}`);
@@ -79,7 +89,7 @@ async function tryGitHub() {
 }
 
 if (existsSync(DEST)) {
-  console.log('yt-dlp.exe already present — skipping download.');
+  console.log(`${BINARY_NAME} already present — skipping download.`);
   process.exit(0);
 }
 
@@ -106,9 +116,13 @@ try {
   console.log(`\nDownloading ${source.filename}…`);
   try {
     await downloadDirect(source.url, archivePath);
-  } catch {
-    console.log('  Direct fetch failed, using PowerShell…');
-    await downloadPS(source.url, archivePath);
+  } catch (directErr) {
+    if (isWin) {
+      console.log('  Direct fetch failed, using PowerShell…');
+      await downloadPS(source.url, archivePath);
+    } else {
+      throw directErr;
+    }
   }
   console.log(`  ${(statSync(archivePath).size / 1024 / 1024).toFixed(1)} MB`);
 
@@ -116,7 +130,15 @@ try {
   const fs = await import('node:fs/promises');
   await fs.rename(archivePath, DEST);
 
-  console.log('\nyt-dlp.exe installed successfully:');
+  if (!isWin) {
+    try {
+      chmodSync(DEST, 0o755);
+    } catch (e) {
+      console.warn(`Could not set executable permission: ${e.message}`);
+    }
+  }
+
+  console.log(`\n${BINARY_NAME} installed successfully:`);
   console.log(`  ${DEST}  ← ships with the app`);
 } finally {
   if (cleanupOnExit) {

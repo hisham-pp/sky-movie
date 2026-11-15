@@ -13,10 +13,11 @@ const log = logger('YouTubeService');
 
 export class YouTubeService {
   private getYtDlpPath(): string {
+    const binaryName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
     if (app.isPackaged) {
-      return join(process.resourcesPath, 'bin', 'yt-dlp.exe');
+      return join(process.resourcesPath, 'bin', binaryName);
     }
-    return join(app.getAppPath(), 'resources', 'bin', 'yt-dlp.exe');
+    return join(app.getAppPath(), 'resources', 'bin', binaryName);
   }
 
   async downloadVideo(url: string, folderPath: string, wc: WebContents): Promise<void> {
