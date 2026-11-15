@@ -8,6 +8,7 @@ import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
+import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 export const BrowseMoviesPage = memo(function BrowseMoviesPage({
   movies,
@@ -64,7 +65,10 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
     return list;
   }, [movies, search, selectedYear, minRating, favoritesOnly, sortBy]);
 
-  const moviesWithBackdrop = useMemo(() => movies.filter((m) => m.backdropPath), [movies]);
+  const moviesWithBackdrop = useMemo(
+    () => movies.filter((m) => m.backdropPath || m.posterPath),
+    [movies]
+  );
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
@@ -104,10 +108,10 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
     <div className="browse-grid">
       <section className="library-list" ref={scrollRef}>
         <BannerHero
-          backdropPath={bannerMovie?.backdropPath || null}
+          backdropPath={bannerMovie?.backdropPath || bannerMovie?.posterPath || null}
           posterContent={
             bannerMovie?.posterPath ? (
-              <img src={bannerMovie.posterPath} alt={bannerMovie.title} />
+              <img src={toDisplayImageUrl(bannerMovie.posterPath) || ''} alt={bannerMovie.title} />
             ) : (
               <Clapperboard size={34} />
             )

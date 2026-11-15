@@ -1,4 +1,5 @@
 import type { SqliteDatabase } from './client';
+import { fileURLToPath } from 'node:url';
 
 export function ensureSqliteSchema(db: SqliteDatabase): void {
   db.exec(`
@@ -342,5 +343,50 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     }
   } catch (error) {
     console.warn('Migration for default theme upgrade skipped or failed:', error);
+  }
+
+  // Migration: Convert legacy file:// URLs in movies, tv_shows, and watch_progress to sky-image://
+  try {
+    const convertUrl = (url: unknown): string | null => {
+      if (url == null) return null;
+      const s = String(url).trim();
+      if (!s) return null;
+      if (s.startsWith('sky-image://')) return s;
+      if (s.startsWith('file://')) {
+        try {
+          const absolutePath = fileURLToPath(s);
+          return `sky-image://local/${encodeURIComponent(absolutePath)}`;
+        } catch {
+          return s;
+        }
+      }
+      return s;
+    };
+
+    const moviesToUpdate = db
+      .prepare("SELECT id, poster_path, backdrop_path FROM movies WHERE poster_path LIKE 'file://%' OR backdrop_path LIKE 'file://%'")
+      .all() as { id: number; poster_path: string | null; backdrop_path: string | null }[];
+    const updateMovieStmt = db.prepare('UPDATE movies SET poster_path = ?, backdrop_path = ? WHERE id = ?');
+    for (const m of moviesToUpdate) {
+      updateMovieStmt.run(convertUrl(m.poster_path), convertUrl(m.backdrop_path), m.id);
+    }
+
+    const showsToUpdate = db
+      .prepare("SELECT id, poster_path, backdrop_path FROM tv_shows WHERE poster_path LIKE 'file://%' OR backdrop_path LIKE 'file://%'")
+      .all() as { id: number; poster_path: string | null; backdrop_path: string | null }[];
+    const updateShowStmt = db.prepare('UPDATE tv_shows SET poster_path = ?, backdrop_path = ? WHERE id = ?');
+    for (const s of showsToUpdate) {
+      updateShowStmt.run(convertUrl(s.poster_path), convertUrl(s.backdrop_path), s.id);
+    }
+
+    const wpToUpdate = db
+      .prepare("SELECT media_file_id, poster_path FROM watch_progress WHERE poster_path LIKE 'file://%'")
+      .all() as { media_file_id: number; poster_path: string | null }[];
+    const updateWpStmt = db.prepare('UPDATE watch_progress SET poster_path = ? WHERE media_file_id = ?');
+    for (const wp of wpToUpdate) {
+      updateWpStmt.run(convertUrl(wp.poster_path), wp.media_file_id);
+    }
+  } catch (error) {
+    console.warn('Migration for legacy file:// image URLs skipped or failed:', error);
   }
 }

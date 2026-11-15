@@ -48,7 +48,9 @@ protocol.registerSchemesAsPrivileged([
     privileges: {
       standard: true,
       secure: true,
-      supportFetchAPI: true
+      supportFetchAPI: true,
+      corsEnabled: true,
+      bypassCSP: true
     }
   }
 ]);

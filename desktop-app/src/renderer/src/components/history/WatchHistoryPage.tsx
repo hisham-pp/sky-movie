@@ -5,6 +5,7 @@ import { EmptyLibraryState } from '../library/EmptyLibraryState';
 import { SectionTitle } from '../library/SectionTitle';
 import { Button, Tooltip } from '../common';
 import { formatDuration, formatPosition, formatRelativeDate } from '../../utils/dateUtils';
+import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 interface Props {
   items: WatchHistoryItem[];
@@ -42,7 +43,8 @@ const HistoryGridItem = memo(function HistoryGridItem({
     [item.positionSeconds, item.durationSeconds],
   );
 
-  const hasImage = Boolean(item.posterPath) && !imgFailed;
+  const posterSrc = toDisplayImageUrl(item.posterPath);
+  const hasImage = Boolean(posterSrc) && !imgFailed;
 
   return (
     <div
@@ -52,7 +54,7 @@ const HistoryGridItem = memo(function HistoryGridItem({
       <div className="poster wh-grid-poster">
         {hasImage ? (
           <img
-            src={item.posterPath!}
+            src={posterSrc!}
             alt=""
             loading="lazy"
             decoding="async"
@@ -146,7 +148,8 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelet
     [item.mediaFileId, onDelete],
   );
 
-  const hasImage = Boolean(item.posterPath) && !imgFailed;
+  const posterSrc = toDisplayImageUrl(item.posterPath);
+  const hasImage = Boolean(posterSrc) && !imgFailed;
 
   return (
     <div
@@ -156,7 +159,7 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelet
       {hasImage ? (
         <img
           className="wh-poster"
-          src={item.posterPath!}
+          src={posterSrc!}
           alt=""
           loading="lazy"
           decoding="async"
