@@ -23,6 +23,10 @@ on:
           - macos-arm64
           - linux-x64
           - linux-arm64
+      from_run_id:
+        description: 'Existing workflow run ID to publish artifacts from (skips rebuild)'
+        required: false
+        type: string
 
 jobs:
   select-builds:
@@ -35,6 +39,12 @@ jobs:
         id: matrix
         shell: bash
         run: |
+          if [ -n "${{ github.event.inputs.from_run_id }}" ]; then
+            echo "Publishing existing artifacts from run ${{ github.event.inputs.from_run_id }} - skipping rebuild."
+            echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           target="${{ github.event.inputs.build_target || 'all' }}"
           if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
             target="all"
@@ -224,12 +234,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GH_PAT || github.token }}
           fetch-depth: 0
 
-      - name: Download all artifacts
+      - name: Download all artifacts (current run)
+        if: ${{ !inputs.from_run_id }}
         uses: actions/download-artifact@v4
         with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Download all artifacts (from existing run)
+        if: ${{ inputs.from_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.from_run_id }}
+          github-token: ${{ secrets.GH_PAT || github.token }}
           path: artifacts
           merge-multiple: true
 
@@ -274,7 +294,7 @@ jobs:
             artifacts/*.deb
             artifacts/*.tar.gz
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: List release artifacts
         run: |
@@ -294,4 +314,4 @@ jobs:
           git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
