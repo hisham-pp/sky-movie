@@ -1,5 +1,5 @@
 import type { DetailResult, MediaFile, Movie, TvShow } from '../../shared/ipc';
-import type { SqliteDatabase } from '../database/client';
+import type { SqliteDatabase, SqliteStatement } from '../database/client';
 import { mapEpisode, mapMediaFile, mapMovie, mapShow } from './rowMappers';
 import { pruneOrphans } from '../database/cleanup';
 import { unlink } from 'fs';
@@ -8,60 +8,72 @@ import { promisify } from 'util';
 const unlinkAsync = promisify(unlink);
 
 export class CatalogService {
-  constructor(private readonly db: SqliteDatabase) {}
+  private readonly getMoviesStmt: SqliteStatement;
+  private readonly getMovieByIdStmt: SqliteStatement;
+  private readonly getMovieFilesStmt: SqliteStatement;
+  private readonly getShowsStmt: SqliteStatement;
+  private readonly getShowByIdStmt: SqliteStatement;
+  private readonly getShowFilesStmt: SqliteStatement;
+  private readonly getShowEpisodesStmt: SqliteStatement;
+  private readonly getMediaFileStmt: SqliteStatement;
 
-  getMovies(query = ''): Movie[] {
-    const like = `%${query.trim()}%`;
-    const rows = this.db
-      .prepare(
-        `SELECT * FROM movies
-         WHERE ? = '%%' OR title LIKE ? OR COALESCE(original_title, '') LIKE ?
-         ORDER BY favorite DESC, COALESCE(release_year, 0) DESC, title ASC`
-      )
-      .all(like, like, like) as Record<string, unknown>[];
-
-    return rows.map(mapMovie);
-  }
-
-  getMovieById(id: number): DetailResult<Movie> {
-    const row = this.db.prepare(
+  constructor(private readonly db: SqliteDatabase) {
+    this.getMoviesStmt = this.db.prepare(
+      `SELECT * FROM movies
+       WHERE ? = '%%' OR title LIKE ? OR COALESCE(original_title, '') LIKE ?
+       ORDER BY favorite DESC, COALESCE(release_year, 0) DESC, title ASC`
+    );
+    this.getMovieByIdStmt = this.db.prepare(
       `SELECT m.*, GROUP_CONCAT(mf.id) AS _file_ids
        FROM movies m
        LEFT JOIN media_files mf ON mf.matched_movie_id = m.id
        WHERE m.id = ?
        GROUP BY m.id`
-    ).get(id) as Record<string, unknown> | undefined;
+    );
+    this.getMovieFilesStmt = this.db.prepare(
+      'SELECT * FROM media_files WHERE matched_movie_id = ? ORDER BY file_name ASC'
+    );
+    this.getShowsStmt = this.db.prepare(
+      `SELECT * FROM tv_shows
+       WHERE ? = '%%' OR title LIKE ? OR COALESCE(original_title, '') LIKE ?
+       ORDER BY favorite DESC, COALESCE(first_air_year, 0) DESC, title ASC`
+    );
+    this.getShowByIdStmt = this.db.prepare('SELECT * FROM tv_shows WHERE id = ?');
+    this.getShowFilesStmt = this.db.prepare(
+      'SELECT * FROM media_files WHERE matched_show_id = ? ORDER BY relative_path ASC'
+    );
+    this.getShowEpisodesStmt = this.db.prepare(
+      'SELECT * FROM episodes WHERE show_id = ? ORDER BY season_number ASC, episode_number ASC'
+    );
+    this.getMediaFileStmt = this.db.prepare('SELECT * FROM media_files WHERE id = ?');
+  }
+
+  getMovies(query = ''): Movie[] {
+    const like = `%${query.trim()}%`;
+    const rows = this.getMoviesStmt.all(like, like, like) as Record<string, unknown>[];
+    return rows.map(mapMovie);
+  }
+
+  getMovieById(id: number): DetailResult<Movie> {
+    const row = this.getMovieByIdStmt.get(id) as Record<string, unknown> | undefined;
 
     if (!row) return { item: null, files: [] };
 
-    const files = this.db
-      .prepare('SELECT * FROM media_files WHERE matched_movie_id = ? ORDER BY file_name ASC')
-      .all(id) as Record<string, unknown>[];
+    const files = this.getMovieFilesStmt.all(id) as Record<string, unknown>[];
 
     return { item: mapMovie(row), files: files.map(mapMediaFile) };
   }
 
   getShows(query = ''): TvShow[] {
     const like = `%${query.trim()}%`;
-    const rows = this.db
-      .prepare(
-        `SELECT * FROM tv_shows
-         WHERE ? = '%%' OR title LIKE ? OR COALESCE(original_title, '') LIKE ?
-         ORDER BY favorite DESC, COALESCE(first_air_year, 0) DESC, title ASC`
-      )
-      .all(like, like, like) as Record<string, unknown>[];
-
+    const rows = this.getShowsStmt.all(like, like, like) as Record<string, unknown>[];
     return rows.map(mapShow);
   }
 
   getShowById(id: number): DetailResult<TvShow> {
-    const row = this.db.prepare('SELECT * FROM tv_shows WHERE id = ?').get(id) as Record<string, unknown> | undefined;
-    const files = this.db
-      .prepare('SELECT * FROM media_files WHERE matched_show_id = ? ORDER BY relative_path ASC')
-      .all(id) as Record<string, unknown>[];
-    const episodes = this.db
-      .prepare('SELECT * FROM episodes WHERE show_id = ? ORDER BY season_number ASC, episode_number ASC')
-      .all(id) as Record<string, unknown>[];
+    const row = this.getShowByIdStmt.get(id) as Record<string, unknown> | undefined;
+    const files = this.getShowFilesStmt.all(id) as Record<string, unknown>[];
+    const episodes = this.getShowEpisodesStmt.all(id) as Record<string, unknown>[];
 
     return {
       item: row ? mapShow(row) : null,
@@ -71,7 +83,7 @@ export class CatalogService {
   }
 
   getMediaFile(id: number): MediaFile | null {
-    const row = this.db.prepare('SELECT * FROM media_files WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    const row = this.getMediaFileStmt.get(id) as Record<string, unknown> | undefined;
     return row ? mapMediaFile(row) : null;
   }
 

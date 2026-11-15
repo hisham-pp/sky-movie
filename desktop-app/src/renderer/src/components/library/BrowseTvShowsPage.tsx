@@ -51,17 +51,24 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   }, [shows]);
 
   const filteredShows = useMemo(() => {
-    let list = shows;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter((s) => s.title.toLowerCase().includes(q));
+    const q = search.trim().toLowerCase();
+    const hasSearch = q.length > 0;
+
+    const list = shows.filter((s) => {
+      if (hasSearch && !s.title.toLowerCase().includes(q)) return false;
+      if (selectedYear !== null && s.firstAirYear !== selectedYear) return false;
+      if (minRating !== null && (s.rating === null || s.rating < minRating)) return false;
+      if (favoritesOnly && !s.favorite) return false;
+      return true;
+    });
+
+    if (sortBy === 'title') {
+      list.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'year') {
+      list.sort((a, b) => (b.firstAirYear ?? 0) - (a.firstAirYear ?? 0));
+    } else if (sortBy === 'rating') {
+      list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
-    if (selectedYear !== null) list = list.filter((s) => s.firstAirYear === selectedYear);
-    if (minRating !== null) list = list.filter((s) => s.rating !== null && s.rating >= minRating);
-    if (favoritesOnly) list = list.filter((s) => s.favorite);
-    if (sortBy === 'title') list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-    else if (sortBy === 'year') list = [...list].sort((a, b) => (b.firstAirYear ?? 0) - (a.firstAirYear ?? 0));
-    else if (sortBy === 'rating') list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     return list;
   }, [shows, search, selectedYear, minRating, favoritesOnly, sortBy]);
 
@@ -167,9 +174,9 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
                 <ShowTile
                   key={show.id}
                   show={show}
-                  onClick={() => onSelectShow(show)}
-                  onViewDetails={() => onViewShowDetails(show)}
-                  onToggleFavorite={() => onToggleFavorite('show', show.id, !show.favorite)}
+                  onSelect={onSelectShow}
+                  onViewDetailsItem={onViewShowDetails}
+                  onToggleFavoriteItem={onToggleFavorite}
                   isSelected={selectedShow?.id === show.id}
                 />
               ))}

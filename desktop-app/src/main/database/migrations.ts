@@ -6,6 +6,9 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
     PRAGMA synchronous = NORMAL;
+    PRAGMA cache_size = -64000;
+    PRAGMA temp_store = MEMORY;
+    PRAGMA mmap_size = 268435456;
 
     CREATE TABLE IF NOT EXISTS library_folders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -210,7 +213,9 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
 
     CREATE INDEX IF NOT EXISTS movies_title_idx ON movies(title);
     CREATE INDEX IF NOT EXISTS movies_release_year_idx ON movies(release_year);
+    CREATE INDEX IF NOT EXISTS movies_fav_year_idx ON movies(favorite DESC, release_year DESC);
     CREATE INDEX IF NOT EXISTS tv_shows_title_idx ON tv_shows(title);
+    CREATE INDEX IF NOT EXISTS tv_shows_fav_year_idx ON tv_shows(favorite DESC, first_air_year DESC);
     CREATE INDEX IF NOT EXISTS media_files_movie_idx ON media_files(matched_movie_id);
     CREATE INDEX IF NOT EXISTS media_files_show_idx ON media_files(matched_show_id);
     CREATE INDEX IF NOT EXISTS media_files_episode_idx ON media_files(matched_episode_id);
@@ -218,6 +223,8 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
     CREATE INDEX IF NOT EXISTS collection_items_collection_idx ON collection_items(collection_id);
     CREATE INDEX IF NOT EXISTS collection_items_movie_idx ON collection_items(movie_id);
     CREATE INDEX IF NOT EXISTS collection_items_show_idx ON collection_items(show_id);
+    CREATE INDEX IF NOT EXISTS watch_progress_media_file_idx ON watch_progress(media_file_id);
+    CREATE INDEX IF NOT EXISTS watch_progress_updated_at_idx ON watch_progress(updated_at DESC);
 
     CREATE VIRTUAL TABLE IF NOT EXISTS library_search USING fts5(
       media_kind,

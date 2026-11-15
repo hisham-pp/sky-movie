@@ -5,6 +5,7 @@ import * as schema from './schema';
 import { ensureSqliteSchema } from './migrations';
 
 export type SqliteDatabase = ReturnType<typeof BetterSqlite3>;
+export type SqliteStatement = BetterSqlite3.Statement;
 
 export interface DatabaseContext {
   sqlite: SqliteDatabase;

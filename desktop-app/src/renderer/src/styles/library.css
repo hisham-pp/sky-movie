@@ -47,6 +47,8 @@
   z-index: 0 !important;
   pointer-events: none !important;
   overflow: hidden !important;
+  contain: strict;
+  transform: translateZ(0);
 }
 
 .hero-backdrop-fixed img {
@@ -62,7 +64,9 @@
   pointer-events: none;
   opacity: 0.44;
   transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity;
+  will-change: opacity, transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .hero-backdrop-fixed img.fading-in {

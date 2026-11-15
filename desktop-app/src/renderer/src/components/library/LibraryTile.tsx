@@ -27,19 +27,42 @@ export const MovieTile = memo(function MovieTile({
   onClick,
   onViewDetails,
   onToggleFavorite,
+  onSelect,
+  onViewDetailsItem,
+  onToggleFavoriteItem,
   isSelected
 }: {
   movie: Movie;
-  onClick(): void;
-  onViewDetails(): void;
-  onToggleFavorite(): void;
+  onClick?(): void;
+  onViewDetails?(): void;
+  onToggleFavorite?(): void;
+  onSelect?(movie: Movie): void;
+  onViewDetailsItem?(movie: Movie): void;
+  onToggleFavoriteItem?(mediaKind: 'movie', id: number, nextFavorite: boolean): void;
   isSelected?: boolean;
 }) {
+  const handleClick = () => {
+    if (onSelect) onSelect(movie);
+    else onClick?.();
+  };
+
+  const handleDetails = () => {
+    if (onViewDetailsItem) onViewDetailsItem(movie);
+    else onViewDetails?.();
+  };
+
+  const handleFavorite = () => {
+    if (onToggleFavoriteItem) onToggleFavoriteItem('movie', movie.id, !movie.favorite);
+    else onToggleFavorite?.();
+  };
+
+  const posterDisplayUrl = toDisplayImageUrl(movie.posterPath);
+
   return (
-    <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
+    <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={handleClick}>
       <div className="poster">
-        {toDisplayImageUrl(movie.posterPath) ? (
-          <img src={toDisplayImageUrl(movie.posterPath)!} alt="" loading="lazy" decoding="async" />
+        {posterDisplayUrl ? (
+          <img src={posterDisplayUrl} alt="" loading="lazy" decoding="async" />
         ) : (
           <Film size={34} />
         )}
@@ -50,7 +73,7 @@ export const MovieTile = memo(function MovieTile({
         ) : (
           <span className="tile-badge">LOCAL</span>
         )}
-        <FavoriteButton favorite={movie.favorite} onToggle={onToggleFavorite} />
+        <FavoriteButton favorite={movie.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
           <strong>{movie.title}</strong>
           <small>{movie.releaseYear ?? 'Unknown year'}</small>
@@ -60,7 +83,7 @@ export const MovieTile = memo(function MovieTile({
               aria-label="View details"
               onClick={(e) => {
                 e.stopPropagation();
-                onViewDetails();
+                handleDetails();
               }}
             >
               <Info size={15} />
@@ -79,24 +102,47 @@ export const ShowTile = memo(function ShowTile({
   onClick,
   onViewDetails,
   onToggleFavorite,
+  onSelect,
+  onViewDetailsItem,
+  onToggleFavoriteItem,
   isSelected
 }: {
   show: TvShow;
-  onClick(): void;
-  onViewDetails(): void;
-  onToggleFavorite(): void;
+  onClick?(): void;
+  onViewDetails?(): void;
+  onToggleFavorite?(): void;
+  onSelect?(show: TvShow): void;
+  onViewDetailsItem?(show: TvShow): void;
+  onToggleFavoriteItem?(mediaKind: 'show', id: number, nextFavorite: boolean): void;
   isSelected?: boolean;
 }) {
+  const handleClick = () => {
+    if (onSelect) onSelect(show);
+    else onClick?.();
+  };
+
+  const handleDetails = () => {
+    if (onViewDetailsItem) onViewDetailsItem(show);
+    else onViewDetails?.();
+  };
+
+  const handleFavorite = () => {
+    if (onToggleFavoriteItem) onToggleFavoriteItem('show', show.id, !show.favorite);
+    else onToggleFavorite?.();
+  };
+
+  const posterDisplayUrl = toDisplayImageUrl(show.posterPath);
+
   return (
-    <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
+    <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={handleClick}>
       <div className="poster show-poster">
-        {toDisplayImageUrl(show.posterPath) ? (
-          <img src={toDisplayImageUrl(show.posterPath)!} alt="" loading="lazy" decoding="async" />
+        {posterDisplayUrl ? (
+          <img src={posterDisplayUrl} alt="" loading="lazy" decoding="async" />
         ) : (
           <Tv size={34} />
         )}
         <span className="tile-badge">TV</span>
-        <FavoriteButton favorite={show.favorite} onToggle={onToggleFavorite} />
+        <FavoriteButton favorite={show.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
           <strong>{show.title}</strong>
           <small>{show.firstAirYear ?? 'Unknown year'}</small>
@@ -106,7 +152,7 @@ export const ShowTile = memo(function ShowTile({
               aria-label="View details"
               onClick={(e) => {
                 e.stopPropagation();
-                onViewDetails();
+                handleDetails();
               }}
             >
               <Info size={15} />
