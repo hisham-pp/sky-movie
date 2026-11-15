@@ -326,4 +326,21 @@ export function ensureSqliteSchema(db: SqliteDatabase): void {
   } catch (error) {
     console.warn('Migration for watch_progress table skipped or failed:', error);
   }
+
+  // Migration: Default theme to pitch-black (Premium) if still on previous default cinema
+  try {
+    const existing = db.prepare('SELECT value FROM app_settings WHERE key = ?').get('settings') as
+      | { value: string }
+      | undefined;
+    if (existing) {
+      const parsed = JSON.parse(existing.value);
+      if (parsed && (parsed.theme === 'cinema' || !parsed.theme)) {
+        parsed.theme = 'pitch-black';
+        db.prepare('UPDATE app_settings SET value = ?, updated_at = ? WHERE key = ?')
+          .run(JSON.stringify(parsed), new Date().toISOString(), 'settings');
+      }
+    }
+  } catch (error) {
+    console.warn('Migration for default theme upgrade skipped or failed:', error);
+  }
 }

@@ -113,7 +113,7 @@ export function mapMediaFile(row: Row): MediaFile {
 
 export function defaultSettings(deviceId: string): AppSettings {
   return {
-    theme: 'cinema',
+    theme: 'pitch-black',
     playerStyle: 'youtube',
     metadataProvider: 'local',
     // @ts-ignore: Vite replaces this statically at build time

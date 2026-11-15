@@ -16,7 +16,7 @@ import { FloatingPlayer } from './components/player/FloatingPlayer';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { LAUNCH_ONBOARDING_EVENT } from './config/events';
 import { useResumePlayback } from './hooks/useResumePlayback';
-import type { LastWatchedInfo, Movie, TvShow, Playlist } from '@shared/ipc';
+import type { LastWatchedInfo, Movie, TvShow, Playlist, AppTheme } from '@shared/ipc';
 import type { ViewMode } from './types';
 import { ALL_NAV_ITEMS } from './config/navItems';
 
@@ -32,7 +32,7 @@ function AppLayoutInner() {
   const library = useLibraryControllerContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = library.settings?.theme ?? 'cinema';
+  const theme = library.settings?.theme ?? (localStorage.getItem('sky-movie:theme') as AppTheme | null) ?? 'pitch-black';
   const hideSidebar = library.settings?.hideSidebar ?? false;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUnrecognizedOpen, setIsUnrecognizedOpen] = useState(false);

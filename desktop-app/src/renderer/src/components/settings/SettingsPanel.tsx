@@ -41,6 +41,12 @@ const themePresets: Array<{
   description: string;
   swatches: [string, string, string];
 }> = [
+    {
+      id: 'pitch-black',
+      name: 'Pitch Black',
+      description: 'Pure OLED black canvas with royal violet accents.',
+      swatches: ['#000000', '#0a0a0c', '#7c6eed']
+    },
     { id: 'cinema', name: 'Cinema', description: 'Cinematic charcoal surfaces with sky blue focus.', swatches: ['#111317', '#1a1c20', '#89ceff'] },
     { id: 'midnight', name: 'Midnight', description: 'Deep blue surfaces with soft violet accents.', swatches: ['#070b18', '#8bb7ff', '#b695ff'] },
     { id: 'daylight', name: 'Daylight', description: 'Clean bright layout for daytime curation.', swatches: ['#f7f3ea', '#2364d2', '#111317'] },
@@ -111,7 +117,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const [updateCheckResult, setUpdateCheckResult] = useState<UpdateCheckResult | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
-  const activeTheme = settings?.theme ?? 'cinema';
+  const activeTheme = settings?.theme ?? (localStorage.getItem('sky-movie:theme') as AppTheme | null) ?? 'pitch-black';
   const activePlayerStyle = settings?.playerStyle ?? 'youtube';
 
   useEffect(() => {
