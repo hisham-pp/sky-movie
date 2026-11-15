@@ -5,6 +5,39 @@ All notable changes to Sky Movie will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-11-15
+
+### Added
+
+- move banner content down and upscale backdrops with HD resolution and GPU sharpening (#82) (Hisham)
+- hide YouTube video download button and modal from movies browse page (#80) (Hisham)
+- increase top clearance for settings sidebar and content to clear floating navbar (#78) (Hisham)
+- move playlists header down and redesign watch history with premium glass styling (#77) (Hisham)
+- add Pitch Black OLED theme as default and make floating pill theme-reactive (#76) (Hisham)
+- fix vertical and concentric alignments of last watched pill (#75) (Hisham)
+- redesign scanner page with proper navbar clearance, premium glass layout, and light crystal blur (#74) (Hisham)
+- tune liquid glass top bar with reduced blur amount and increased feather height (#73) (Hisham)
+- set YouTube player engine as default when installed (#72) (Hisham)
+- redesign play again / continue play pill with gaussian blur halo and internal close button (#71) (Hisham)
+- add feathered progressive gaussian blur to top bar (#70) (Hisham)
+- add delete option for each watch history entry (#68) (Hisham)
+- align playlists, history, torrents, scan, and settings design with movie library (#67) (Hisham)
+- add Relations and Recommendations to movie and series detail pages (#66) (Hisham)
+- implement comprehensive SEO optimization and Google Search Console verification (Hisham)
+
+### Fixed
+
+- restore hero banner backdrop rendering and cross-fade (#81) (Hisham)
+- resolve tooltip overlap and remove native tooltip on continue play pill (#79) (Hisham)
+- add smooth cross-fade transition when changing banner image (#69) (Hisham)
+- enable multiplatform release builds and fix macOS DMG packaging (#65) (Hisham)
+- ensure search modal input reliably receives focus (#64) (Hisham)
+- restore detail pages on page refresh for movies, shows, and playlists (#63) (Hisham)
+
+### Other
+
+- docs: add release guide and document release steps (#62) (Hisham)
+
 ## [0.10.11] - 2026-09-06
 
 ### Fixed
@@ -1134,3 +1167,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.9]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.9
 [0.10.10]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.10
 [0.10.11]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.10.11
+[0.11.0]: https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0
