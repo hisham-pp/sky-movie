@@ -16,7 +16,7 @@ export const FloatingPlayer = memo(function FloatingPlayer({
   onExpand
 }: FloatingPlayerProps) {
   const { settings } = useLibraryControllerContext();
-  const playerStyle = settings?.playerStyle ?? 'default';
+  const playerStyle = settings?.playerStyle ?? 'youtube';
   const resumePlayback = settings?.resumePlayback ?? true;
   const [position, setPosition] = useState({ x: window.innerWidth - 420, y: 20 });
   const [isDragging, setIsDragging] = useState(false);

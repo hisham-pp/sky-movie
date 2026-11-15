@@ -21,7 +21,7 @@ export function PlayerPanel({
   onEnded?(): void;
 }) {
   const { settings, advancePlayback } = useLibraryControllerContext();
-  const playerStyle = settings?.playerStyle ?? 'default';
+  const playerStyle = settings?.playerStyle ?? 'youtube';
   const resumePlayback = settings?.resumePlayback ?? true;
   const [mpvAvailable, setMpvAvailable] = useState<boolean | null>(null);
   const handleEnded = () => {
