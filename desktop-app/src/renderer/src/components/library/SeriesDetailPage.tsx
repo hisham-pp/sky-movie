@@ -5,6 +5,7 @@ import { groupEpisodesBySeason } from '../../utils/groupEpisodesBySeason';
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
 import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
+import { MediaRelationsAndRecommendations } from './MediaRelationsAndRecommendations';
 import { Button, Tooltip } from '../common';
 import { openExternalUrl } from '@renderer/queries';
 
@@ -274,6 +275,13 @@ export const SeriesDetailPage = memo(function SeriesDetailPage({
             </div>
           )}
         </section>
+
+        <MediaRelationsAndRecommendations
+          mediaKind="show"
+          id={show.id}
+          title={show.title}
+          releaseYear={show.firstAirYear}
+        />
       </div>
 
       {showPlaylistDialog && (

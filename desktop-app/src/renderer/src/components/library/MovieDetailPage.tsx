@@ -4,6 +4,7 @@ import type { MediaFile, Movie, MovieMetadataSearchResult, PlayMediaResult, Play
 import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
 import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
+import { MediaRelationsAndRecommendations } from './MediaRelationsAndRecommendations';
 import { Button, Tooltip } from '../common';
 import { openExternalUrl } from '@renderer/queries';
 
@@ -200,6 +201,13 @@ export const MovieDetailPage = memo(function MovieDetailPage({
             </div>
           </section>
         )}
+
+        <MediaRelationsAndRecommendations
+          mediaKind="movie"
+          id={movie.id}
+          title={movie.title}
+          releaseYear={movie.releaseYear}
+        />
       </div>
 
       {showPlaylistDialog && (

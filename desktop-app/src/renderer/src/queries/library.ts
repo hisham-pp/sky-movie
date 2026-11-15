@@ -15,6 +15,7 @@ export const searchMovieMetadata = bind('searchMovieMetadata');
 export const applyMovieMetadata = bind('applyMovieMetadata');
 export const searchTvMetadata = bind('searchTvMetadata');
 export const applyTvMetadata = bind('applyTvMetadata');
+export const getMediaRelationsAndRecommendations = bind('getMediaRelationsAndRecommendations');
 export const markFileAsIgnored = bind('markFileAsIgnored');
 export const unmarkFileAsIgnored = bind('unmarkFileAsIgnored');
 export const updateFileMatch = bind('updateFileMatch');

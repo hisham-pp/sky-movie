@@ -5,6 +5,7 @@ import type {
   ApplyMovieMetadataRequest,
   ApplyTvMetadataRequest,
   CreatePlaylistRequest,
+  GetMediaRelationsAndRecommendationsRequest,
   MetadataUpdate,
   MovieMetadataSearchRequest,
   MpvEvent,
@@ -42,6 +43,8 @@ const api: SkyMovieApi = {
   applyMovieMetadata: (request: ApplyMovieMetadataRequest) => ipcRenderer.invoke(ipcChannels.applyMovieMetadata, request),
   searchTvMetadata: (request: TvMetadataSearchRequest) => ipcRenderer.invoke(ipcChannels.searchTvMetadata, request),
   applyTvMetadata: (request: ApplyTvMetadataRequest) => ipcRenderer.invoke(ipcChannels.applyTvMetadata, request),
+  getMediaRelationsAndRecommendations: (request: GetMediaRelationsAndRecommendationsRequest) =>
+    ipcRenderer.invoke(ipcChannels.getMediaRelationsAndRecommendations, request),
   markFileAsIgnored: (fileId: number) => ipcRenderer.invoke(ipcChannels.markFileAsIgnored, fileId),
   unmarkFileAsIgnored: (fileId: number) => ipcRenderer.invoke(ipcChannels.unmarkFileAsIgnored, fileId),
   updateFileMatch: (fileId: number, matchedMovieId: number | null, matchedShowId: number | null) => 

@@ -7,6 +7,7 @@ import type {
   MetadataUpdate,
   ApplyMovieMetadataRequest,
   ApplyTvMetadataRequest,
+  GetMediaRelationsAndRecommendationsRequest,
   MovieMetadataSearchRequest,
   ScanLibrariesRequest,
   ScanLibraryRequest,
@@ -112,6 +113,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   );
   h(ipcChannels.applyTvMetadata, (_e, request: ApplyTvMetadataRequest) =>
     safe(ipcChannels.applyTvMetadata, () => services.metadata.applyTvMetadata(request))
+  );
+  h(ipcChannels.getMediaRelationsAndRecommendations, (_e, request: GetMediaRelationsAndRecommendationsRequest) =>
+    safe(ipcChannels.getMediaRelationsAndRecommendations, () => services.metadata.getMediaRelationsAndRecommendations(request))
   );
 
   h(ipcChannels.markFileAsIgnored,   (_e, fileId: number) => safe(ipcChannels.markFileAsIgnored,   () => services.catalog.markFileAsIgnored(fileId)));
