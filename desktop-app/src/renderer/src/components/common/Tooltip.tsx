@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 
 export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
-const GAP = 8;           // distance between trigger and tooltip
+const GAP = 10;          // distance between trigger and tooltip
 const VIEWPORT_PAD = 8;  // minimum distance from viewport edges
 
 const OPPOSITE: Record<TooltipPlacement, TooltipPlacement> = {

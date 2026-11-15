@@ -7,7 +7,7 @@
 
 .tooltip {
   position: fixed;
-  z-index: 300;
+  z-index: 10000;
   max-width: 320px;
   padding: 7px 12px;
   border: 1px solid var(--glass-border);

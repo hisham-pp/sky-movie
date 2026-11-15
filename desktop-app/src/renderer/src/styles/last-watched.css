@@ -85,8 +85,15 @@
   display: flex;
   align-items: center;
   height: 100%;
-  flex: 1;
   min-width: 0;
+}
+
+.last-watched-toast > .tooltip-trigger:first-child {
+  flex: 1;
+}
+
+.last-watched-toast > .tooltip-trigger:last-child {
+  flex: 0 0 auto;
 }
 
 /* ── Main clickable button area ─────────────────────────────── */
@@ -222,6 +229,49 @@
   width: 13px;
   height: 13px;
   display: block;
+}
+
+/* ── Rich tooltip formatting for last-watched pill ──────────── */
+.last-watched-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.last-watched-tip-action {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink, #ffffff);
+}
+
+.last-watched-tip-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--soft, #a3a8b8);
+}
+
+.last-watched-tip-title {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-watched-tip-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--control-border, rgba(255, 255, 255, 0.16));
+  background: var(--control-bg, rgba(255, 255, 255, 0.08));
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary, #7ea8ff);
+  letter-spacing: 0.04em;
 }
 
 @media (prefers-reduced-motion: reduce) {
