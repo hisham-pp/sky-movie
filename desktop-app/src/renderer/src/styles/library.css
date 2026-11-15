@@ -35,28 +35,56 @@
 }
 
 /* The backdrop image sits fixed behind the whole page */
+.hero-strip > .hero-backdrop-fixed,
 .hero-backdrop-fixed {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
 }
 
 .hero-backdrop-fixed img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  opacity: 0;
-  filter: saturate(0.85) contrast(1.05);
-  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: saturate(0.95) contrast(1.05);
+  pointer-events: none;
+  opacity: 0.42;
+  transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: opacity;
 }
 
+.hero-backdrop-fixed img.fading-in {
+  opacity: 0.42;
+  animation: heroBackdropFadeIn 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.hero-backdrop-fixed img.fading-out {
+  opacity: 0;
+  transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .hero-backdrop-fixed img.active {
-  opacity: 0.28;
+  opacity: 0.42;
+}
+
+@keyframes heroBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.42;
+  }
 }
 
 /* Gradient overlay on the fixed backdrop — fades it toward the bottom */
@@ -66,8 +94,8 @@
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(90deg, rgba(12, 14, 18, 0.55) 0%, transparent 60%),
-    linear-gradient(180deg, transparent 0%, rgba(12, 14, 18, 0.6) 55%, rgba(12, 14, 18, 0.92) 100%);
+    linear-gradient(90deg, rgba(12, 14, 18, 0.7) 0%, rgba(12, 14, 18, 0.3) 45%, transparent 75%),
+    linear-gradient(180deg, rgba(12, 14, 18, 0.2) 0%, transparent 20%, rgba(12, 14, 18, 0.5) 60%, rgba(12, 14, 18, 0.95) 100%);
   pointer-events: none;
 }
 
@@ -93,7 +121,7 @@
   display: none;
 }
 
-.hero-strip>* {
+.hero-strip > :not(.hero-backdrop-fixed) {
   position: relative;
   z-index: 2;
 }

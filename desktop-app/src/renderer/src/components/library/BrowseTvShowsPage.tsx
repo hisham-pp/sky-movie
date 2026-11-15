@@ -8,6 +8,7 @@ import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
+import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
   shows,
@@ -64,7 +65,10 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
     return list;
   }, [shows, search, selectedYear, minRating, favoritesOnly, sortBy]);
 
-  const showsWithBackdrop = useMemo(() => shows.filter((s) => s.backdropPath), [shows]);
+  const showsWithBackdrop = useMemo(
+    () => shows.filter((s) => s.backdropPath || s.posterPath),
+    [shows]
+  );
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
@@ -104,10 +108,10 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
     <div className="browse-grid">
       <section className="library-list" ref={scrollRef}>
         <BannerHero
-          backdropPath={bannerShow?.backdropPath || null}
+          backdropPath={bannerShow?.backdropPath || bannerShow?.posterPath || null}
           posterContent={
             bannerShow?.posterPath ? (
-              <img src={bannerShow.posterPath} alt={bannerShow.title} />
+              <img src={toDisplayImageUrl(bannerShow.posterPath) || ''} alt={bannerShow.title} />
             ) : (
               <Tv2 size={34} />
             )

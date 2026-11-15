@@ -3,82 +3,45 @@ import { ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
 import { Tooltip } from '../common';
-
-interface BackdropLayer {
-  id: string;
-  src: string;
-  active: boolean;
-}
+import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 const BannerBackdrop = memo(function BannerBackdrop({ src }: { src: string | null }) {
-  const [layers, setLayers] = useState<BackdropLayer[]>(() =>
-    src ? [{ id: `${src}-init`, src, active: true }] : []
-  );
+  const displaySrc = toDisplayImageUrl(src);
+  const [current, setCurrent] = useState<string | null>(displaySrc);
+  const [prev, setPrev] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!src) return;
+    if (displaySrc === current) return;
+    setPrev(current);
+    setCurrent(displaySrc);
+    if (!displaySrc) return;
 
-    let cancelled = false;
-    let rafId: number | null = null;
-    let timerId: ReturnType<typeof setTimeout> | null = null;
+    const timer = setTimeout(() => {
+      setPrev(null);
+    }, 850);
+    return () => clearTimeout(timer);
+  }, [displaySrc, current]);
 
-    const startTransition = () => {
-      if (cancelled) return;
-
-      setLayers((prev) => {
-        const current = prev[prev.length - 1];
-        if (current && current.src === src) return prev;
-        const base = prev.slice(-1).map((l) => ({ ...l, active: true }));
-        return [...base, { id: `${src}-${Date.now()}`, src, active: false }];
-      });
-
-      rafId = requestAnimationFrame(() => {
-        if (cancelled) return;
-        setLayers((prev) =>
-          prev.map((layer, index) =>
-            index === prev.length - 1 ? { ...layer, active: true } : { ...layer, active: false }
-          )
-        );
-      });
-
-      timerId = setTimeout(() => {
-        if (cancelled) return;
-        setLayers((prev) => prev.slice(-1));
-      }, 1200);
-    };
-
-    const img = new Image();
-    img.src = src;
-    if (img.complete) {
-      startTransition();
-    } else {
-      img.onload = () => {
-        if (!cancelled) startTransition();
-      };
-      img.onerror = () => {
-        if (!cancelled) startTransition();
-      };
-    }
-
-    return () => {
-      cancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-      if (timerId) clearTimeout(timerId);
-    };
-  }, [src]);
-
-  if (layers.length === 0) return null;
+  if (!current && !prev) return null;
 
   return (
-    <div className="hero-backdrop-fixed">
-      {layers.map((layer) => (
+    <div className="hero-backdrop-fixed" aria-hidden="true">
+      {prev && (
         <img
-          key={layer.id}
-          src={layer.src}
+          key={prev}
+          src={prev}
           alt=""
-          className={`hero-backdrop-img ${layer.active ? 'active' : ''}`}
+          className="hero-backdrop-img fading-out"
         />
-      ))}
+      )}
+      {current && (
+        <img
+          key={current}
+          src={current}
+          alt=""
+          className="hero-backdrop-img fading-in"
+        />
+      )}
     </div>
   );
 });

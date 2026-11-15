@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Film, Heart, Tv, Info, Youtube } from 'lucide-react';
 import type { Movie, TvShow } from '@shared/ipc';
 import { Tooltip } from '../common';
+import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 function FavoriteButton({ favorite, onToggle }: { favorite: boolean; onToggle(): void }) {
   const label = favorite ? 'Remove from favorites' : 'Add to favorites';
@@ -37,7 +38,11 @@ export const MovieTile = memo(function MovieTile({
   return (
     <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
       <div className="poster">
-        {movie.posterPath ? <img src={movie.posterPath} alt="" loading="lazy" decoding="async" /> : <Film size={34} />}
+        {toDisplayImageUrl(movie.posterPath) ? (
+          <img src={toDisplayImageUrl(movie.posterPath)!} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <Film size={34} />
+        )}
         {movie.source === 'youtube' ? (
           <span className="tile-badge bg-red-600 border border-red-500/50 flex items-center gap-1">
             <Youtube size={10} /> YT
@@ -85,7 +90,11 @@ export const ShowTile = memo(function ShowTile({
   return (
     <div className={`tile ${isSelected ? 'tile-selected' : ''}`} onClick={onClick}>
       <div className="poster show-poster">
-        {show.posterPath ? <img src={show.posterPath} alt="" loading="lazy" decoding="async" /> : <Tv size={34} />}
+        {toDisplayImageUrl(show.posterPath) ? (
+          <img src={toDisplayImageUrl(show.posterPath)!} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <Tv size={34} />
+        )}
         <span className="tile-badge">TV</span>
         <FavoriteButton favorite={show.favorite} onToggle={onToggleFavorite} />
         <span className="tile-overlay">
