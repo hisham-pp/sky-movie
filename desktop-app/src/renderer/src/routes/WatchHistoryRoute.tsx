@@ -32,6 +32,11 @@ export function WatchHistoryRoute() {
     setItems([]);
   }, []);
 
+  const handleDeleteItem = useCallback(async (mediaFileId: number) => {
+    await queries.deleteWatchHistoryItem(mediaFileId);
+    setItems((prev) => prev.filter((item) => item.mediaFileId !== mediaFileId));
+  }, []);
+
   return (
     <WatchHistoryPage
       items={items}
@@ -39,6 +44,7 @@ export function WatchHistoryRoute() {
       activeMediaFileId={library.player?.mediaFileId ?? null}
       onPlay={handlePlay}
       onClear={handleClear}
+      onDeleteItem={handleDeleteItem}
     />
   );
 }
