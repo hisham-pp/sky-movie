@@ -1,7 +1,164 @@
 {
-  "latestVersion": "0.10.11",
-  "updatedAt": "2026-09-06T06:42:31.253Z",
+  "latestVersion": "0.11.0",
+  "updatedAt": "2026-11-15T16:41:35.738Z",
   "releases": [
+    {
+      "version": "0.11.0",
+      "releasedAt": "2026-11-15T16:40:36Z",
+      "storageProvider": "github-releases",
+      "storageFolderUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0",
+      "sourceCommit": {
+        "sha": "main",
+        "message": "Release 0.11.0"
+      },
+      "notes": "Sky Movie 0.11.0",
+      "changes": [
+        "- move banner content down and upscale backdrops with HD resolution and GPU sharpening (#82) (Hisham)",
+        "- hide YouTube video download button and modal from movies browse page (#80) (Hisham)",
+        "- increase top clearance for settings sidebar and content to clear floating navbar (#78) (Hisham)",
+        "- move playlists header down and redesign watch history with premium glass styling (#77) (Hisham)",
+        "- add Pitch Black OLED theme as default and make floating pill theme-reactive (#76) (Hisham)",
+        "- fix vertical and concentric alignments of last watched pill (#75) (Hisham)",
+        "- redesign scanner page with proper navbar clearance, premium glass layout, and light crystal blur (#74) (Hisham)",
+        "- tune liquid glass top bar with reduced blur amount and increased feather height (#73) (Hisham)",
+        "- set YouTube player engine as default when installed (#72) (Hisham)",
+        "- redesign play again / continue play pill with gaussian blur halo and internal close button (#71) (Hisham)",
+        "- add feathered progressive gaussian blur to top bar (#70) (Hisham)",
+        "- add delete option for each watch history entry (#68) (Hisham)",
+        "- align playlists, history, torrents, scan, and settings design with movie library (#67) (Hisham)",
+        "- add Relations and Recommendations to movie and series detail pages (#66) (Hisham)",
+        "- implement comprehensive SEO optimization and Google Search Console verification (Hisham)",
+        "- restore hero banner backdrop rendering and cross-fade (#81) (Hisham)",
+        "- resolve tooltip overlap and remove native tooltip on continue play pill (#79) (Hisham)",
+        "- add smooth cross-fade transition when changing banner image (#69) (Hisham)",
+        "- enable multiplatform release builds and fix macOS DMG packaging (#65) (Hisham)",
+        "- ensure search modal input reliably receives focus (#64) (Hisham)",
+        "- restore detail pages on page refresh for movies, shows, and playlists (#63) (Hisham)",
+        "- docs: add release guide and document release steps (#62) (Hisham)"
+      ],
+      "artifacts": [
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.11.0-amd64.deb",
+          "size": 108449868,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-amd64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "windows",
+          "arch": "arm64",
+          "kind": "installer",
+          "fileName": "Sky-Movie-0.11.0-arm64-Setup.exe",
+          "size": 176123750,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64-Setup.exe",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.11.0-arm64.AppImage",
+          "size": 142377376,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "deb",
+          "fileName": "Sky-Movie-0.11.0-arm64.deb",
+          "size": 102989080,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64.deb",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.11.0-arm64.dmg",
+          "size": 139281952,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "arm64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.11.0-arm64.tar.gz",
+          "size": 132621207,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "arm64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.11.0-arm64.zip",
+          "size": 135872359,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-arm64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "windows",
+          "arch": "x64",
+          "kind": "installer",
+          "fileName": "Sky-Movie-0.11.0-x64-Setup.exe",
+          "size": 181841199,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-x64-Setup.exe",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "dmg",
+          "fileName": "Sky-Movie-0.11.0-x64.dmg",
+          "size": 144093373,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-x64.dmg",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "x64",
+          "kind": "tar.gz",
+          "fileName": "Sky-Movie-0.11.0-x64.tar.gz",
+          "size": 132631916,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-x64.tar.gz",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "macos",
+          "arch": "x64",
+          "kind": "zip",
+          "fileName": "Sky-Movie-0.11.0-x64.zip",
+          "size": 140716229,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-x64.zip",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        },
+        {
+          "platform": "linux",
+          "arch": "ia32",
+          "kind": "appimage",
+          "fileName": "Sky-Movie-0.11.0-x86_64.AppImage",
+          "size": 142117001,
+          "sha256": null,
+          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.11.0/Sky-Movie-0.11.0-x86_64.AppImage",
+          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.11.0"
+        }
+      ]
+    },
     {
       "version": "0.10.11",
       "releasedAt": "2026-09-06T06:42:22Z",
@@ -887,144 +1044,6 @@
           "sha256": null,
           "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.2/Sky-Movie-0.8.2-x86_64.AppImage",
           "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.2"
-        }
-      ]
-    },
-    {
-      "version": "0.8.1",
-      "releasedAt": "2026-07-05T17:30:58Z",
-      "storageProvider": "github-releases",
-      "storageFolderUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1",
-      "sourceCommit": {
-        "sha": "main",
-        "message": "Release 0.8.1"
-      },
-      "notes": "Sky Movie 0.8.1",
-      "changes": [
-        "- search Hindi releases in the background on normal searches (Hisham)",
-        "- add Hindi movie/TV search provider and category chip (Hisham)",
-        "- chore(release): publish Sky Movie 0.8.0 downloads from GitHub (Sky Movie)"
-      ],
-      "artifacts": [
-        {
-          "platform": "linux",
-          "arch": "x64",
-          "kind": "deb",
-          "fileName": "Sky-Movie-0.8.1-amd64.deb",
-          "size": 107812420,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-amd64.deb",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "windows",
-          "arch": "arm64",
-          "kind": "installer",
-          "fileName": "Sky-Movie-0.8.1-arm64-Setup.exe",
-          "size": 172170647,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64-Setup.exe",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "linux",
-          "arch": "arm64",
-          "kind": "appimage",
-          "fileName": "Sky-Movie-0.8.1-arm64.AppImage",
-          "size": 142348653,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64.AppImage",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "linux",
-          "arch": "arm64",
-          "kind": "deb",
-          "fileName": "Sky-Movie-0.8.1-arm64.deb",
-          "size": 102397464,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64.deb",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "macos",
-          "arch": "arm64",
-          "kind": "dmg",
-          "fileName": "Sky-Movie-0.8.1-arm64.dmg",
-          "size": 139265659,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64.dmg",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "linux",
-          "arch": "arm64",
-          "kind": "tar.gz",
-          "fileName": "Sky-Movie-0.8.1-arm64.tar.gz",
-          "size": 132588308,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64.tar.gz",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "macos",
-          "arch": "arm64",
-          "kind": "zip",
-          "fileName": "Sky-Movie-0.8.1-arm64.zip",
-          "size": 135843018,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-arm64.zip",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "windows",
-          "arch": "x64",
-          "kind": "installer",
-          "fileName": "Sky-Movie-0.8.1-x64-Setup.exe",
-          "size": 177896701,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-x64-Setup.exe",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "macos",
-          "arch": "x64",
-          "kind": "dmg",
-          "fileName": "Sky-Movie-0.8.1-x64.dmg",
-          "size": 144081263,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-x64.dmg",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "linux",
-          "arch": "x64",
-          "kind": "tar.gz",
-          "fileName": "Sky-Movie-0.8.1-x64.tar.gz",
-          "size": 132600709,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-x64.tar.gz",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "macos",
-          "arch": "x64",
-          "kind": "zip",
-          "fileName": "Sky-Movie-0.8.1-x64.zip",
-          "size": 140686018,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-x64.zip",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
-        },
-        {
-          "platform": "linux",
-          "arch": "ia32",
-          "kind": "appimage",
-          "fileName": "Sky-Movie-0.8.1-x86_64.AppImage",
-          "size": 142084258,
-          "sha256": null,
-          "downloadUrl": "https://github.com/hisham-pp/sky-movie/releases/download/v0.8.1/Sky-Movie-0.8.1-x86_64.AppImage",
-          "webViewUrl": "https://github.com/hisham-pp/sky-movie/releases/tag/v0.8.1"
         }
       ]
     }
