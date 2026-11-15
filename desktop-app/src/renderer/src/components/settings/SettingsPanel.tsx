@@ -112,7 +112,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle');
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const activeTheme = settings?.theme ?? 'cinema';
-  const activePlayerStyle = settings?.playerStyle ?? 'auto';
+  const activePlayerStyle = settings?.playerStyle ?? 'youtube';
 
   useEffect(() => {
     setTmdbApiKey(settings?.tmdbApiKey ?? '');

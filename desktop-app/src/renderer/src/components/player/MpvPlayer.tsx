@@ -38,7 +38,7 @@ const DEFAULT_STATE: PlayerState = {
 
 export function MpvPlayer({
   player,
-  playerStyle = 'default',
+  playerStyle = 'youtube',
   resumePlayback = true,
   isFloating = false,
   onOpenExternal,
