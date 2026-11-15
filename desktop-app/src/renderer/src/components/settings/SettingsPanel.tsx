@@ -203,7 +203,7 @@ export const SettingsPanel = memo(function SettingsPanel({
       </aside>
 
       {/* Right content area */}
-      <main className="settings-content mt-10" role="tabpanel">
+      <main className="settings-content" role="tabpanel">
         {activeTab === 'appearance' && (
           <div className="settings-sections">
             <div className="settings-section">

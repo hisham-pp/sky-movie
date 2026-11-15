@@ -21,7 +21,7 @@
 }
 
 .settings-nav-header {
-  padding-top: 40px;
+  padding-top: 52px;
 }
 
 .settings-nav-header h2 {
@@ -90,7 +90,7 @@
 /* ── Right content area ── */
 .settings-content {
   overflow-y: auto;
-  padding: 48px 48px 60px;
+  padding: 88px 48px 80px;
 }
 
 .settings-sections {
