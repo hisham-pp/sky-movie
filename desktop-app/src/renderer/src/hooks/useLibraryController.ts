@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type {
   AddToPlaylistRequest,
   AppSettings,
+  AppTheme,
   CreatePlaylistRequest,
   Episode,
   LibraryScanMode,
@@ -89,7 +90,9 @@ export function useLibraryController() {
       queries.getPlaylists()
     ]);
 
-    setSettings(nextSettings);
+    const storedTheme = localStorage.getItem('sky-movie:theme') as AppTheme | null;
+    const resolvedTheme = storedTheme || nextSettings.theme || 'pitch-black';
+    setSettings({ ...nextSettings, theme: resolvedTheme });
     setScanMode(nextSettings.defaultScanMode);
     setMatcherStrategy(nextSettings.defaultMatcherStrategy);
     setExtractFileMetadata(nextSettings.extractFileMetadata);
@@ -460,8 +463,14 @@ export function useLibraryController() {
   }
 
   async function saveSettings(update: Partial<AppSettings>) {
+    if (update.theme) {
+      localStorage.setItem('sky-movie:theme', update.theme);
+      setSettings(prev => prev ? { ...prev, theme: update.theme! } : prev);
+    }
     const next = await queries.updateSettings(update);
-    setSettings(next);
+    const storedTheme = localStorage.getItem('sky-movie:theme') as AppTheme | null;
+    const resolvedTheme = update.theme || storedTheme || next.theme || 'pitch-black';
+    setSettings({ ...next, theme: resolvedTheme });
     setScanMode(next.defaultScanMode);
     setMatcherStrategy(next.defaultMatcherStrategy);
     setExtractFileMetadata(next.extractFileMetadata);

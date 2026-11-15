@@ -5,7 +5,7 @@ import { defaultSettings } from './rowMappers';
 
 const VALID_PLAYER_STYLES = new Set<PlayerStyle>(['default', 'youtube']);
 const VALID_THEMES = new Set<AppTheme>([
-  'cinema', 'midnight', 'daylight', 'ember', 'ocean', 'forest', 'sunset', 'noir', 'lavender', 'crimson'
+  'pitch-black', 'cinema', 'midnight', 'daylight', 'ember', 'ocean', 'forest', 'sunset', 'noir', 'lavender', 'crimson'
 ]);
 const VALID_SCAN_MODES   = new Set<LibraryScanMode>(['mixed', 'movie', 'show']);
 const VALID_STRATEGIES   = new Set<MatcherStrategy>(['auto', 'movie-title-year', 'show-season-episode', 'folder-name']);

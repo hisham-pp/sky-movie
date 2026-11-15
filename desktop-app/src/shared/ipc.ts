@@ -3,7 +3,7 @@ export type MatchStatus = 'unmatched' | 'auto_matched' | 'manual_matched' | 'ign
 export type SyncType = 'full' | 'partial' | 'metadata-only' | 'files' | 'watch-progress';
 export type LibraryScanMode = MediaKind | 'mixed';
 export type MatcherStrategy = 'auto' | 'movie-title-year' | 'show-season-episode' | 'folder-name';
-export type AppTheme = 'cinema' | 'midnight' | 'daylight' | 'ember' | 'ocean' | 'forest' | 'sunset' | 'noir' | 'lavender' | 'crimson';
+export type AppTheme = 'pitch-black' | 'cinema' | 'midnight' | 'daylight' | 'ember' | 'ocean' | 'forest' | 'sunset' | 'noir' | 'lavender' | 'crimson';
 // Extensible — new visual styles/control layouts can be added here over time
 export type PlayerStyle = 'default' | 'youtube';
 
