@@ -80,24 +80,42 @@
   overflow: hidden;
 }
 
-/* ── Feathered Gaussian Progressive Blur for Top Bar ── */
+/* ── Liquid Glass Progressive Feathered Blur for Top Bar ── */
 .topbar-feather-blur {
   position: fixed;
   top: 0;
   left: 60px;
   right: 0;
-  height: 140px;
+  height: 135px;
   pointer-events: none;
   z-index: 9;
+  -webkit-backdrop-filter: blur(12px) saturate(160%) brightness(104%);
+  backdrop-filter: blur(12px) saturate(160%) brightness(104%);
   background: linear-gradient(
     180deg,
-    rgba(8, 10, 14, 0.72) 0%,
-    rgba(8, 10, 14, 0.45) 35%,
-    rgba(8, 10, 14, 0.12) 70%,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(18, 22, 32, 0.20) 28%,
+    rgba(12, 16, 24, 0.06) 65%,
     transparent 100%
   );
-  -webkit-mask: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
-  mask: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 35%,
+    rgba(0, 0, 0, 0.75) 55%,
+    rgba(0, 0, 0, 0.4) 72%,
+    rgba(0, 0, 0, 0.15) 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 35%,
+    rgba(0, 0, 0, 0.75) 55%,
+    rgba(0, 0, 0, 0.4) 72%,
+    rgba(0, 0, 0, 0.15) 86%,
+    transparent 100%
+  );
   transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -117,20 +135,29 @@
   pointer-events: none;
 }
 
-/* Layer 1: Soft wide gaussian blur feathering down */
+/* Layer 1: Liquid glass specular top meniscus & highlight rim */
 .topbar-feather-blur::before {
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-mask: linear-gradient(180deg, #000 30%, transparent 100%);
-  mask: linear-gradient(180deg, #000 30%, transparent 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.03) 18%,
+    transparent 50%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 55%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 55%);
 }
 
-/* Layer 2: Deep rich gaussian blur concentrated at the top */
+/* Layer 2: Crystalline liquid caustic glow */
 .topbar-feather-blur::after {
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-mask: linear-gradient(180deg, #000 15%, transparent 65%);
-  mask: linear-gradient(180deg, #000 15%, transparent 65%);
+  background: radial-gradient(
+    ellipse 90% 80% at 50% -15%,
+    rgba(140, 190, 255, 0.10) 0%,
+    rgba(120, 168, 255, 0.03) 45%,
+    transparent 85%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
 }
 
 .toolbar {
