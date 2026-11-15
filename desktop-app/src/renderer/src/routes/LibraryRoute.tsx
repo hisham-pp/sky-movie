@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LibraryView } from '../components/library/LibraryView';
 import { useLibraryControllerContext as useLibraryController } from '../hooks/LibraryControllerContext';
@@ -15,45 +15,67 @@ export function LibraryRoute(props: LibraryRouteProps) {
   const view = props.view || 'movies';
   const selectedId = params.id ? parseInt(params.id, 10) : undefined;
   const showDetailView = !!selectedId;
-  const clickSelectedRef = useRef<{ view: string; id: number } | null>(null);
   const libraryRef = useLatest(library);
 
   useEffect(() => {
     const lib = libraryRef.current;
-    if (selectedId && view === 'movies') {
-      const movie = lib.movies.find(m => m.id === selectedId);
-      const handledByClick = clickSelectedRef.current?.view === 'movies' && clickSelectedRef.current?.id === selectedId;
-      const alreadySelected = lib.selectedMovie?.id === selectedId;
-      if (movie && !handledByClick && !alreadySelected) lib.selectMovie(movie);
-      clickSelectedRef.current = null;
-    } else if (selectedId && view === 'shows') {
-      const show = lib.shows.find(s => s.id === selectedId);
-      const handledByClick = clickSelectedRef.current?.view === 'shows' && clickSelectedRef.current?.id === selectedId;
-      const alreadySelected = lib.selectedShow?.id === selectedId;
-      if (show && !handledByClick && !alreadySelected) lib.selectShow(show);
-      clickSelectedRef.current = null;
-    } else if (selectedId && view === 'playlists') {
-      const playlist = lib.playlists.find(p => p.id === selectedId);
-      if (playlist && lib.selectedPlaylist?.id !== selectedId) lib.selectPlaylist(playlist);
+    const targetId = selectedId;
+
+    if (typeof targetId !== 'number') {
+      if (view === 'movies' && lib.selectedMovie) {
+        lib.backToLibrary();
+      } else if (view === 'shows' && lib.selectedShow) {
+        lib.backToLibrary();
+      } else if (view === 'playlists' && lib.selectedPlaylist) {
+        void lib.selectPlaylist(null);
+      }
+      return;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, view]);
+
+    let isCurrent = true;
+
+    async function syncDetailSelection(id: number) {
+      if (view === 'movies') {
+        if (lib.selectedMovie?.id === id) return;
+        const ok = await lib.selectMovieById(id, undefined, false);
+        if (!ok && isCurrent) {
+          navigate('/movies', { replace: true });
+        }
+      } else if (view === 'shows') {
+        if (lib.selectedShow?.id === id) return;
+        const ok = await lib.selectShowById(id, undefined, false);
+        if (!ok && isCurrent) {
+          navigate('/shows', { replace: true });
+        }
+      } else if (view === 'playlists') {
+        if (lib.selectedPlaylist?.id === id) return;
+        const ok = await lib.selectPlaylistById(id);
+        if (!ok && isCurrent) {
+          navigate('/playlists', { replace: true });
+        }
+      }
+    }
+
+    void syncDetailSelection(targetId);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedId, view, libraryRef, navigate]);
 
   const handleViewMovieDetails = useCallback(async (movie: any) => {
-    clickSelectedRef.current = { view: 'movies', id: movie.id };
     await library.selectMovie(movie, undefined, false);
     navigate(`/movies/${movie.id}`);
   }, [library, navigate]);
 
   const handleViewShowDetails = useCallback(async (show: any) => {
-    clickSelectedRef.current = { view: 'shows', id: show.id };
     await library.selectShow(show, undefined, false);
     navigate(`/shows/${show.id}`);
   }, [library, navigate]);
 
   const handleBackToLibrary = useCallback(() => {
     library.backToLibrary();
-    const basePath = view === 'movies' ? '/' : view === 'shows' ? '/shows' : '/playlists';
+    const basePath = view === 'movies' ? '/movies' : view === 'shows' ? '/shows' : '/playlists';
     navigate(basePath);
   }, [library, view, navigate]);
 
@@ -62,6 +84,7 @@ export function LibraryRoute(props: LibraryRouteProps) {
       await library.selectPlaylist(playlist);
       navigate(`/playlists/${playlist.id}`);
     } else {
+      await library.selectPlaylist(null);
       navigate('/playlists');
     }
   }, [library, navigate]);
