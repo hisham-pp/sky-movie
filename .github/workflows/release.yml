@@ -294,7 +294,7 @@ jobs:
             artifacts/*.deb
             artifacts/*.tar.gz
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List release artifacts
         run: |
@@ -312,6 +312,6 @@ jobs:
           bash scripts/update-release-manifest.sh "${{ steps.version.outputs.TAG }}"
           git add website/public/releases.json
           git diff --cached --quiet || git commit -m "chore(release): publish Sky Movie ${{ steps.version.outputs.VERSION }} downloads from GitHub"
-          git push origin main
+          git push origin main || echo "::warning::Could not push manifest update to main directly (branch ruleset active). Run 'pnpm run release:github' locally to update website/public/releases.json."
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
