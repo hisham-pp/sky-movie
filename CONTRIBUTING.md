@@ -52,3 +52,8 @@ When reporting a bug, include:
 Feature requests are welcome. Please describe the user problem first, then the
 solution you have in mind. This makes it easier to compare ideas and choose an
 approach that fits the project.
+
+## Releasing
+
+For maintainers publishing a new version, follow the step-by-step instructions in the [Release Guide](RELEASE.md).
+
