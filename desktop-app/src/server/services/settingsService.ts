@@ -51,15 +51,21 @@ export class SettingsService {
       | { value: string }
       | undefined;
 
+    const defaults = defaultSettings(randomUUID());
     if (existing) {
       try {
-        return { ...defaultSettings(randomUUID()), ...JSON.parse(existing.value) };
+        const parsed = JSON.parse(existing.value) as Partial<AppSettings>;
+        return {
+          ...defaults,
+          ...parsed,
+          tmdbApiKey: parsed.tmdbApiKey?.trim() || defaults.tmdbApiKey || ''
+        };
       } catch {
         // Corrupt JSON — fall through to create fresh defaults
       }
     }
 
-    const settings = defaultSettings(randomUUID());
+    const settings = defaults;
     this.save(settings);
     return settings;
   }

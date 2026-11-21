@@ -90,14 +90,28 @@ async function createWindow(url) {
     return { action: 'deny' };
   });
 
+  if (!app.isPackaged) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+        mainWindow.webContents.toggleDevTools();
+        event.preventDefault();
+      }
+    });
+  }
+
   await mainWindow.loadURL(url);
 }
 
 app.whenReady().then(async () => {
   try {
-    const port = await getAvailablePort();
-    await startServer(port);
-    const serverUrl = `http://127.0.0.1:${port}`;
+    let serverUrl = process.env.DEV_SERVER_URL;
+
+    if (!serverUrl) {
+      const port = await getAvailablePort();
+      await startServer(port);
+      serverUrl = `http://127.0.0.1:${port}`;
+    }
+
     await waitForServer(serverUrl);
     await createWindow(serverUrl);
 

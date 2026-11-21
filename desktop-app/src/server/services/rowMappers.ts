@@ -129,7 +129,7 @@ export function defaultSettings(deviceId: string): AppSettings {
     theme: 'pitch-black',
     playerStyle: 'youtube',
     metadataProvider: 'local',
-    tmdbApiKey: process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.VITE_TMDB_API_KEY || '',
+    tmdbApiKey: process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY || process.env.VITE_TMDB_API_KEY || '',
     tmdbLanguage: 'en-US',
     autoScan: false,
     watchFolders: false,

@@ -10,7 +10,9 @@
   ],
   "scripts": {
     "dev": "pnpm --filter @sky-movie/desktop-app dev",
+    "dev:web": "pnpm --filter @sky-movie/desktop-app dev:web",
     "start": "pnpm --filter @sky-movie/desktop-app start",
+    "start:web": "pnpm --filter @sky-movie/desktop-app start:web",
     "dev:website": "pnpm --filter @sky-movie/website dev",
     "build": "pnpm --filter @sky-movie/desktop-app build",
     "build:website": "pnpm --filter @sky-movie/website build",

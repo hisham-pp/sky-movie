@@ -83,6 +83,17 @@ export class MetadataProviderManager {
     private readonly settings: SettingsService
   ) {}
 
+  private getApiKey(): string {
+    const settings = this.settings.getSettings();
+    return (
+      settings.tmdbApiKey?.trim() ||
+      process.env.TMDB_API_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_TMDB_API_KEY?.trim() ||
+      process.env.VITE_TMDB_API_KEY?.trim() ||
+      ''
+    );
+  }
+
   updateMetadata(update: MetadataUpdate): void {
     const now = new Date().toISOString();
     const favorite = update.favorite == null ? undefined : Number(update.favorite);
@@ -148,7 +159,7 @@ export class MetadataProviderManager {
     }
 
     const settings = this.settings.getSettings();
-    const apiKey = settings.tmdbApiKey.trim();
+    const apiKey = this.getApiKey();
     if (!apiKey) {
       throw new Error('Add a TMDB API key in Settings before searching movie metadata.');
     }
@@ -176,7 +187,7 @@ export class MetadataProviderManager {
     }
 
     const settings = this.settings.getSettings();
-    const apiKey = settings.tmdbApiKey.trim();
+    const apiKey = this.getApiKey();
     if (!apiKey) {
       throw new Error('Add a TMDB API key in Settings before applying movie metadata.');
     }
@@ -309,7 +320,7 @@ export class MetadataProviderManager {
     }
 
     const settings = this.settings.getSettings();
-    const apiKey = settings.tmdbApiKey.trim();
+    const apiKey = this.getApiKey();
     if (!apiKey) {
       throw new Error('Add a TMDB API key in Settings before searching TV metadata.');
     }
@@ -337,7 +348,7 @@ export class MetadataProviderManager {
     }
 
     const settings = this.settings.getSettings();
-    const apiKey = settings.tmdbApiKey.trim();
+    const apiKey = this.getApiKey();
     if (!apiKey) {
       throw new Error('Add a TMDB API key in Settings before applying TV metadata.');
     }
@@ -647,7 +658,7 @@ export class MetadataProviderManager {
     // 2. Fetch from TMDB (for movies, live action shows, or if TMDB has collections/recommendations)
     try {
       const settings = this.settings.getSettings();
-      const apiKey = settings.tmdbApiKey?.trim() || process.env.VITE_TMDB_API_KEY?.trim() || '';
+      const apiKey = this.getApiKey();
       if (apiKey) {
         const auth = getAuth(apiKey);
         const language = settings.tmdbLanguage || 'en-US';
