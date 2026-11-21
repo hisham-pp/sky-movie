@@ -278,7 +278,12 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.14s var(--ease-fluid),
+    border-color 0.14s var(--ease-fluid),
+    color 0.14s var(--ease-fluid),
+    transform 0.14s var(--ease-spring),
+    box-shadow 0.14s var(--ease-fluid);
 }
 
 .add-to-playlist-button:hover {
@@ -287,6 +292,11 @@
   border-color: var(--primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.add-to-playlist-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
 }
 
 .add-to-playlist-button:disabled {
@@ -412,18 +422,27 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition:
+    width 0.22s var(--ease-spring),
+    background 0.18s var(--ease-fluid),
+    transform 0.15s var(--ease-spring);
 }
 
 .episode-scroll-dot:hover {
   background: rgba(255, 255, 255, 0.5);
-  transform: scale(1.2);
+  transform: scale(1.25);
+}
+
+.episode-scroll-dot:active {
+  transform: scale(0.9);
+  transition-duration: 0.08s;
 }
 
 .episode-scroll-dot.active {
   background: var(--primary);
   width: 24px;
   border-radius: 4px;
+  transform: none;
 }
 
 .episode-card {
@@ -431,12 +450,17 @@
   gap: 10px;
   border-radius: 8px;
   overflow: visible;
-  transition: all 0.2s ease;
+  transition: transform 0.22s var(--ease-spring);
   cursor: pointer;
 }
 
 .episode-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+}
+
+.episode-card:active {
+  transform: translateY(-1px) scale(0.98);
+  transition-duration: 0.08s;
 }
 
 .episode-card:hover .episode-thumbnail {
@@ -457,7 +481,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  transition: border-color 0.18s var(--ease-fluid), box-shadow 0.18s var(--ease-fluid);
 }
 
 .episode-play-overlay {
@@ -468,7 +492,7 @@
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(2px);
   opacity: 0;
-  transition: all 0.25s ease;
+  transition: opacity 0.18s var(--ease-fluid);
   border: none;
   cursor: pointer;
   color: white;
@@ -482,7 +506,7 @@
   width: 48px;
   height: 48px;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
-  transition: transform 0.2s ease;
+  transition: transform 0.18s var(--ease-spring);
 }
 
 .episode-play-overlay:hover svg {
@@ -541,12 +565,17 @@
   gap: 12px;
   border-radius: 10px;
   overflow: visible;
-  transition: all 0.2s ease;
+  transition: transform 0.22s var(--ease-spring);
   cursor: pointer;
 }
 
 .movie-file-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+}
+
+.movie-file-card:active {
+  transform: translateY(-1px) scale(0.98);
+  transition-duration: 0.08s;
 }
 
 .movie-file-card:hover .movie-file-thumbnail {
@@ -567,7 +596,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.2s ease;
+  transition: border-color 0.18s var(--ease-fluid), box-shadow 0.18s var(--ease-fluid);
 }
 
 .movie-file-play-overlay {
@@ -578,7 +607,7 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(3px);
   opacity: 0;
-  transition: all 0.25s ease;
+  transition: opacity 0.18s var(--ease-fluid);
   border: none;
   cursor: pointer;
   color: white;
@@ -592,7 +621,7 @@
   width: 56px;
   height: 56px;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
-  transition: transform 0.2s ease;
+  transition: transform 0.18s var(--ease-spring);
 }
 
 .movie-file-play-overlay:hover svg {

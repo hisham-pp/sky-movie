@@ -22,7 +22,8 @@
   backdrop-filter: var(--glass-blur-light);
   box-shadow: var(--glass-shine), var(--shadow);
   padding: 22px;
-  animation: modalSlideUp 0.32s var(--ease-spring);
+  transform-origin: center center;
+  animation: modalSlideUp 0.24s var(--ease-spring);
 }
 
 .metadata-match-dialog header {

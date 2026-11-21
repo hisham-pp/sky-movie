@@ -25,6 +25,19 @@
   }
 }
 
+.modal-overlay.is-closing {
+  animation: modalFadeOut 0.12s var(--ease-in) forwards;
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* ===== Modal Content ===== */
 .modal-content {
   background: var(--glass-sheen), var(--glass-bg-strong);
@@ -38,17 +51,33 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: modalSlideUp 0.32s var(--ease-spring);
+  transform-origin: center center;
+  animation: modalSlideUp 0.24s var(--ease-spring);
 }
 
 @keyframes modalSlideUp {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(20px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+.modal-overlay.is-closing .modal-content {
+  animation: modalSlideDownExit 0.12s var(--ease-in) forwards;
+}
+
+@keyframes modalSlideDownExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
   }
 }
 

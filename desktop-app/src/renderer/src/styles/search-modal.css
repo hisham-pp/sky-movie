@@ -13,17 +13,33 @@
   border-radius: 16px;
   box-shadow: var(--glass-shine), 0 24px 80px rgba(0, 0, 0, 0.55);
   overflow: hidden;
-  animation: searchModalSlideDown 0.3s var(--ease-spring);
+  transform-origin: top center;
+  animation: searchModalSlideDown 0.2s var(--ease-spring);
 }
 
 @keyframes searchModalSlideDown {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.96);
+    transform: translateY(-16px) scale(0.97);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+.modal-overlay.is-closing .search-modal {
+  animation: searchModalSlideUpExit 0.12s var(--ease-in) forwards;
+}
+
+@keyframes searchModalSlideUpExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
   }
 }
 

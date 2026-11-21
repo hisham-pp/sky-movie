@@ -57,9 +57,16 @@
   /* interaction wash for hover/active rows on glass surfaces */
   --hover: color-mix(in srgb, var(--ink) 7%, transparent);
   --text: var(--ink);
-  /* fluid motion curves — decelerating glide + gentle overshoot */
-  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+  /* fluid motion curves — decelerating glide + gentle overshoot (ux-motion standard) */
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.28, 0.44, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-hover: 140ms;
+  --duration-ui: 220ms;
+  --duration-modal: 240ms;
+  --duration-close: 120ms;
 
   /* ── Control tokens — shared by inputs, selects, chips, icon buttons ──── */
   --radius-sm: 8px;

@@ -123,14 +123,14 @@ export function PlayerCarousel() {
         {/* Prev / Next arrow buttons */}
         <button
           onClick={e => { e.stopPropagation(); prev(); }}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white hover:bg-black/60 transition-all"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white hover:bg-black/60 active:scale-95 transition-all"
           aria-label="Previous"
         >
           <span className="material-symbols-outlined text-lg">chevron_left</span>
         </button>
         <button
           onClick={e => { e.stopPropagation(); next(); }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white hover:bg-black/60 transition-all"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white hover:bg-black/60 active:scale-95 transition-all"
           aria-label="Next"
         >
           <span className="material-symbols-outlined text-lg">chevron_right</span>
@@ -150,7 +150,7 @@ export function PlayerCarousel() {
             key={i}
             onClick={() => setActive(i)}
             aria-label={s.label}
-            className="transition-all duration-200"
+            className="transition-all duration-200 active:scale-90"
             style={{
               width: active === i ? 24 : 8,
               height: 8,

@@ -9,7 +9,11 @@
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.14s var(--ease-fluid),
+    border-color 0.14s var(--ease-fluid),
+    transform 0.14s var(--ease-spring),
+    box-shadow 0.14s var(--ease-fluid);
   white-space: nowrap;
 }
 
@@ -80,8 +84,9 @@
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);
+  transition-duration: 0.08s;
 }
 
 /* Secondary Button */
@@ -98,7 +103,8 @@
 }
 
 .btn-secondary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
 }
 
 /* Danger Button */
@@ -115,7 +121,8 @@
 }
 
 .btn-danger:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
 }
 
 /* Ghost Button */
@@ -133,4 +140,6 @@
 
 .btn-ghost:active:not(:disabled) {
   background: var(--surface-high);
+  transform: scale(0.97);
+  transition-duration: 0.08s;
 }

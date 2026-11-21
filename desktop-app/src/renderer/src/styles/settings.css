@@ -395,7 +395,7 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--control-border);
   background: var(--control-bg);
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.18s var(--ease-fluid), border-color 0.18s var(--ease-fluid);
 }
 
 .switch-thumb::after {
@@ -407,7 +407,11 @@
   height: 16px;
   border-radius: 50%;
   background: var(--soft, #aaa);
-  transition: transform 0.2s, background 0.2s;
+  transition: transform 0.22s var(--ease-spring), width 0.15s ease, background 0.18s var(--ease-fluid);
+}
+
+.switch-track:active .switch-thumb::after {
+  width: 20px;
 }
 
 .switch-track input:checked ~ .switch-thumb {

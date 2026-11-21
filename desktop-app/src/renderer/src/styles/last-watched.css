@@ -6,8 +6,8 @@
   z-index: 9000;
   display: flex;
   align-items: center;
-  animation: last-watched-in 0.28s cubic-bezier(0.34, 1.3, 0.64, 1);
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  animation: last-watched-in 0.24s var(--ease-spring);
+  transition: opacity 0.14s var(--ease-in), transform 0.14s var(--ease-in);
 }
 
 .last-watched-fab.leaving {
@@ -67,9 +67,10 @@
     var(--glass-shine, inset 0 1px 0 rgba(255, 255, 255, 0.14));
   color: var(--ink, #e9ebf1);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.18s var(--ease-fluid),
+    border-color 0.18s var(--ease-fluid),
+    box-shadow 0.18s var(--ease-fluid),
+    transform 0.12s var(--ease-spring);
 }
 
 .last-watched-toast:hover {
@@ -78,6 +79,11 @@
   box-shadow:
     0 18px 42px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.last-watched-toast:active {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
 }
 
 /* ── Tooltip trigger inside toast must fill height & center ─── */

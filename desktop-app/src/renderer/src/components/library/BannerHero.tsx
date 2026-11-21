@@ -18,7 +18,7 @@ const BannerBackdrop = memo(function BannerBackdrop({ src }: { src: string | nul
 
     const timer = setTimeout(() => {
       setPrev(null);
-    }, 850);
+    }, 480);
     return () => clearTimeout(timer);
   }, [displaySrc, current]);
 

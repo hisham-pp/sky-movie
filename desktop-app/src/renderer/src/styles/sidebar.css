@@ -169,7 +169,11 @@
   padding: 0 10px;
   text-align: left;
   box-shadow: none;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.14s var(--ease-fluid),
+    border-color 0.14s var(--ease-fluid),
+    color 0.14s var(--ease-fluid),
+    transform 0.1s var(--ease-spring);
 }
 
 .sidebar--expanded .nav button {
@@ -185,6 +189,11 @@
   color: var(--soft);
   box-shadow: none;
   transform: none;
+}
+
+.nav button:active {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
 }
 
 .nav button.active {

@@ -57,11 +57,16 @@
 }
 
 .player .artplayer-app .artplayer-control {
-  transition: transform 0.2s ease;
+  transition: transform 0.16s var(--ease-spring);
 }
 
 .player .artplayer-app .artplayer-control:hover {
   transform: scale(1.15);
+}
+
+.player .artplayer-app .artplayer-control:active {
+  transform: scale(0.95);
+  transition-duration: 0.08s;
 }
 
 .player .artplayer-app .artplayer-setting-panel {
@@ -69,16 +74,24 @@
   backdrop-filter: blur(12px);
   border-radius: 8px;
   padding: 8px;
+  transform-origin: bottom right;
+  animation: modalFadeIn 0.16s var(--ease-fluid);
 }
 
 .player .artplayer-app .artplayer-setting-item {
   padding: 10px 14px;
   border-radius: 6px;
-  transition: background 0.2s ease;
+  transition: background 0.14s var(--ease-fluid);
 }
 
 .player .artplayer-app .artplayer-setting-item:hover {
   background: var(--control-bg-hover);
+}
+
+.player .artplayer-app .artplayer-setting-item:active {
+  background: var(--hover);
+  transform: scale(0.98);
+  transition-duration: 0.08s;
 }
 
 .player .artplayer-app .artplayer-setting-item-right-icon {
@@ -87,7 +100,7 @@
 
 .player .artplayer-app .artplayer-progress {
   height: 5px;
-  transition: height 0.2s ease;
+  transition: height 0.16s var(--ease-spring);
   background: rgba(255, 255, 255, 0.2) !important;
 }
 

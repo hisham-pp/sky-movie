@@ -65,17 +65,20 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.14s var(--ease-fluid),
+    transform 0.14s var(--ease-spring);
   white-space: nowrap;
 }
 
 .mini-player-overlay-btn:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.03);
+  transform: scale(1.04);
 }
 
 .mini-player-overlay-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  transition-duration: 0.08s;
 }
 
 .mini-player-overlay-btn svg {

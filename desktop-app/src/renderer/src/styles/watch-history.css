@@ -95,12 +95,17 @@
   font-weight: 600;
   border-radius: 7px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.14s var(--ease-fluid);
 }
 
 .wh-filter-tab:hover {
   color: var(--ink);
   background: var(--control-bg-hover);
+}
+
+.wh-filter-tab:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
 }
 
 .wh-filter-tab.active {

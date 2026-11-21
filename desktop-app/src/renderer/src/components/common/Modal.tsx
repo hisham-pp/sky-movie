@@ -1,4 +1,4 @@
-import { ReactNode, MouseEvent } from 'react';
+import { ReactNode, MouseEvent, useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -20,7 +20,24 @@ export function Modal({
   showCloseButton = true,
   customContent = false
 }: ModalProps) {
-  if (!isOpen) return null;
+  const [rendered, setRendered] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRendered(true);
+      setIsClosing(false);
+    } else if (rendered) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setRendered(false);
+        setIsClosing(false);
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, rendered]);
+
+  if (!rendered) return null;
 
   const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -29,18 +46,19 @@ export function Modal({
   };
 
   const maxWidthClass = `modal-${maxWidth}`;
+  const overlayClass = `modal-overlay${isClosing ? ' is-closing' : ''}`;
 
   // If customContent is true, render children directly without wrapper structure
   if (customContent) {
     return (
-      <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className={overlayClass} onClick={handleOverlayClick}>
         {children}
       </div>
     );
   }
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className={overlayClass} onClick={handleOverlayClick}>
       <div className={`modal-content ${maxWidthClass}`} onClick={(e) => e.stopPropagation()}>
         {(title || showCloseButton) && (
           <div className="modal-header">
