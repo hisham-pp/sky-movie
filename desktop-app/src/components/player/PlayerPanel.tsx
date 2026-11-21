@@ -1,6 +1,6 @@
 'use client';
 
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import { ExternalLink, HardDrive } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';

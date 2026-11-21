@@ -1,6 +1,6 @@
 'use client';
 
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import React, {
   useCallback,
   useEffect,

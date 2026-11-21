@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 
 export interface TmdbSuggestion {
   key: string;

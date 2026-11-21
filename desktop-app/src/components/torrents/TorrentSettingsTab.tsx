@@ -1,6 +1,6 @@
 'use client';
 
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import { useState, useEffect } from 'react';
 import { Switch } from '../common';
 import { useTorrentSettings } from '../../hooks/useTorrent';

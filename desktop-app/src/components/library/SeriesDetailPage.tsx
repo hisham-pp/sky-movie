@@ -9,7 +9,7 @@ import { MetadataSearchDialog } from './MetadataSearchDialog';
 import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
 import { MediaRelationsAndRecommendations } from './MediaRelationsAndRecommendations';
 import { Button, Tooltip } from '../common';
-import { openExternalUrl } from '@renderer/queries';
+import { openExternalUrl } from '@/queries';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
 

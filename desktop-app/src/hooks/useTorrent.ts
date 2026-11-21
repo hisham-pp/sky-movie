@@ -1,4 +1,4 @@
-import * as torrentApi from '@renderer/queries/torrents';
+import * as torrentApi from '@/queries/torrents';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   AddMagnetRequest,

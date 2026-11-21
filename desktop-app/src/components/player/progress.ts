@@ -1,4 +1,4 @@
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import type { PlayMediaResult } from '@shared/ipc';
 
 export function savePlaybackProgress(

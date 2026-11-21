@@ -1,6 +1,6 @@
 'use client';
 
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import type { LastWatchedInfo } from '@shared/ipc';
 import { formatPosition } from '../../utils/dateUtils';

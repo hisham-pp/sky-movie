@@ -4,6 +4,7 @@ import { memo, useState, useEffect, useCallback } from 'react';
 import { Download, Youtube } from 'lucide-react';
 import { Modal, Button } from '../common';
 import type { YouTubeProgressEvent } from '@shared/ipc';
+import { getSettings } from '@/queries/settings';
 
 export const AddYouTubeModal = memo(function AddYouTubeModal({
   isOpen,
@@ -24,12 +25,12 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
 
   useEffect(() => {
     if (isOpen) {
-      window.skyMovie.getSettings().then((settings: any) => {
+      getSettings().then((settings) => {
         setFolders(settings.libraryFolders || []);
         if (settings.libraryFolders && settings.libraryFolders.length > 0) {
           setSelectedFolderPath(settings.libraryFolders[0]);
         }
-      });
+      }).catch(() => {});
       
       setUrl('');
       setProgress(null);
@@ -40,7 +41,7 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
 
   useEffect(() => {
     if (isOpen) {
-      const unsub = window.skyMovie.onYouTubeDownloadProgress((event) => {
+      const unsub = (window as any).skyMovie?.onYouTubeDownloadProgress?.((event: YouTubeProgressEvent) => {
         if (event.url === url) {
           setProgress(event);
           if (event.status === 'completed') {
@@ -53,7 +54,7 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
           }
         }
       });
-      return () => unsub();
+      return () => unsub?.();
     }
   }, [isOpen, url, onAdded, onClose]);
 
@@ -62,8 +63,8 @@ export const AddYouTubeModal = memo(function AddYouTubeModal({
     setError(null);
     setIsDownloading(true);
     
-    window.skyMovie.downloadYouTubeVideo({ url, folderPath: selectedFolderPath })
-      .catch((err: any) => {
+    (window as any).skyMovie?.downloadYouTubeVideo?.({ url, folderPath: selectedFolderPath })
+      ?.catch((err: any) => {
         setError(err.message);
         setIsDownloading(false);
       });

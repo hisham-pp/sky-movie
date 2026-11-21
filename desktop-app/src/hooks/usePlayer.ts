@@ -1,4 +1,4 @@
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 /**
  * Custom hook for managing player lifecycle and media playback
  */

@@ -1,4 +1,4 @@
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import React, { useEffect, useRef, useState } from 'react';
 import './DefaultSkin.css';
 import {

@@ -1,4 +1,4 @@
-import * as queries from '@renderer/queries';
+import * as queries from '@/queries';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './YouTubeSkin.css';
 import {
