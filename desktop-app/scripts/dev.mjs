@@ -66,12 +66,13 @@ async function main() {
   console.log(`   Next.js URL: ${devUrl}\n`);
 
   const nextBin = require.resolve('next/dist/bin/next', { paths: [appDir] });
-  const nextProcess = spawn(process.execPath, [nextBin, 'dev', '-p', String(port), '-H', '127.0.0.1'], {
+  const nextProcess = spawn(electronPath, [nextBin, 'dev', '-p', String(port), '-H', '127.0.0.1'], {
     cwd: appDir,
     stdio: 'inherit',
     env: {
       ...process.env,
-      PORT: String(port)
+      PORT: String(port),
+      ELECTRON_RUN_AS_NODE: '1'
     }
   });
 
