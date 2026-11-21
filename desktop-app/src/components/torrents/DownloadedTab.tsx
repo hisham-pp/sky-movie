@@ -1,0 +1,129 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import { Search, FolderOpen, Trash2, CheckCircle2, HardDrive } from 'lucide-react';
+import type { TorrentInfo } from '@shared/ipc';
+import { useTorrentDownloads } from '../../hooks/useTorrent';
+import { formatBytes } from './utils';
+import { GlassSelect, Tooltip } from '../common';
+import { EmptyLibraryState } from '../library/EmptyLibraryState';
+
+export function DownloadedTab() {
+  const { torrents, remove, deleteFiles, openFolder } = useTorrentDownloads();
+  const [query, setQuery]     = useState('');
+  const [sortBy, setSortBy]   = useState<'date' | 'name' | 'size'>('date');
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const completed = useMemo(() => {
+    const all = torrents.filter((t) => t.status === 'completed');
+    const filtered = query ? all.filter((t) => t.name.toLowerCase().includes(query.toLowerCase())) : all;
+    return filtered.sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'size') return b.totalSize - a.totalSize;
+      return (b.completedAt ?? b.addedAt).localeCompare(a.completedAt ?? a.addedAt);
+    });
+  }, [torrents, query, sortBy]);
+
+  const totalSize = useMemo(() => completed.reduce((acc, t) => acc + t.totalSize, 0), [completed]);
+
+  return (
+    <div className="flex flex-col">
+      {/* Toolbar */}
+      <div className="filter-row justify-between mb-4">
+        <div className="filter-search flex-1 max-w-md">
+          <Search size={14} className="filter-search-icon" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter completed downloads…"
+            className="filter-search-input w-full"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <GlassSelect
+            size="sm"
+            ariaLabel="Sort downloads"
+            options={[
+              { value: 'date' as const, label: 'Recent first' },
+              { value: 'name' as const, label: 'Name' },
+              { value: 'size' as const, label: 'Size' },
+            ]}
+            value={sortBy}
+            onChange={setSortBy}
+          />
+          <span className="section-badge">
+            <HardDrive size={13} className="inline mr-1 text-[var(--primary)]" />
+            {formatBytes(totalSize)}
+          </span>
+        </div>
+      </div>
+
+      {completed.length === 0 ? (
+        <EmptyLibraryState
+          icon={<CheckCircle2 size={34} />}
+          label="No completed downloads"
+          title={query ? 'No matching downloads' : 'No finished downloads yet'}
+          description={query ? 'Try searching for something else.' : 'Completed transfers will appear here.'}
+        />
+      ) : (
+        <div className="space-y-3">
+          {completed.map((t) => (
+            <CompletedCard
+              key={t.id}
+              torrent={t}
+              onOpen={() => openFolder(t.id)}
+              onRemove={() => setConfirmId(t.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {confirmId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#1a1d23] border border-white/10 rounded-2xl p-6 w-80 shadow-2xl">
+            <h3 className="font-semibold text-white mb-2">Remove from library?</h3>
+            <p className="text-sm text-white/50 mb-5">Delete files permanently, or just remove the record?</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setConfirmId(null)} className="px-3 py-1.5 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
+              <button onClick={() => { remove(confirmId); setConfirmId(null); }} className="px-3 py-1.5 text-sm bg-white/10 hover:bg-white/15 text-white rounded-lg transition-colors">Remove only</button>
+              <button onClick={() => { deleteFiles(confirmId); setConfirmId(null); }} className="px-3 py-1.5 text-sm bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors">Delete files</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompletedCard({ torrent, onOpen, onRemove }: { torrent: TorrentInfo; onOpen(): void; onRemove(): void }) {
+  const date = torrent.completedAt
+    ? new Date(torrent.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
+
+  return (
+    <div className="flex items-center gap-3 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-xl px-3 py-2.5 transition-all">
+      <CheckCircle2 size={16} className="text-blue-400/70 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-white/80 truncate">{torrent.name}</p>
+        <p className="text-xs text-white/35 mt-0.5 truncate">
+          {formatBytes(torrent.totalSize)} · {torrent.savePath}
+          {date && ` · Completed ${date}`}
+        </p>
+      </div>
+      <div className="flex gap-1 flex-shrink-0">
+        <Tooltip content="Open folder">
+          <button onClick={onOpen} aria-label="Open folder" className="p-1.5 rounded-lg text-white/35 hover:text-white/70 hover:bg-white/8 transition-colors">
+            <FolderOpen size={14} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Remove">
+          <button onClick={onRemove} aria-label="Remove" className="p-1.5 rounded-lg text-red-400/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+            <Trash2 size={14} />
+          </button>
+        </Tooltip>
+      </div>
+    </div>
+  );
+}

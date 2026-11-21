@@ -1,0 +1,159 @@
+/* ── GlassSelect — react-select with glassmorphism styling ──────────────────
+   The menu is portaled to document.body (outside the themed app shell), so
+   every color includes a fallback that works on the dark glass surfaces.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.glass-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.glass-select-icon {
+  position: absolute;
+  left: 11px;
+  z-index: 1;
+  display: flex;
+  color: var(--soft, rgba(255, 255, 255, 0.55));
+  pointer-events: none;
+}
+
+.glass-select > div:not(.glass-select-icon) {
+  width: 100%;
+}
+
+.gs__control {
+  min-height: 38px;
+  padding: 0 6px 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
+  box-shadow: var(--control-highlight);
+  color: var(--ink, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.glass-select.has-icon .gs__control {
+  padding-left: 31px;
+}
+
+.gs__control:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--control-border-hover);
+}
+
+.gs__control--is-focused,
+.gs__control--menu-is-open {
+  border-color: var(--focus-border);
+  background: var(--control-bg-hover);
+  box-shadow: var(--focus-ring);
+}
+
+.gs__value-container {
+  padding: 0;
+}
+
+.gs__single-value {
+  color: inherit;
+}
+
+.gs__indicator {
+  display: flex;
+  padding: 0 4px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: transform 0.18s, color 0.15s;
+}
+
+.gs__control--menu-is-open .gs__dropdown-indicator {
+  transform: rotate(180deg);
+}
+
+.gs__indicator:hover {
+  color: #fff;
+}
+
+.gs__indicator-separator {
+  display: none;
+}
+
+.gs__menu {
+  margin-top: 6px;
+  min-width: 100%;
+  padding: 5px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--control-border);
+  background: var(--overlay-panel-bg);
+  backdrop-filter: var(--glass-blur-panel);
+  -webkit-backdrop-filter: var(--glass-blur-panel);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  transform-origin: top center;
+  animation: gsMenuIn 0.16s var(--ease-spring);
+}
+
+@keyframes gsMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.gs__menu-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.gs__menu-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.gs__menu-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+}
+
+.gs__option {
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.gs__option--is-focused {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+
+.gs__option--is-selected {
+  background: color-mix(in srgb, var(--primary, #89ceff) 22%, transparent);
+  color: var(--primary, #89ceff);
+}
+
+/* Compact variant for dense toolbars (torrent tabs) */
+.glass-select--sm {
+  min-width: 104px;
+}
+
+.glass-select--sm .gs__control {
+  min-height: 30px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.glass-select--sm .gs__option {
+  padding: 6px 9px;
+  font-size: 12px;
+}

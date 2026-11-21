@@ -1,0 +1,292 @@
+/* ── Last watched FAB container ────────────────────────────── */
+.last-watched-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  animation: last-watched-in 0.24s var(--ease-spring);
+  transition: opacity 0.14s var(--ease-in), transform 0.14s var(--ease-in);
+}
+
+.last-watched-fab.leaving {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  pointer-events: none;
+}
+
+@keyframes last-watched-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Soft Gaussian blur halo that feathers out around the pill ─ */
+.last-watched-halo {
+  position: absolute;
+  inset: -18px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg-deep, #0c0e14) 40%, transparent);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent),
+    linear-gradient(to bottom, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent),
+    linear-gradient(to bottom, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 9999px;
+  transition: opacity 0.22s ease;
+}
+
+/* ── Glass Pill Toast ───────────────────────────────────────── */
+.last-watched-toast {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 12px 0 8px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+  border-radius: 9999px;
+  background: var(--glass-bg-strong, rgba(46, 52, 70, 0.65));
+  -webkit-backdrop-filter: var(--glass-blur, blur(20px) saturate(135%));
+  backdrop-filter: var(--glass-blur, blur(20px) saturate(135%));
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.52),
+    var(--glass-shine, inset 0 1px 0 rgba(255, 255, 255, 0.14));
+  color: var(--ink, #e9ebf1);
+  transition:
+    background 0.18s var(--ease-fluid),
+    border-color 0.18s var(--ease-fluid),
+    box-shadow 0.18s var(--ease-fluid),
+    transform 0.12s var(--ease-spring);
+}
+
+.last-watched-toast:hover {
+  background: color-mix(in srgb, var(--surface-high, #222) 75%, transparent);
+  border-color: color-mix(in srgb, var(--primary, #fff) 35%, rgba(255, 255, 255, 0.22));
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.last-watched-toast:active {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
+}
+
+/* ── Tooltip trigger inside toast must fill height & center ─── */
+.last-watched-toast > .tooltip-trigger {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.last-watched-toast > .tooltip-trigger:first-child {
+  flex: 1;
+}
+
+.last-watched-toast > .tooltip-trigger:last-child {
+  flex: 0 0 auto;
+}
+
+/* ── Main clickable button area ─────────────────────────────── */
+.last-watched-main {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+.last-watched-main:active {
+  opacity: 0.85;
+}
+
+.last-watched-main:focus-visible {
+  outline: 2px solid var(--primary, #7ea8ff);
+  outline-offset: 2px;
+}
+
+/* ── Circular play icon ─────────────────────────────────────── */
+.last-watched-play {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--on-primary, #ffffff);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--primary) 45%, transparent);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.last-watched-play svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.last-watched-main:hover .last-watched-play {
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+/* ── Text Copy ──────────────────────────────────────────────── */
+.last-watched-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: clamp(160px, 22vw, 280px);
+}
+
+.last-watched-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.last-watched-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink, #e9ebf1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+/* ── Progress Bar ───────────────────────────────────────────── */
+.last-watched-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+
+.last-watched-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ── Close Button inside the Pill ───────────────────────────── */
+.last-watched-close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--control-border, rgba(255, 255, 255, 0.12));
+  background: var(--control-bg, rgba(255, 255, 255, 0.08));
+  color: var(--muted, #c4c8d4);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.last-watched-close:hover {
+  background: var(--control-bg-hover, rgba(255, 255, 255, 0.18));
+  color: var(--ink, #ffffff);
+  border-color: var(--control-border-hover, rgba(255, 255, 255, 0.28));
+  transform: scale(1.06);
+}
+
+.last-watched-close:focus-visible {
+  outline: 2px solid var(--primary, #7ea8ff);
+  outline-offset: 2px;
+}
+
+.last-watched-close svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+/* ── Rich tooltip formatting for last-watched pill ──────────── */
+.last-watched-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.last-watched-tip-action {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink, #ffffff);
+}
+
+.last-watched-tip-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--soft, #a3a8b8);
+}
+
+.last-watched-tip-title {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-watched-tip-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--control-border, rgba(255, 255, 255, 0.16));
+  background: var(--control-bg, rgba(255, 255, 255, 0.08));
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary, #7ea8ff);
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .last-watched-fab,
+  .last-watched-toast,
+  .last-watched-play,
+  .last-watched-close,
+  .last-watched-fill {
+    transition: none;
+    animation: none;
+  }
+}

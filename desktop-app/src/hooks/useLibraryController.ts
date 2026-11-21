@@ -1,0 +1,1172 @@
+import * as queries from '@/queries';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type {
+  AddToPlaylistRequest,
+  AppSettings,
+  AppTheme,
+  CreatePlaylistRequest,
+  Episode,
+  LibraryScanMode,
+  LibrarySummary,
+  MatcherStrategy,
+  MediaFile,
+  Movie,
+  MovieMetadataSearchResult,
+  Playlist,
+  PlaylistItem,
+  PlayMediaResult,
+  RemoveFromPlaylistRequest,
+  ScanResult,
+  TvMetadataSearchResult,
+  TvShow,
+  UpdatePlaylistRequest
+} from '@/types';
+
+interface PendingMovieMetadataPrompt {
+  movie: Movie;
+  results: MovieMetadataSearchResult[];
+}
+
+interface AutoMetadataSummary {
+  applied: number;
+  queued: number;
+  skipped: number;
+  failed: number;
+}
+
+export function useLibraryController() {
+  const [query, setQuery] = useState('');
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [shows, setShows] = useState<TvShow[]>([]);
+  const [summary, setSummary] = useState<LibrarySummary | null>(null);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [scanMode, setScanMode] = useState<LibraryScanMode>('mixed');
+  const [matcherStrategy, setMatcherStrategy] = useState<MatcherStrategy>('auto');
+  const [extractFileMetadata, setExtractFileMetadata] = useState(true);
+  const [libraryFolders, setLibraryFolders] = useState<string[]>([]);
+  const [selectedTitle, setSelectedTitle] = useState('No media selected');
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedShow, setSelectedShow] = useState<TvShow | null>(null);
+  const [selectedEpisodes, setSelectedEpisodes] = useState<Episode[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
+  const [metadataQuery, setMetadataQuery] = useState('');
+  const [metadataResults, setMetadataResults] = useState<Array<MovieMetadataSearchResult | TvMetadataSearchResult>>([]);
+  const [metadataPromptQueue, setMetadataPromptQueue] = useState<PendingMovieMetadataPrompt[]>([]);
+  const [player, setPlayer] = useState<PlayMediaResult | null>(null);
+  const [lastScan, setLastScan] = useState<ScanResult | null>(null);
+  const [status, setStatus] = useState('Ready');
+  const [busy, setBusy] = useState(false);
+  const [unmatchedFiles, setUnmatchedFiles] = useState<MediaFile[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
+  const router = useRouter();
+  const navigate = (path: string) => router.push(path);
+  // Active "Play All" queue. Kept in a ref so async end-of-playback chains
+  // always see the current queue. queueNavigationRef marks selects initiated
+  // by the queue itself, so manual selections cancel the queue instead.
+  const playlistQueueRef = useRef<{ items: PlaylistItem[]; index: number } | null>(null);
+  const queueNavigationRef = useRef(false);
+
+  useEffect(() => {
+    void refreshAll().catch((error) => {
+      setStatus(`Startup failed: ${formatError(error)}`);
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void refreshLists().catch((error) => {
+        setStatus(`Refresh failed: ${formatError(error)}`);
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  async function refreshAll() {
+    const [nextSettings, nextSummary, nextPlaylists] = await Promise.all([
+      queries.getSettings(),
+      queries.getLibrarySummary(),
+      queries.getPlaylists()
+    ]);
+
+    const storedTheme = localStorage.getItem('sky-movie:theme') as AppTheme | null;
+    const resolvedTheme = storedTheme || nextSettings.theme || 'pitch-black';
+    setSettings({ ...nextSettings, theme: resolvedTheme });
+    setScanMode(nextSettings.defaultScanMode);
+    setMatcherStrategy(nextSettings.defaultMatcherStrategy);
+    setExtractFileMetadata(nextSettings.extractFileMetadata);
+    setLibraryFolders(nextSettings.libraryFolders ?? []);
+    setSummary(nextSummary);
+    setPlaylists(nextPlaylists);
+    await refreshLists();
+    await refreshUnmatchedFiles();
+  }
+
+  async function refreshLists() {
+    const [nextMovies, nextShows] = await Promise.all([
+      queries.getMovies(query),
+      queries.getShows(query)
+    ]);
+    setMovies(nextMovies);
+    setShows(nextShows);
+  }
+
+  async function refreshUnmatchedFiles() {
+    try {
+      const files = await queries.getUnmatchedFiles();
+      setUnmatchedFiles(files);
+    } catch (error) {
+      console.error('Failed to fetch unmatched files:', error);
+      setUnmatchedFiles([]);
+    }
+  }
+
+  async function scanLibrary() {
+    setBusy(true);
+    try {
+      const folderPath = libraryFolders[0] ?? (await queries.chooseFolder('Choose library folder'));
+      if (!folderPath) {
+        setStatus('Scan cancelled');
+        return;
+      }
+
+      setStatus('Scanning selected folder...');
+      const result = await queries.scanLibrary({
+        path: folderPath,
+        mediaKind: scanMode,
+        matcherStrategy,
+        extractFileMetadata
+      });
+
+      if (result) {
+        setLastScan(result);
+        setStatus(`Scanned ${result.scannedFiles} files from ${result.folder.name}`);
+        const metadataSummary = await loadScannedMovieMetadata(result.movieIds);
+        await refreshAll();
+        setStatus(formatScanStatus(`Scanned ${result.scannedFiles} files from ${result.folder.name}`, metadataSummary));
+      } else {
+        setStatus('Scan cancelled');
+      }
+    } catch (error) {
+      setStatus(`Scan failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function chooseLibraryFolders() {
+    try {
+      const pickedFolders = await queries.chooseFolders('Choose library folders');
+      if (pickedFolders.length) {
+        const nextFolders = [...new Set([...libraryFolders, ...pickedFolders])];
+        setLibraryFolders(nextFolders);
+        await saveSettings({ libraryFolders: nextFolders });
+        setStatus(`Selected ${pickedFolders.length} folder${pickedFolders.length === 1 ? '' : 's'}`);
+      } else {
+        setStatus('Folder selection cancelled');
+      }
+    } catch (error) {
+      setStatus(`Folder selection failed: ${formatError(error)}`);
+    }
+  }
+
+  async function removeLibraryFolder(path: string) {
+    const nextFolders = libraryFolders.filter((folder) => folder !== path);
+    setLibraryFolders(nextFolders);
+    await saveSettings({ libraryFolders: nextFolders });
+    setStatus('Library folder removed');
+  }
+
+  async function scanLibraries() {
+    setBusy(true);
+    try {
+      let foldersToScan = libraryFolders;
+      if (!foldersToScan.length) {
+        foldersToScan = await queries.chooseFolders('Choose library folders');
+        if (!foldersToScan.length) {
+          setStatus('Scan cancelled');
+          return;
+        }
+        foldersToScan = [...new Set(foldersToScan)];
+        setLibraryFolders(foldersToScan);
+        await saveSettings({ libraryFolders: foldersToScan });
+      }
+
+      setStatus(`Scanning ${foldersToScan.length} librar${foldersToScan.length === 1 ? 'y' : 'ies'}...`);
+      const results = await queries.scanLibraries({
+        paths: foldersToScan,
+        mediaKind: scanMode,
+        matcherStrategy,
+        extractFileMetadata
+      });
+      const scannedFiles = results.reduce((total, result) => total + result.scannedFiles, 0);
+      const movieIds = results.flatMap((result) => result.movieIds);
+      setLastScan(results.at(-1) ?? null);
+      const metadataSummary = await loadScannedMovieMetadata(movieIds);
+      await refreshAll();
+      setStatus(
+        formatScanStatus(
+          `Scanned ${scannedFiles} files from ${results.length} librar${results.length === 1 ? 'y' : 'ies'}`,
+          metadataSummary
+        )
+      );
+    } catch (error) {
+      setStatus(`Scan failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function backToLibrary() {
+    playlistQueueRef.current = null;
+    setSelectedMovie(null);
+    setSelectedShow(null);
+    setSelectedEpisodes([]);
+    setSelectedFiles([]);
+    setMetadataResults([]);
+    setSelectedTitle('No media selected');
+    // Clear player when going back to library
+    setPlayer(null);
+  }
+
+  async function selectMovieById(id: number, playFileId?: number, autoPlay = false): Promise<boolean> {
+    if (!queueNavigationRef.current) playlistQueueRef.current = null;
+    try {
+      const details = await queries.getMovieById(id);
+      if (!details.item) return false;
+      const selected = details.item;
+      setSelectedMovie(selected);
+      setSelectedShow(null);
+      setSelectedEpisodes([]);
+      setSelectedTitle(selected.title);
+      setSelectedFiles(details.files);
+      setMetadataQuery(`${selected.title}${selected.releaseYear ? ` ${selected.releaseYear}` : ''}`);
+      setMetadataResults([]);
+
+      // Clear player when selecting a different movie
+      setPlayer(null);
+
+      // Auto-play only for explicit playback actions. Opening a detail view should
+      // preserve the selected item without immediately starting the movie.
+      if (autoPlay && details.files.length > 0) {
+        const targetFile =
+          (playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined) ??
+          details.files[0];
+        const result = await queries.playMedia(targetFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      }
+      return true;
+    } catch (error) {
+      console.error(`Failed to select movie by id ${id}:`, error);
+      return false;
+    }
+  }
+
+  async function selectMovie(movie: Movie, playFileId?: number, autoPlay = true): Promise<boolean> {
+    return selectMovieById(movie.id, playFileId, autoPlay);
+  }
+
+  async function viewMovieDetails(movie: Movie) {
+    await selectMovieById(movie.id, undefined, false);
+  }
+
+  async function selectShowById(id: number, playFileId?: number, autoPlay = false): Promise<boolean> {
+    if (!queueNavigationRef.current) playlistQueueRef.current = null;
+    try {
+      const details = await queries.getShowById(id);
+      if (!details.item) return false;
+      const selected = details.item;
+      setSelectedShow(selected);
+      setSelectedMovie(null);
+      setSelectedEpisodes(details.episodes ?? []);
+      setSelectedTitle(selected.title);
+      setSelectedFiles(details.files);
+      setMetadataQuery(`${selected.title}${selected.firstAirYear ? ` ${selected.firstAirYear}` : ''}`);
+      setMetadataResults([]);
+
+      // Clear player when selecting a different show
+      setPlayer(null);
+
+      // Auto-play only for explicit playback actions. Opening a detail view should
+      // not start a show until the user chooses to play it.
+      if (autoPlay && details.files.length > 0) {
+        const requestedFile =
+          playFileId != null ? details.files.find((file) => file.id === playFileId) : undefined;
+        const resumeFile =
+          requestedFile ?? (await findSeriesResumeFile(details.episodes ?? [], details.files));
+        const firstEpisodeFile = resumeFile ?? details.files.find((file) => {
+          const fileName = file.fileName.toLowerCase();
+          return /s0*1e0*1|1x0*1/i.test(fileName);
+        }) ?? details.files[0];
+
+        const result = await queries.playMedia(firstEpisodeFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      }
+      return true;
+    } catch (error) {
+      console.error(`Failed to select show by id ${id}:`, error);
+      return false;
+    }
+  }
+
+  async function selectShow(show: TvShow, playFileId?: number, autoPlay = true): Promise<boolean> {
+    return selectShowById(show.id, playFileId, autoPlay);
+  }
+
+  async function viewShowDetails(show: TvShow) {
+    await selectShowById(show.id, undefined, false);
+  }
+
+  async function play(file: MediaFile) {
+    const result = await queries.playMedia(file.id);
+    setPlayer(result);
+    setStatus(`Playing ${result.title}`);
+  }
+
+  async function playById(mediaFileId: number) {
+    const result = await queries.playMedia(mediaFileId);
+    setPlayer(result);
+    setStatus(`Playing ${result.title}`);
+  }
+
+  function stopPlayer() {
+    setPlayer(null);
+    setStatus('Stopped playback');
+  }
+
+  /**
+   * Advance to the next episode of the selected show after the current file
+   * finishes. Episodes are ordered season/episode; episodes without a local
+   * file are skipped. Returns false when there is nothing left to play.
+   */
+  async function playNextEpisode(): Promise<boolean> {
+    if (!player || !selectedShow || selectedEpisodes.length === 0) return false;
+
+    const currentFile = selectedFiles.find((file) => file.id === player.mediaFileId);
+    if (currentFile?.matchedEpisodeId == null) return false;
+
+    const ordered = [...selectedEpisodes].sort(
+      (a, b) => a.seasonNumber - b.seasonNumber || a.episodeNumber - b.episodeNumber
+    );
+    const currentIndex = ordered.findIndex((ep) => ep.id === currentFile.matchedEpisodeId);
+    if (currentIndex < 0) return false;
+
+    for (let i = currentIndex + 1; i < ordered.length; i++) {
+      const nextFile = selectedFiles.find((file) => file.matchedEpisodeId === ordered[i].id);
+      if (!nextFile) continue;
+      try {
+        const result = await queries.playMedia(nextFile.id);
+        setPlayer(result);
+        setStatus(`Playing ${result.title}`);
+        return true;
+      } catch (error) {
+        setStatus(`Autoplay failed: ${formatError(error)}`);
+        return false;
+      }
+    }
+
+    setStatus('Finished the last available episode');
+    return false;
+  }
+
+  /**
+   * Start a queue item: select its movie/show (which auto-plays) and navigate
+   * to the matching detail page so the player is visible. Returns whether
+   * playback actually started (items without local files return false).
+   */
+  async function startQueueItem(item: PlaylistItem): Promise<boolean> {
+    queueNavigationRef.current = true;
+    try {
+      if (item.mediaKind === 'movie' && item.movie) {
+        const started = await selectMovie(item.movie);
+        navigate(`/movies/${item.movie.id}`);
+        return started;
+      }
+      if (item.mediaKind === 'show' && item.show) {
+        const started = await selectShow(item.show);
+        navigate(`/shows/${item.show.id}`);
+        return started;
+      }
+      return false;
+    } catch (error) {
+      setStatus(`Playback failed: ${formatError(error)}`);
+      return false;
+    } finally {
+      queueNavigationRef.current = false;
+    }
+  }
+
+  /** "Play All": queue up the playlist items and start the first playable one. */
+  async function playPlaylist(items: PlaylistItem[]) {
+    if (items.length === 0) {
+      setStatus('Playlist is empty');
+      return;
+    }
+    playlistQueueRef.current = { items, index: 0 };
+    for (let i = 0; i < items.length; i++) {
+      playlistQueueRef.current.index = i;
+      if (await startQueueItem(items[i])) return;
+    }
+    playlistQueueRef.current = null;
+    setStatus('No playable files in this playlist');
+  }
+
+  /**
+   * Called when the current file reaches its natural end: first try the next
+   * episode of the current show, then fall back to the next playlist item
+   * when a "Play All" queue is active.
+   */
+  async function advancePlayback() {
+    // Auto-advance to the next episode only when enabled (default on). A "Play
+    // All" playlist queue is an explicit user action, so it still advances.
+    if (settings?.autoPlayNextEpisode !== false && (await playNextEpisode())) return;
+    const queue = playlistQueueRef.current;
+    if (!queue) return;
+    for (let i = queue.index + 1; i < queue.items.length; i++) {
+      queue.index = i;
+      if (await startQueueItem(queue.items[i])) return;
+    }
+    playlistQueueRef.current = null;
+    setStatus('Playlist finished');
+  }
+
+  /** Toggle favorite for a movie/show — persisted via updateMetadata, with
+   *  optimistic list + selection updates so every view refreshes instantly. */
+  async function toggleFavorite(mediaKind: 'movie' | 'show', id: number, favorite: boolean) {
+    try {
+      await queries.updateMetadata({ mediaKind, id, favorite });
+      if (mediaKind === 'movie') {
+        setMovies((prev) => prev.map((m) => (m.id === id ? { ...m, favorite } : m)));
+        setSelectedMovie((prev) => (prev && prev.id === id ? { ...prev, favorite } : prev));
+      } else {
+        setShows((prev) => prev.map((s) => (s.id === id ? { ...s, favorite } : s)));
+        setSelectedShow((prev) => (prev && prev.id === id ? { ...prev, favorite } : prev));
+      }
+      setStatus(favorite ? 'Added to favorites' : 'Removed from favorites');
+    } catch (error) {
+      setStatus(`Favorite update failed: ${formatError(error)}`);
+    }
+  }
+
+  async function openExternal(mediaFileId: number) {
+    try {
+      await queries.openMediaExternally(mediaFileId);
+      setStatus('Opened in system player');
+    } catch (error) {
+      setStatus(`External player failed: ${formatError(error)}`);
+    }
+  }
+
+  async function saveSettings(update: Partial<AppSettings>) {
+    if (update.theme) {
+      localStorage.setItem('sky-movie:theme', update.theme);
+      setSettings(prev => prev ? { ...prev, theme: update.theme! } : prev);
+    }
+    const next = await queries.updateSettings(update);
+    const storedTheme = localStorage.getItem('sky-movie:theme') as AppTheme | null;
+    const resolvedTheme = update.theme || storedTheme || next.theme || 'pitch-black';
+    setSettings({ ...next, theme: resolvedTheme });
+    setScanMode(next.defaultScanMode);
+    setMatcherStrategy(next.defaultMatcherStrategy);
+    setExtractFileMetadata(next.extractFileMetadata);
+    setLibraryFolders(next.libraryFolders ?? []);
+    setStatus('Settings saved');
+  }
+
+  async function clearLocalData() {
+    setBusy(true);
+    try {
+      const result = await queries.clearLocalLibraryData();
+      setMovies([]);
+      setShows([]);
+      setSelectedMovie(null);
+      setSelectedShow(null);
+      setSelectedEpisodes([]);
+      setSelectedFiles([]);
+      setPlayer(null);
+      await refreshAll();
+      setStatus(`Cleared ${result.removedRows} local records and cache files`);
+    } catch (error) {
+      setStatus(`Clear failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function createBackup() {
+    try {
+      const result = await queries.createBackup();
+      if (result) {
+        setStatus(`Backup saved with ${result.rowCount} rows`);
+      } else {
+        setStatus('Backup cancelled');
+      }
+    } catch (error) {
+      setStatus(`Backup failed: ${formatError(error)}`);
+    }
+  }
+
+  async function restoreBackup() {
+    setBusy(true);
+    try {
+      const result = await queries.restoreBackup();
+      if (result) {
+        await refreshAll();
+        setStatus(`Restored backup with ${result.rowCount} rows`);
+      } else {
+        setStatus('Restore cancelled');
+      }
+    } catch (error) {
+      setStatus(`Restore failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function downloadLocalFiles() {
+    setBusy(true);
+    setStatus('Preparing local download...');
+    try {
+      const result = await queries.exportLibrary({
+        type: 'files',
+        includeMediaFiles: true,
+        preserveFolderStructure: true,
+        mediaKind: scanMode
+      });
+
+      if (result) {
+        setStatus(`Downloaded ${result.fileCount} files to ${result.destinationPath}`);
+      } else {
+        setStatus('Local download cancelled');
+      }
+    } catch (error) {
+      setStatus(`Local download failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function searchSelectedMovieMetadata() {
+    if (!selectedMovie) {
+      setStatus('Select a movie before searching metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const results = await queries.searchMovieMetadata({
+        query: metadataQuery || selectedMovie.title,
+        year: selectedMovie.releaseYear
+      });
+      setMetadataResults(results);
+      setStatus(results.length ? `Found ${results.length} metadata matches` : 'No metadata matches found');
+    } catch (error) {
+      setStatus(`Metadata search failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applySelectedMovieMetadata(result: MovieMetadataSearchResult) {
+    if (!selectedMovie) {
+      setStatus('Select a movie before applying metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const updatedMovie = await queries.applyMovieMetadata({
+        movieId: selectedMovie.id,
+        provider: result.provider,
+        providerId: result.providerId
+      });
+      setSelectedMovie(updatedMovie);
+      setSelectedTitle(updatedMovie.title);
+      setMetadataQuery(`${updatedMovie.title}${updatedMovie.releaseYear ? ` ${updatedMovie.releaseYear}` : ''}`);
+      setMetadataResults([]);
+      await refreshLists();
+      setStatus(`Applied metadata for ${updatedMovie.title}`);
+    } catch (error) {
+      setStatus(`Apply metadata failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function searchSelectedMetadata() {
+    if (!selectedMovie && !selectedShow) {
+      setStatus('Select a movie or TV show before searching metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (selectedMovie) {
+        const results = await queries.searchMovieMetadata({
+          query: metadataQuery || selectedMovie.title,
+          year: selectedMovie.releaseYear
+        });
+        setMetadataResults(results);
+        setStatus(results.length ? `Found ${results.length} movie metadata matches` : 'No movie metadata matches found');
+      } else if (selectedShow) {
+        const results = await queries.searchTvMetadata({
+          query: metadataQuery || selectedShow.title,
+          year: selectedShow.firstAirYear
+        });
+        setMetadataResults(results);
+        setStatus(results.length ? `Found ${results.length} TV metadata matches` : 'No TV metadata matches found');
+      }
+    } catch (error) {
+      setStatus(`Metadata search failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applySelectedMetadata(result: MovieMetadataSearchResult | TvMetadataSearchResult) {
+    if (!selectedMovie && !selectedShow) {
+      setStatus('Select a movie or TV show before applying metadata');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (selectedMovie) {
+        const updatedMovie = await queries.applyMovieMetadata({
+          movieId: selectedMovie.id,
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        setSelectedMovie(updatedMovie);
+        setSelectedTitle(updatedMovie.title);
+        setMetadataQuery(`${updatedMovie.title}${updatedMovie.releaseYear ? ` ${updatedMovie.releaseYear}` : ''}`);
+        setStatus(`Applied metadata for ${updatedMovie.title}`);
+      } else if (selectedShow) {
+        const updatedShow = await queries.applyTvMetadata({
+          showId: selectedShow.id,
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        setSelectedShow(updatedShow);
+        setSelectedTitle(updatedShow.title);
+        setMetadataQuery(`${updatedShow.title}${updatedShow.firstAirYear ? ` ${updatedShow.firstAirYear}` : ''}`);
+        setStatus(`Applied metadata for ${updatedShow.title}`);
+      }
+      setMetadataResults([]);
+      await refreshLists();
+    } catch (error) {
+      setStatus(`Apply metadata failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function searchUnmatchedFileMetadata(file: MediaFile, query: string, year?: number): Promise<Array<MovieMetadataSearchResult | TvMetadataSearchResult>> {
+    try {
+      if (file.mediaKind === 'movie') {
+        return await queries.searchMovieMetadata({ query, year: year ?? null });
+      } else {
+        return await queries.searchTvMetadata({ query, year: year ?? null });
+      }
+    } catch (error) {
+      console.error('Search unmatched file metadata failed:', error);
+      return [];
+    }
+  }
+
+  async function applyUnmatchedFileMetadata(file: MediaFile, result: MovieMetadataSearchResult | TvMetadataSearchResult): Promise<void> {
+    try {
+      
+      if (file.mediaKind === 'movie' && 'releaseYear' in result) {
+        // Apply movie metadata - this will create a new movie entry
+        const movie = await queries.applyMovieMetadata({
+          movieId: 0, // 0 means create new
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        
+        // Update file to link to this movie
+        await queries.updateFileMatch(file.id, movie.id, null);
+      } else if (file.mediaKind === 'show' && 'firstAirYear' in result) {
+        // Apply show metadata - this will create a new show entry
+        const show = await queries.applyTvMetadata({
+          showId: 0, // 0 means create new
+          provider: result.provider,
+          providerId: result.providerId
+        });
+        
+        // Update file to link to this show
+        await queries.updateFileMatch(file.id, null, show.id);
+      }
+      
+      // Refresh the unmatched files list
+      await refreshUnmatchedFiles();
+      await refreshLists();
+      setStatus(`Successfully matched ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to apply metadata: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function markFileAsIgnored(fileId: number): Promise<void> {
+    try {
+      await queries.markFileAsIgnored(fileId);
+      await refreshUnmatchedFiles();
+      setStatus('File marked as ignored');
+    } catch (error) {
+      setStatus(`Failed to mark file as ignored: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function unmarkFileAsIgnored(fileId: number): Promise<void> {
+    try {
+      await queries.unmarkFileAsIgnored(fileId);
+      await refreshUnmatchedFiles();
+      setStatus('File unmarked as ignored');
+    } catch (error) {
+      setStatus(`Failed to unmark file as ignored: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function deleteFile(file: MediaFile): Promise<void> {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${file.fileName}"?\n\nThis will:\n• Permanently delete the file from disk\n• Remove it from the database\n• Clean up associated movie/series if no other files exist`
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await queries.deleteMediaFile(file.id);
+      
+      // Refresh the current view
+      if (selectedMovie) {
+        const details = await queries.getMovieById(selectedMovie.id);
+        setSelectedFiles(details.files);
+        // If movie has no more files, go back to library
+        if (details.files.length === 0) {
+          backToLibrary();
+        }
+      } else if (selectedShow) {
+        const details = await queries.getShowById(selectedShow.id);
+        setSelectedFiles(details.files);
+        setSelectedEpisodes(details.episodes ?? []);
+        // If show has no more files, go back to library
+        if (details.files.length === 0) {
+          backToLibrary();
+        }
+      }
+      
+      await refreshLists();
+      setStatus(`Deleted ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to delete file: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function showItemInFolder(file: MediaFile): Promise<void> {
+    try {
+      await queries.showItemInFolder(file.id);
+      setStatus(`Opened file manager for ${file.fileName}`);
+    } catch (error) {
+      setStatus(`Failed to open file manager: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function createPlaylist(request: CreatePlaylistRequest): Promise<void> {
+    setBusy(true);
+    try {
+      const newPlaylist = await queries.createPlaylist(request);
+      setPlaylists((prev) => [...prev, newPlaylist]);
+      setStatus(`Created playlist "${newPlaylist.name}"`);
+    } catch (error) {
+      setStatus(`Failed to create playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updatePlaylist(request: UpdatePlaylistRequest): Promise<void> {
+    setBusy(true);
+    try {
+      const updatedPlaylist = await queries.updatePlaylist(request);
+      setPlaylists((prev) => prev.map((p) => (p.id === updatedPlaylist.id ? updatedPlaylist : p)));
+      if (selectedPlaylist?.id === updatedPlaylist.id) {
+        setSelectedPlaylist(updatedPlaylist);
+      }
+      setStatus(`Updated playlist "${updatedPlaylist.name}"`);
+    } catch (error) {
+      setStatus(`Failed to update playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deletePlaylist(id: number): Promise<void> {
+    const confirmed = window.confirm('Are you sure you want to delete this playlist?');
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await queries.deletePlaylist(id);
+      setPlaylists((prev) => prev.filter((p) => p.id !== id));
+      if (selectedPlaylist?.id === id) {
+        setSelectedPlaylist(null);
+        setPlaylistItems([]);
+      }
+      setStatus('Playlist deleted');
+    } catch (error) {
+      setStatus(`Failed to delete playlist: ${formatError(error)}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function selectPlaylist(playlist: Playlist | null): Promise<void> {
+    setSelectedPlaylist(playlist);
+    if (!playlist) {
+      setPlaylistItems([]);
+      return;
+    }
+    try {
+      const items = await queries.getPlaylistById(playlist.id);
+      setPlaylistItems(items);
+      setSelectedTitle(playlist.name);
+    } catch (error) {
+      setStatus(`Failed to load playlist: ${formatError(error)}`);
+    }
+  }
+
+  async function selectPlaylistById(id: number): Promise<boolean> {
+    try {
+      let target = playlists.find((p) => p.id === id);
+      if (!target) {
+        const nextPlaylists = await queries.getPlaylists();
+        setPlaylists(nextPlaylists);
+        target = nextPlaylists.find((p) => p.id === id);
+      }
+      if (!target) return false;
+      await selectPlaylist(target);
+      return true;
+    } catch (error) {
+      console.error(`Failed to select playlist by id ${id}:`, error);
+      return false;
+    }
+  }
+
+  async function addToPlaylist(request: AddToPlaylistRequest): Promise<void> {
+    try {
+      await queries.addToPlaylist(request);
+      setStatus('Added to playlist');
+      await refreshPlaylists();
+      if (selectedPlaylist?.id === request.playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+    } catch (error) {
+      setStatus(`Failed to add to playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function removeFromPlaylist(request: RemoveFromPlaylistRequest): Promise<void> {
+    try {
+      await queries.removeFromPlaylist(request);
+      setStatus('Removed from playlist');
+      if (selectedPlaylist?.id === request.playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+      await refreshPlaylists();
+    } catch (error) {
+      setStatus(`Failed to remove from playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function reorderPlaylistItem(playlistId: number, itemId: number, newSortOrder: number): Promise<void> {
+    try {
+      await queries.reorderPlaylistItem(playlistId, itemId, newSortOrder);
+      if (selectedPlaylist?.id === playlistId) {
+        await selectPlaylist(selectedPlaylist);
+      }
+    } catch (error) {
+      setStatus(`Failed to reorder playlist: ${formatError(error)}`);
+      throw error;
+    }
+  }
+
+  async function refreshPlaylists(): Promise<void> {
+    try {
+      const nextPlaylists = await queries.getPlaylists();
+      setPlaylists(nextPlaylists);
+    } catch (error) {
+      console.error('Failed to refresh playlists:', error);
+    }
+  }
+
+  async function loadScannedMovieMetadata(movieIds: number[]): Promise<AutoMetadataSummary | null> {
+    const uniqueMovieIds = [...new Set(movieIds)];
+    if (!uniqueMovieIds.length) {
+      return null;
+    }
+
+    const currentSettings = await queries.getSettings();
+    if (!currentSettings.tmdbApiKey.trim()) {
+      return null;
+    }
+
+    const summary: AutoMetadataSummary = { applied: 0, queued: 0, skipped: 0, failed: 0 };
+    const prompts: PendingMovieMetadataPrompt[] = [];
+
+    // Fetch all movie details in parallel, then process concurrently with a
+    // cap of 4 simultaneous searches to avoid saturating the TMDB rate limit.
+    const details = await Promise.all(uniqueMovieIds.map((id) => queries.getMovieById(id)));
+    const moviesNeedingLookup = details
+      .map((d) => d.item)
+      .filter((movie): movie is NonNullable<typeof movie> => {
+        if (!movie) return false;
+        if (hasLocalMovieMetadata(movie)) { summary.skipped += 1; return false; }
+        return true;
+      });
+
+    const CONCURRENCY = 4;
+    for (let i = 0; i < moviesNeedingLookup.length; i += CONCURRENCY) {
+      const batch = moviesNeedingLookup.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        batch.map(async (movie) => {
+          try {
+            const results = await queries.searchMovieMetadata({ query: movie.title, year: movie.releaseYear });
+            if (results.length === 1) {
+              await queries.applyMovieMetadata({ movieId: movie.id, provider: results[0].provider, providerId: results[0].providerId });
+              summary.applied += 1;
+            } else if (results.length > 1) {
+              prompts.push({ movie, results });
+              summary.queued += 1;
+            }
+          } catch {
+            summary.failed += 1;
+          }
+        })
+      );
+    }
+
+    if (prompts.length) {
+      setMetadataPromptQueue((current) => [...current, ...prompts]);
+    }
+
+    return summary;
+  }
+
+  async function applyPromptMetadata(result: MovieMetadataSearchResult) {
+    const prompt = metadataPromptQueue[0];
+    if (!prompt) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const updatedMovie = await queries.applyMovieMetadata({
+        movieId: prompt.movie.id,
+        provider: result.provider,
+        providerId: result.providerId
+      });
+
+      if (selectedMovie?.id === updatedMovie.id) {
+        setSelectedMovie(updatedMovie);
+        setSelectedTitle(updatedMovie.title);
+        setMetadataQuery(`${updatedMovie.title}${updatedMovie.releaseYear ? ` ${updatedMovie.releaseYear}` : ''}`);
+      }
+
+      setMetadataPromptQueue((current) => current.slice(1));
+      await refreshLists();
+      setStatus(`Applied metadata for ${updatedMovie.title}`);
+    } catch (error) {
+      setStatus(`Apply metadata failed: ${formatError(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function skipPromptMetadata() {
+    const prompt = metadataPromptQueue[0];
+    setMetadataPromptQueue((current) => current.slice(1));
+    if (prompt) {
+      setStatus(`Skipped TMDB metadata for ${prompt.movie.title}`);
+    }
+  }
+
+  return {
+    query,
+    setQuery,
+    movies,
+    shows,
+    summary,
+    settings,
+    scanMode,
+    setScanMode,
+    matcherStrategy,
+    setMatcherStrategy,
+    extractFileMetadata,
+    setExtractFileMetadata,
+    libraryFolders,
+    selectedTitle,
+    selectedMovie,
+    selectedShow,
+    selectedEpisodes,
+    selectedFiles,
+    metadataQuery,
+    setMetadataQuery,
+    metadataResults,
+    metadataPrompt: metadataPromptQueue[0] ?? null,
+    player,
+    lastScan,
+    status,
+    busy,
+    unmatchedFiles,
+    playlists,
+    selectedPlaylist,
+    playlistItems,
+    chooseLibraryFolders,
+    removeLibraryFolder,
+    scanLibrary,
+    scanLibraries,
+    selectMovie,
+    selectMovieById,
+    selectShow,
+    selectShowById,
+    selectPlaylist,
+    selectPlaylistById,
+    viewMovieDetails,
+    viewShowDetails,
+    backToLibrary,
+    play,
+    playById,
+    stopPlayer,
+    playNextEpisode,
+    playPlaylist,
+    advancePlayback,
+    toggleFavorite,
+    openExternal,
+    saveSettings,
+    clearLocalData,
+    createBackup,
+    restoreBackup,
+    downloadLocalFiles,
+    searchSelectedMovieMetadata,
+    applySelectedMovieMetadata,
+    searchSelectedMetadata,
+    applySelectedMetadata,
+    applyPromptMetadata,
+    skipPromptMetadata,
+    searchUnmatchedFileMetadata,
+    applyUnmatchedFileMetadata,
+    markFileAsIgnored,
+    unmarkFileAsIgnored,
+    deleteFile,
+    showItemInFolder,
+    createPlaylist,
+    updatePlaylist,
+    deletePlaylist,
+    addToPlaylist,
+    removeFromPlaylist,
+    reorderPlaylistItem
+  };
+}
+
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Pick the file a series should resume with, based on watch history:
+ * the most recently watched episode when it is only partially watched,
+ * otherwise the first not-yet-completed episode after it (season order).
+ * Returns null when there is no usable history or the series is fully
+ * watched, so the caller falls back to the first episode.
+ */
+async function findSeriesResumeFile(
+  episodes: Episode[],
+  files: MediaFile[]
+): Promise<MediaFile | null> {
+  try {
+    const history = await queries.getWatchHistory();
+    const fileIds = new Set(files.map((file) => file.id));
+    const showHistory = history
+      .filter((item) => fileIds.has(item.mediaFileId))
+      .sort((a, b) => b.lastWatchedAt.localeCompare(a.lastWatchedAt));
+    const lastWatched = showHistory[0];
+    if (!lastWatched) return null;
+
+    const lastFile = files.find((file) => file.id === lastWatched.mediaFileId);
+    if (!lastFile) return null;
+    if (!lastWatched.completed) return lastFile;
+
+    if (lastFile.matchedEpisodeId == null || episodes.length === 0) return null;
+    const ordered = [...episodes].sort(
+      (a, b) => a.seasonNumber - b.seasonNumber || a.episodeNumber - b.episodeNumber
+    );
+    const currentIndex = ordered.findIndex((ep) => ep.id === lastFile.matchedEpisodeId);
+    if (currentIndex < 0) return null;
+
+    const completedFileIds = new Set(
+      history.filter((item) => item.completed).map((item) => item.mediaFileId)
+    );
+    for (let i = currentIndex + 1; i < ordered.length; i++) {
+      const file = files.find((f) => f.matchedEpisodeId === ordered[i].id);
+      if (file && !completedFileIds.has(file.id)) return file;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function hasLocalMovieMetadata(movie: Movie): boolean {
+  return Boolean(
+    movie.originalTitle ||
+      movie.overview ||
+      movie.posterPath ||
+      movie.backdropPath ||
+      movie.runtimeMinutes != null ||
+      movie.rating != null
+  );
+}
+
+function formatScanStatus(base: string, metadataSummary: AutoMetadataSummary | null): string {
+  if (!metadataSummary) {
+    return base;
+  }
+
+  const parts = [];
+  if (metadataSummary.applied) {
+    parts.push(`${metadataSummary.applied} TMDB match${metadataSummary.applied === 1 ? '' : 'es'} applied`);
+  }
+  if (metadataSummary.queued) {
+    parts.push(`${metadataSummary.queued} need${metadataSummary.queued === 1 ? 's' : ''} review`);
+  }
+  if (metadataSummary.failed) {
+    parts.push(`${metadataSummary.failed} TMDB lookup${metadataSummary.failed === 1 ? '' : 's'} failed`);
+  }
+
+  return parts.length ? `${base}; ${parts.join(', ')}` : base;
+}

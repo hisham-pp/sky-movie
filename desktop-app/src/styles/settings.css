@@ -1,0 +1,723 @@
+/* ── Settings page — full-width two-column layout ── */
+
+.settings-page {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Left sidebar ── */
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  border-right: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-solid) 60%, transparent);
+  backdrop-filter: blur(20px);
+  padding: 36px 20px 28px;
+  overflow-y: auto;
+}
+
+.settings-nav-header {
+  padding-top: 52px;
+}
+
+.settings-nav-header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.settings-nav-header p {
+  margin: 8px 0 0;
+  color: var(--soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.settings-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--soft);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  box-shadow: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.settings-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.settings-nav-item.active {
+  background: rgba(137, 206, 255, 0.1);
+  border-color: rgba(137, 206, 255, 0.2);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.settings-nav-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.settings-nav-item.active svg {
+  opacity: 1;
+  color: var(--primary);
+}
+
+/* ── Right content area ── */
+.settings-content {
+  overflow-y: auto;
+  padding: 88px 48px 80px;
+}
+
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* ── Section card ── */
+.settings-section {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: var(--surface-low);
+  padding: 28px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.settings-section-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.settings-section-heading p,
+.settings-nav-header p {
+  margin: 6px 0 0;
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* ── Theme grid ── */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.theme-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 90px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: left;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-card:hover,
+.theme-card.active {
+  border-color: var(--line-strong);
+  background: rgba(137, 206, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.theme-card.active {
+  box-shadow: var(--glow);
+}
+
+.theme-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: 64px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.theme-preview span:first-child {
+  grid-row: span 2;
+}
+
+.theme-card > span:last-child {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.theme-card strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ── Player style grid ── */
+.player-style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.player-style-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  min-height: 80px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: left;
+  align-content: start;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.player-style-card:hover,
+.player-style-card.active {
+  border-color: var(--line-strong);
+  background: rgba(137, 206, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.player-style-card.active {
+  box-shadow: var(--glow);
+}
+
+.player-style-card strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.player-style-card small {
+  color: var(--soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ── Form grid ── */
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.settings-section label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.settings-section label:not(.switch-row) input,
+.settings-section label:not(.switch-row) .glass-select {
+  width: 100%;
+}
+
+/* ── Action buttons ── */
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.settings-actions.left {
+  justify-content: flex-start;
+}
+
+.settings-hint {
+  margin: 10px 0 0;
+  color: var(--muted, rgba(255, 255, 255, 0.5));
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.settings-actions button,
+.settings-section > button,
+.inline-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Folder list ── */
+.folder-list {
+  display: grid;
+  gap: 8px;
+}
+
+.folder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0 8px 0 14px;
+}
+
+.folder-row span {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--soft);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-row button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+}
+
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* ── Danger zone ── */
+.danger-zone {
+  border-color: rgba(255, 180, 171, 0.35);
+}
+
+.danger-zone h3 {
+  color: var(--danger);
+}
+
+.danger-zone button {
+  border-color: rgba(255, 180, 171, 0.28);
+}
+
+.danger-zone button:hover {
+  border-color: var(--danger);
+  background: rgba(255, 180, 171, 0.08);
+  color: var(--ink);
+  box-shadow: 0 0 18px rgba(255, 180, 171, 0.14);
+}
+
+/* ── Switch component ── */
+.switch-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  color: var(--soft);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.switch-track input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-thumb {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  transition: background 0.18s var(--ease-fluid), border-color 0.18s var(--ease-fluid);
+}
+
+.switch-thumb::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--soft, #aaa);
+  transition: transform 0.22s var(--ease-spring), width 0.15s ease, background 0.18s var(--ease-fluid);
+}
+
+.switch-track:active .switch-thumb::after {
+  width: 20px;
+}
+
+.switch-track input:checked ~ .switch-thumb {
+  background: var(--primary);
+}
+
+.switch-track input:checked ~ .switch-thumb::after {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.switch-track input:focus-visible ~ .switch-thumb {
+  border-color: var(--focus-border);
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Update progress ── */
+.update-download-progress {
+  display: grid;
+  gap: 6px;
+  padding: 14px 0 2px;
+}
+
+.update-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+
+.update-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #89ceff;
+  transition: width 0.2s ease;
+}
+
+.update-progress-size {
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+
+.update-check-result {
+  padding-top: 4px;
+}
+
+.update-available strong {
+  color: var(--ink);
+}
+
+.update-current {
+  color: var(--soft);
+  font-size: 13px;
+}
+
+.update-note {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.release-notes {
+  margin-top: 10px;
+  color: var(--soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.release-notes ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+/* Download button */
+.update-download-btn {
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--primary);
+}
+
+.update-download-btn:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+/* Install button — highlighted call-to-action */
+.update-install-btn {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+}
+
+.update-install-btn:hover {
+  background: var(--primary-strong, color-mix(in srgb, var(--primary) 80%, #fff));
+  color: var(--on-primary);
+}
+
+/* Installing inline label */
+.update-installing-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* Ready-to-install green banner */
+.update-ready-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, #10b981 30%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, #10b981 10%, transparent);
+  color: #34d399;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Torrent settings extras ── */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 13px;
+  color: var(--soft);
+}
+
+.settings-path-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.settings-number-input {
+  width: 80px;
+  min-height: 36px;
+  padding: 0 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.settings-number-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.settings-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--soft);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-btn-ghost:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--ink);
+}
+
+.settings-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: 10px;
+  color: var(--on-primary, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.settings-btn-primary:hover { opacity: 0.88; }
+.settings-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.settings-empty {
+  color: var(--soft);
+  font-size: 13px;
+}
+
+/* ── Torrent settings layout helpers ── */
+
+/* Outer wrapper — fills the tab content area and stacks body + save bar */
+.ts-settings-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Scrollable body */
+.ts-settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-content: start;
+}
+
+/* Full-width card (spans both columns) */
+.ts-full {
+  grid-column: 1 / -1;
+}
+
+/* Path fields: side by side when both visible, full width otherwise */
+.ts-path-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.ts-path-grid:has(> *:nth-child(2)) {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Protocol toggles: 2-per-row grid */
+.ts-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+}
+
+/* Port / connections / cache: 3-per-row */
+.ts-number-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+
+/* Sticky save bar pinned to the bottom */
+.ts-save-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 32px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-solid) 80%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Save button row (used elsewhere) */
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .ts-settings-body { grid-template-columns: 1fr; }
+  .ts-full          { grid-column: 1; }
+  .ts-path-grid     { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .ts-toggle-grid { grid-template-columns: 1fr; }
+  .ts-number-grid { grid-template-columns: 1fr 1fr; }
+}
