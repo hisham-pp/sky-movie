@@ -22,13 +22,13 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { AppSettings, AppTheme, LibraryScanMode, MatcherStrategy, PlayerStyle, UpdateCheckResult, UpdateDownloadProgress, UpdateStatus, UpdateProgressEvent } from '@shared/ipc';
-import { GlassSelect, Switch, Tooltip } from '../common';
+import { GlassSelect, Switch, Tooltip, PillTabs, type PillTab } from '../common';
 import { formatBytes } from '../../utils/format';
 import { LAUNCH_ONBOARDING_EVENT } from '../../config/events';
 
 type SettingsTab = 'appearance' | 'library' | 'updates' | 'help';
 
-const tabs: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }> = [
+const tabs: Array<PillTab<SettingsTab>> = [
   { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
   { id: 'library', label: 'Library & Data', icon: <Library size={16} /> },
   { id: 'updates', label: 'Updates', icon: <Zap size={16} /> },
@@ -186,20 +186,14 @@ export const SettingsPanel = memo(function SettingsPanel({
           <p>Manage the local vault, metadata matching, backups, and exports.</p>
         </div>
 
-        <nav className="settings-nav-list" role="tablist" aria-label="Settings sections">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`settings-nav-item${activeTab === tab.id ? ' active' : ''}`}
-              onClick={() => handleTabChange(tab.id)}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        <PillTabs
+          orientation="vertical"
+          variant="subtle"
+          tabs={tabs}
+          value={activeTab}
+          onChange={handleTabChange}
+          ariaLabel="Settings sections"
+        />
       </aside>
 
       {/* Right content area */}

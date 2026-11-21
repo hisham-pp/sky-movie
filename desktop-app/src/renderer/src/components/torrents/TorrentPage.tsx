@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Download, CheckCircle2, Settings, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { SearchTab } from './SearchTab';
@@ -7,12 +7,13 @@ import { DownloadedTab } from './DownloadedTab';
 import { TorrentSettingsTab } from './TorrentSettingsTab';
 import { useTorrentDownloads } from '../../hooks/useTorrent';
 import { formatSpeed } from './utils';
+import { PillTabs, type PillTab } from '../common';
 
 type Tab = 'search' | 'downloads' | 'downloaded' | 'settings';
 const VALID_TABS: Tab[] = ['search', 'downloads', 'downloaded', 'settings'];
 const LS_KEY = 'sky-movie:torrent-tab';
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+const BASE_TABS: PillTab<Tab>[] = [
   { id: 'search', label: 'Search', icon: <Search size={14} /> },
   { id: 'downloads', label: 'Downloads', icon: <Download size={14} /> },
   { id: 'downloaded', label: 'Downloaded', icon: <CheckCircle2 size={14} /> },
@@ -40,6 +41,20 @@ export function TorrentPage() {
     setActiveTab(tab);
     localStorage.setItem(LS_KEY, tab);
   };
+
+  // Build tabs with live badge counts
+  const pillTabs = useMemo<PillTab<Tab>[]>(() =>
+    BASE_TABS.map((tab) => {
+      const badge =
+        tab.id === 'downloads'
+          ? stats.activeTorrents
+          : tab.id === 'downloaded'
+            ? (stats.totalTorrents - stats.activeTorrents)
+            : undefined;
+      return badge && badge > 0 ? { ...tab, badge } : tab;
+    }),
+    [stats.activeTorrents, stats.totalTorrents],
+  );
 
   return (
     <div className="browse-grid">
@@ -71,28 +86,8 @@ export function TorrentPage() {
         </div>
 
         {/* Cinema Tab Pills */}
-        <div className="filter-row torrent-nav-tabs mb-6">
-          {TABS.map((tab) => {
-            const count =
-              tab.id === 'downloads'
-                ? stats.activeTorrents
-                : tab.id === 'downloaded'
-                  ? (stats.totalTorrents - stats.activeTorrents)
-                  : undefined;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`filter-toggle-btn torrent-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-              >
-                {tab.icon}
-                {tab.label}
-                {typeof count === 'number' && count > 0 && (
-                  <span className="torrent-tab-count">{count}</span>
-                )}
-              </button>
-            );
-          })}
+        <div className="mb-6">
+          <PillTabs tabs={pillTabs} value={activeTab} onChange={handleTabChange} />
         </div>
 
         {/* Tab content */}

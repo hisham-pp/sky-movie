@@ -25,6 +25,7 @@ import './styles/torrent-stream.css';
 import './styles/route-error.css';
 import './styles/shortcuts-overlay.css';
 import './styles/tooltip.css';
+import './styles/pill-tabs.css';
 import './styles/onboarding.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

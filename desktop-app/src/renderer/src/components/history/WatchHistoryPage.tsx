@@ -3,7 +3,7 @@ import { Film, Tv, Clock, CheckCircle2, RotateCcw, Trash2, Play, History, Grid3x
 import type { WatchHistoryItem } from '@shared/ipc';
 import { EmptyLibraryState } from '../library/EmptyLibraryState';
 import { SectionTitle } from '../library/SectionTitle';
-import { Button, Tooltip } from '../common';
+import { Button, Tooltip, PillTabs, type PillTab } from '../common';
 import { formatDuration, formatPosition, formatRelativeDate } from '../../utils/dateUtils';
 import { toDisplayImageUrl } from '../../utils/imageUrl';
 
@@ -229,6 +229,17 @@ const HistoryItem = memo(function HistoryItem({ item, isPlaying, onPlay, onDelet
   );
 });
 
+const HISTORY_TABS: PillTab<'all' | 'in-progress' | 'completed'>[] = [
+  { id: 'all', label: 'All Activity' },
+  { id: 'in-progress', label: 'In Progress' },
+  { id: 'completed', label: 'Completed' },
+];
+
+const VIEW_MODE_TABS: PillTab<'grid' | 'list'>[] = [
+  { id: 'grid', icon: <Grid3x3 size={17} />, tooltip: 'Grid view', ariaLabel: 'Grid view' },
+  { id: 'list', icon: <List size={17} />, tooltip: 'List view', ariaLabel: 'List view' },
+];
+
 export const WatchHistoryPage = memo(function WatchHistoryPage({
   items,
   loading,
@@ -293,40 +304,18 @@ export const WatchHistoryPage = memo(function WatchHistoryPage({
         </div>
 
         <div className="wh-controls-bar">
-          <div className="wh-filter-tabs">
-            {(['all', 'in-progress', 'completed'] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={`wh-filter-tab${filter === f ? ' active' : ''}`}
-                onClick={() => setFilter(f)}
-              >
-                {f === 'all' ? 'All Activity' : f === 'in-progress' ? 'In Progress' : 'Completed'}
-              </button>
-            ))}
-          </div>
-          <div className="view-mode-toggle">
-            <Tooltip content="Grid view">
-              <button
-                type="button"
-                className={viewMode === 'grid' ? 'active' : ''}
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid view"
-              >
-                <Grid3x3 size={17} />
-              </button>
-            </Tooltip>
-            <Tooltip content="List view">
-              <button
-                type="button"
-                className={viewMode === 'list' ? 'active' : ''}
-                onClick={() => setViewMode('list')}
-                aria-label="List view"
-              >
-                <List size={17} />
-              </button>
-            </Tooltip>
-          </div>
+          <PillTabs
+            tabs={HISTORY_TABS}
+            value={filter}
+            onChange={setFilter}
+          />
+          <PillTabs
+            size="small"
+            tabs={VIEW_MODE_TABS}
+            value={viewMode}
+            onChange={setViewMode}
+            ariaLabel="View mode"
+          />
         </div>
 
         <SectionTitle

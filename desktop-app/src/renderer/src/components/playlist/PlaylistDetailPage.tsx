@@ -2,7 +2,12 @@ import { memo, useState, useCallback } from 'react';
 import { ArrowLeft, ListMusic, Edit2, Trash2, Film, Tv, GripVertical, X, Plus, Grid3x3, List, Play, ExternalLink } from 'lucide-react';
 import type { Playlist, PlaylistItem, Movie, TvShow } from '@shared/ipc';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
-import { Button, Tooltip } from '../common';
+import { Button, Tooltip, PillTabs, type PillTab } from '../common';
+
+const PLAYLIST_VIEW_TABS: PillTab<'list' | 'grid'>[] = [
+  { id: 'list', icon: <List size={18} />, tooltip: 'List view', ariaLabel: 'List view' },
+  { id: 'grid', icon: <Grid3x3 size={18} />, tooltip: 'Grid view', ariaLabel: 'Grid view' },
+];
 
 interface PlaylistDetailPageProps {
   playlist: Playlist;
@@ -190,18 +195,13 @@ export const PlaylistDetailPage = memo(function PlaylistDetailPage({
             <h2>Playlist Items</h2>
             <span>{items.length} items</span>
           </div>
-          <div className="view-mode-toggle">
-            <Tooltip content="List view">
-              <button className={viewMode === 'list' ? 'active' : ''} onClick={handleSetListView} aria-label="List view">
-                <List size={18} />
-              </button>
-            </Tooltip>
-            <Tooltip content="Grid view">
-              <button className={viewMode === 'grid' ? 'active' : ''} onClick={handleSetGridView} aria-label="Grid view">
-                <Grid3x3 size={18} />
-              </button>
-            </Tooltip>
-          </div>
+          <PillTabs
+            size="small"
+            tabs={PLAYLIST_VIEW_TABS}
+            value={viewMode}
+            onChange={setViewMode}
+            ariaLabel="View mode"
+          />
         </div>
 
         {items.length ? (

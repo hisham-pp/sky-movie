@@ -6,3 +6,5 @@ export type { GlassSelectOption } from './GlassSelect';
 export { Switch } from './Switch';
 export { Tooltip } from './Tooltip';
 export type { TooltipPlacement } from './Tooltip';
+export { PillTabs } from './PillTabs';
+export type { PillTab, PillTabsOrientation, PillTabsVariant, PillTabsSize } from './PillTabs';
