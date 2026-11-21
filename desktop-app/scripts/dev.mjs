@@ -65,7 +65,7 @@ async function main() {
   console.log(`\n🚀 Starting Sky Movie in Electron dev mode...`);
   console.log(`   Next.js URL: ${devUrl}\n`);
 
-  const nextBin = require.resolve('next/dist/bin/next');
+  const nextBin = require.resolve('next/dist/bin/next', { paths: [appDir] });
   const nextProcess = spawn(process.execPath, [nextBin, 'dev', '-p', String(port), '-H', '127.0.0.1'], {
     cwd: appDir,
     stdio: 'inherit',
