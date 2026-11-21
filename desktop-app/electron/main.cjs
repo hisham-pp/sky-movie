@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, Menu } = require('electron');
 const path = require('node:path');
 const { fork } = require('node:child_process');
 const http = require('node:http');
@@ -67,6 +67,8 @@ async function startServer(port) {
 }
 
 async function createWindow(url) {
+  Menu.setApplicationMenu(null);
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -74,9 +76,12 @@ async function createWindow(url) {
     minHeight: 600,
     title: 'Sky Movie',
     backgroundColor: '#000000',
+    frame: false,
+    titleBarStyle: 'hidden',
     icon: path.join(__dirname, '../build/favicon.ico'),
     autoHideMenuBar: true,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true
@@ -101,6 +106,23 @@ async function createWindow(url) {
 
   await mainWindow.loadURL(url);
 }
+
+ipcMain.handle('window:minimize', () => {
+  mainWindow?.minimize();
+});
+
+ipcMain.handle('window:maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow.maximize();
+  }
+});
+
+ipcMain.handle('window:close', () => {
+  mainWindow?.close();
+});
 
 app.whenReady().then(async () => {
   try {

@@ -1,8 +1,26 @@
+interface ElectronWindowAPI {
+  minimize: () => Promise<void>;
+  maximize: () => Promise<void>;
+  close: () => Promise<void>;
+}
+
+declare global {
+  interface Window {
+    electronWindow?: ElectronWindowAPI;
+  }
+}
+
 export async function windowMinimize(): Promise<void> {
-  // Web browser alternative: no minimize in standard browser
+  if (typeof window !== 'undefined' && window.electronWindow) {
+    await window.electronWindow.minimize();
+  }
 }
 
 export async function windowMaximize(): Promise<void> {
+  if (typeof window !== 'undefined' && window.electronWindow) {
+    await window.electronWindow.maximize();
+    return;
+  }
   if (typeof document !== 'undefined') {
     if (document.fullscreenElement) {
       void document.exitFullscreen();
@@ -13,7 +31,12 @@ export async function windowMaximize(): Promise<void> {
 }
 
 export async function windowClose(): Promise<void> {
+  if (typeof window !== 'undefined' && window.electronWindow) {
+    await window.electronWindow.close();
+    return;
+  }
   if (typeof window !== 'undefined') {
     window.close();
   }
 }
+
