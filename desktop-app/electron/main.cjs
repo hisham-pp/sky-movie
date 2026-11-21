@@ -56,7 +56,8 @@ async function startServer(port) {
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
-      ELECTRON_RUN_AS_NODE: '1'
+      ELECTRON_RUN_AS_NODE: '1',
+      SKY_MOVIE_DATA_DIR: app.getPath('userData')
     },
     stdio: 'inherit'
   });
@@ -126,6 +127,7 @@ ipcMain.handle('window:close', () => {
 
 app.whenReady().then(async () => {
   try {
+    process.env.SKY_MOVIE_DATA_DIR = app.getPath('userData');
     let serverUrl = process.env.DEV_SERVER_URL;
 
     if (!serverUrl) {

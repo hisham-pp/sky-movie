@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -23,16 +23,40 @@ function resolveUserDataDir(): string {
   const home = homedir();
 
   if (platform === 'win32') {
-    const appData = process.env.APPDATA;
-    return appData ? join(appData, 'sky-movie') : join(home, 'AppData', 'Roaming', 'sky-movie');
+    const appData = process.env.APPDATA || join(home, 'AppData', 'Roaming');
+    const electronDir = join(appData, '@sky-movie', 'desktop-app');
+    if (existsSync(join(electronDir, 'database.sqlite'))) {
+      return electronDir;
+    }
+    const legacyDir = join(appData, 'sky-movie');
+    if (existsSync(join(legacyDir, 'database.sqlite'))) {
+      return legacyDir;
+    }
+    return electronDir;
   }
 
   if (platform === 'darwin') {
-    return join(home, 'Library', 'Application Support', 'sky-movie');
+    const electronDir = join(home, 'Library', 'Application Support', '@sky-movie', 'desktop-app');
+    if (existsSync(join(electronDir, 'database.sqlite'))) {
+      return electronDir;
+    }
+    const legacyDir = join(home, 'Library', 'Application Support', 'sky-movie');
+    if (existsSync(join(legacyDir, 'database.sqlite'))) {
+      return legacyDir;
+    }
+    return electronDir;
   }
 
-  const xdg = process.env.XDG_CONFIG_HOME;
-  return xdg ? join(xdg, 'sky-movie') : join(home, '.config', 'sky-movie');
+  const xdg = process.env.XDG_CONFIG_HOME || join(home, '.config');
+  const electronDir = join(xdg, '@sky-movie', 'desktop-app');
+  if (existsSync(join(electronDir, 'database.sqlite'))) {
+    return electronDir;
+  }
+  const legacyDir = join(xdg, 'sky-movie');
+  if (existsSync(join(legacyDir, 'database.sqlite'))) {
+    return legacyDir;
+  }
+  return electronDir;
 }
 
 export function ensureAppDataLayout(): AppDataPaths {

@@ -65,6 +65,13 @@ async function main() {
   console.log(`\n🚀 Starting Sky Movie in Electron dev mode...`);
   console.log(`   Next.js URL: ${devUrl}\n`);
 
+  const appDataDir = process.env.APPDATA || path.join(process.env.USERPROFILE || '', 'AppData', 'Roaming');
+  const defaultUserData = process.platform === 'win32'
+    ? path.join(appDataDir, '@sky-movie', 'desktop-app')
+    : process.platform === 'darwin'
+      ? path.join(process.env.HOME || '', 'Library', 'Application Support', '@sky-movie', 'desktop-app')
+      : path.join(process.env.XDG_CONFIG_HOME || path.join(process.env.HOME || '', '.config'), '@sky-movie', 'desktop-app');
+
   const nextBin = require.resolve('next/dist/bin/next', { paths: [appDir] });
   const nextProcess = spawn(electronPath, [nextBin, 'dev', '-p', String(port), '-H', '127.0.0.1'], {
     cwd: appDir,
@@ -72,7 +79,8 @@ async function main() {
     env: {
       ...process.env,
       PORT: String(port),
-      ELECTRON_RUN_AS_NODE: '1'
+      ELECTRON_RUN_AS_NODE: '1',
+      SKY_MOVIE_DATA_DIR: defaultUserData
     }
   });
 
