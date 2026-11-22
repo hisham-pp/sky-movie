@@ -24,14 +24,58 @@ export class PlaylistService {
       )
       .all() as Record<string, unknown>[];
 
-    return rows.map((row) => ({
-      id: row.id as number,
-      name: row.name as string,
-      description: row.description as string | null,
-      itemCount: row.item_count as number,
-      createdAt: row.created_at as string,
-      updatedAt: row.updated_at as string
-    }));
+    const itemRows = this.db
+      .prepare(
+        `SELECT ci.collection_id,
+                COALESCE(m.poster_path, s.poster_path) as poster_path,
+                COALESCE(m.backdrop_path, s.backdrop_path) as backdrop_path
+         FROM collection_items ci
+         LEFT JOIN movies m ON ci.movie_id = m.id
+         LEFT JOIN tv_shows s ON ci.show_id = s.id
+         WHERE (m.poster_path IS NOT NULL OR s.poster_path IS NOT NULL OR m.backdrop_path IS NOT NULL OR s.backdrop_path IS NOT NULL)
+         ORDER BY ci.collection_id, ci.sort_order ASC`
+      )
+      .all() as { collection_id: number; poster_path: string | null; backdrop_path: string | null }[];
+
+    const postersByCollection = new Map<number, string[]>();
+    const backdropsByCollection = new Map<number, string[]>();
+
+    for (const item of itemRows) {
+      if (item.poster_path) {
+        let list = postersByCollection.get(item.collection_id);
+        if (!list) {
+          list = [];
+          postersByCollection.set(item.collection_id, list);
+        }
+        if (list.length < 10 && !list.includes(item.poster_path)) {
+          list.push(item.poster_path);
+        }
+      }
+      if (item.backdrop_path) {
+        let bList = backdropsByCollection.get(item.collection_id);
+        if (!bList) {
+          bList = [];
+          backdropsByCollection.set(item.collection_id, bList);
+        }
+        if (bList.length < 5 && !bList.includes(item.backdrop_path)) {
+          bList.push(item.backdrop_path);
+        }
+      }
+    }
+
+    return rows.map((row) => {
+      const id = row.id as number;
+      return {
+        id,
+        name: row.name as string,
+        description: row.description as string | null,
+        itemCount: row.item_count as number,
+        posters: postersByCollection.get(id) || [],
+        backdrops: backdropsByCollection.get(id) || [],
+        createdAt: (row.created_at as string) || new Date().toISOString(),
+        updatedAt: (row.updated_at as string) || new Date().toISOString()
+      };
+    });
   }
 
   getPlaylistById(id: number): PlaylistItem[] {

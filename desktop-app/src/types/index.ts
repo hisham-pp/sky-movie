@@ -98,6 +98,8 @@ export interface Playlist {
   name: string;
   description: string | null;
   itemCount: number;
+  posters?: string[];
+  backdrops?: string[];
   createdAt: string;
   updatedAt: string;
 }

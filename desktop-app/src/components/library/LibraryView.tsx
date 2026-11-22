@@ -258,11 +258,14 @@ export function LibraryView({
       {view === 'playlists' && (
         <BrowsePlaylistsPage
           playlists={playlists}
+          selectedPlaylist={selectedPlaylist}
           onSelectPlaylist={onSelectPlaylist}
           onCreatePlaylist={onCreatePlaylist}
           showCreateModal={showCreateModal}
           setShowCreateModal={setShowCreateModal}
           busy={busy}
+          player={player}
+          onOpenExternal={onOpenExternal}
         />
       )}
 

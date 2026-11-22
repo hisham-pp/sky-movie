@@ -835,6 +835,7 @@
   content: "";
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   transition: opacity 0.22s var(--ease-fluid);
+  z-index: 1;
 }
 
 .show-poster {
