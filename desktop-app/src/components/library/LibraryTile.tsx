@@ -69,12 +69,12 @@ export const MovieTile = memo(function MovieTile({
           <Film size={34} />
         )}
         {movie.source === 'youtube' ? (
-          <span className="tile-badge bg-red-600 border border-red-500/50 flex items-center gap-1">
-            <Youtube size={10} /> YT
+          <span className="tile-badge tile-badge--icon-only bg-red-600 border border-red-500/50" title="YouTube">
+            <Youtube size={12} />
           </span>
         ) : (
-          <span className="tile-badge flex items-center gap-1">
-            <Library size={10} /> Library
+          <span className="tile-badge tile-badge--icon-only" title="In Library">
+            <Library size={12} />
           </span>
         )}
         <FavoriteButton favorite={movie.favorite} onToggle={handleFavorite} />
@@ -145,8 +145,8 @@ export const ShowTile = memo(function ShowTile({
         ) : (
           <Tv size={34} />
         )}
-        <span className="tile-badge flex items-center gap-1">
-          <Tv size={10} /> TV
+        <span className="tile-badge tile-badge--icon-only" title="TV Series">
+          <Tv size={12} />
         </span>
         <FavoriteButton favorite={show.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
