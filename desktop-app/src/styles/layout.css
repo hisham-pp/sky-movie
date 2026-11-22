@@ -153,7 +153,7 @@
   backdrop-filter: var(--glass-blur-light);
   -webkit-backdrop-filter: var(--glass-blur-light);
   box-shadow: none;
-  color: var(--muted);
+  color: var(--soft, rgba(255, 255, 255, 0.85));
   cursor: pointer;
   -webkit-app-region: no-drag;
   transition:
@@ -161,6 +161,30 @@
     background 0.22s var(--ease-fluid),
     color 0.22s var(--ease-fluid),
     transform 0.08s ease;
+}
+
+.pill-btn svg,
+.nav-btn svg,
+.window-control svg {
+  display: block;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.nav-controls .pill-btn,
+.nav-controls .nav-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.nav-controls .pill-btn:hover,
+.nav-controls .nav-btn:hover {
+  color: #ffffff;
+}
+
+.nav-controls .pill-btn:disabled,
+.nav-controls .nav-btn:disabled {
+  opacity: 0.35;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 /* Single standalone button has full pill radius on all 4 corners */

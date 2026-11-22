@@ -84,7 +84,7 @@ export const NavControls = memo(function NavControls({
           onClick={handleRefresh}
           tooltip="Reload (Ctrl+R)"
           aria-label="Reload page"
-          icon={<RotateCw size={16} className={isRefreshing ? 'nav-btn-icon--spin' : ''} />}
+          icon={<RotateCw size={16} strokeWidth={2.2} className={isRefreshing ? 'nav-btn-icon--spin' : ''} />}
         />
       )}
 

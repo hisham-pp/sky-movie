@@ -46,7 +46,7 @@
   backdrop-filter: var(--glass-blur-light);
   -webkit-backdrop-filter: var(--glass-blur-light);
   box-shadow: none;
-  color: var(--muted);
+  color: var(--soft, rgba(255, 255, 255, 0.85));
   cursor: pointer;
   -webkit-app-region: no-drag;
   transition:
