@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Film, Heart, Tv, Info, Youtube } from 'lucide-react';
+import { Film, Heart, Tv, Info, Youtube, Library } from 'lucide-react';
 import type { Movie, TvShow } from '@shared/ipc';
 import { Tooltip } from '../common';
 import { toDisplayImageUrl } from '../../utils/imageUrl';
@@ -73,7 +73,9 @@ export const MovieTile = memo(function MovieTile({
             <Youtube size={10} /> YT
           </span>
         ) : (
-          <span className="tile-badge">LOCAL</span>
+          <span className="tile-badge flex items-center gap-1">
+            <Library size={10} /> Library
+          </span>
         )}
         <FavoriteButton favorite={movie.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
@@ -143,7 +145,9 @@ export const ShowTile = memo(function ShowTile({
         ) : (
           <Tv size={34} />
         )}
-        <span className="tile-badge">TV</span>
+        <span className="tile-badge flex items-center gap-1">
+          <Tv size={10} /> TV
+        </span>
         <FavoriteButton favorite={show.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
           <strong>{show.title}</strong>
