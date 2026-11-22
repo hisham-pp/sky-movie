@@ -69,6 +69,8 @@
   border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  padding-left: 6px;
+  padding-right: 0;
 }
 
 .detail-nav-bar .nav-btn.nav-btn--refresh {
@@ -86,6 +88,8 @@
   border-bottom-left-radius: 0;
   border-top-right-radius: 9999px;
   border-bottom-right-radius: 9999px;
+  padding-left: 0;
+  padding-right: 6px;
 }
 
 .detail-nav-bar .nav-btn:hover {

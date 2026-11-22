@@ -176,6 +176,8 @@
   border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  padding-left: 6px;
+  padding-right: 0;
 }
 
 /* Middle button in between: 0 border-radius on all sides */
@@ -210,6 +212,8 @@
   border-bottom-left-radius: 0;
   border-top-right-radius: 9999px;
   border-bottom-right-radius: 9999px;
+  padding-left: 0;
+  padding-right: 6px;
 }
 
 .pill-btn:hover,
