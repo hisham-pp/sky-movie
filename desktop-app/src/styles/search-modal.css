@@ -364,22 +364,31 @@
   padding: 7px 10px;
   background: transparent;
   border: none;
-  border-radius: 10px;
+  outline: none;
+  border-radius: 8px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.12s ease;
   width: 100%;
   box-sizing: border-box;
   -webkit-app-region: no-drag;
+  box-shadow: none;
 }
 
 .search-modal-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 .search-modal-item--active {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.search-modal-item:focus,
+.search-modal-item:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .search-modal-item-playlist-icon {

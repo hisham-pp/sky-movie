@@ -26,35 +26,78 @@
   border-bottom: none;
 }
 
-.nav-controls {
+.detail-nav-bar .nav-controls {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.nav-btn {
-  display: grid;
-  place-items: center;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: var(--soft);
-  cursor: pointer;
-  transition: all 0.2s ease;
   -webkit-app-region: no-drag;
 }
 
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: var(--ink);
+.detail-nav-bar .nav-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  box-shadow: none;
+  color: var(--muted);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    transform 0.08s ease;
 }
 
-.nav-btn:active {
-  transform: scale(0.95);
+.detail-nav-bar .nav-btn.nav-btn--single {
+  border-radius: 9999px;
+}
+
+.detail-nav-bar .nav-btn.nav-btn--back,
+.detail-nav-bar .nav-controls > :first-child .nav-btn,
+.detail-nav-bar .nav-controls > .nav-btn:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.detail-nav-bar .nav-btn.nav-btn--refresh {
+  border-radius: 0 !important;
+}
+
+.detail-nav-bar .nav-btn.nav-btn--forward,
+.detail-nav-bar .nav-controls > :last-child .nav-btn,
+.detail-nav-bar .nav-controls > .nav-btn:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+
+.detail-nav-bar .nav-btn:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
+
+.detail-nav-bar .nav-btn:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.94);
+}
+
+.detail-nav-bar .nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
 }
 
 .detail-nav-bar .search {

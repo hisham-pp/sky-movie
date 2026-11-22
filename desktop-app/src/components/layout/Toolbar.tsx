@@ -1,8 +1,8 @@
 'use client';
 
 import { memo, useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
-import { Tooltip } from '../common';
+import { AlertTriangle } from 'lucide-react';
+import { NavControls } from '../common';
 import { SearchPill } from './SearchPill';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 
@@ -11,6 +11,7 @@ export interface ToolbarProps {
   onOpenUnrecognized?: () => void;
   onBack?: () => void;
   onForward?: () => void;
+  onRefresh?: () => void;
   // Search capabilities
   isSearchOpen: boolean;
   onOpenSearch: () => void;
@@ -29,6 +30,7 @@ export const Toolbar = memo(function Toolbar({
   onOpenUnrecognized,
   onBack,
   onForward,
+  onRefresh,
   isSearchOpen,
   onOpenSearch,
   onCloseSearch,
@@ -55,18 +57,7 @@ export const Toolbar = memo(function Toolbar({
       <div className="topbar-feather-blur" aria-hidden="true" />
       <header className={`toolbar${isBarOpen ? ' toolbar--search-open' : ''}`}>
         <div className="toolbar-spacer">
-          <div className="nav-controls">
-            <Tooltip content="Go back (Alt+←)">
-              <button className="nav-btn" onClick={onBack} aria-label="Go back">
-                <ArrowLeft size={18} />
-              </button>
-            </Tooltip>
-            <Tooltip content="Go forward (Alt+→)">
-              <button className="nav-btn" onClick={onForward} aria-label="Go forward">
-                <ArrowRight size={18} />
-              </button>
-            </Tooltip>
-          </div>
+          <NavControls onBack={onBack} onForward={onForward} onRefresh={onRefresh} />
         </div>
 
         <SearchPill

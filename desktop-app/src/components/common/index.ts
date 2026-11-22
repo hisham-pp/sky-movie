@@ -8,3 +8,6 @@ export { Tooltip } from './Tooltip';
 export type { TooltipPlacement } from './Tooltip';
 export { PillTabs } from './PillTabs';
 export type { PillTab, PillTabsOrientation, PillTabsVariant, PillTabsSize } from './PillTabs';
+export { NavControls, NavButton } from './NavControls';
+export type { NavControlsProps, NavButtonProps, NavButtonPosition } from './NavControls';
+

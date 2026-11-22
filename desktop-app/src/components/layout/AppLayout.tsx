@@ -219,6 +219,7 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
             onOpenUnrecognized={handleUnrecognizedOpen}
             onBack={handleBack}
             onForward={handleForward}
+            onRefresh={handleRefresh}
           />
 
           {children}
