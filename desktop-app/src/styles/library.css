@@ -217,7 +217,8 @@
   margin-bottom: 0;
 }
 
-.hero-chips span,
+.hero-chips .pill-chip,
+.hero-chips > span:not(.tooltip-trigger),
 .hero-chips .hero-play-btn {
   display: inline-flex;
   align-items: center;
@@ -242,7 +243,8 @@
     transform 0.08s ease;
 }
 
-.hero-chips span:hover {
+.hero-chips .pill-chip:hover,
+.hero-chips > span:not(.tooltip-trigger):hover {
   border-color: rgba(255, 255, 255, 0.22);
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
@@ -252,7 +254,7 @@
   width: 46px;
   min-width: 46px;
   padding: 0;
-  padding-left: 2px;
+  padding-left: 6px;
   cursor: pointer;
   background: var(--primary);
   border-color: transparent;
@@ -263,7 +265,6 @@
   background: color-mix(in srgb, var(--primary) 88%, white);
   border-color: transparent;
   color: var(--on-primary);
-  transform: scale(1.04);
 }
 
 .hero-chips .hero-play-btn:active {

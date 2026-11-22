@@ -96,7 +96,6 @@ export const BannerHero = memo(function BannerHero({
               <PillButton
                 position="first"
                 variant="primary"
-                tooltip="Play"
                 aria-label="Play"
                 icon={<Play size={15} fill="currentColor" />}
                 onClick={onPlay}
