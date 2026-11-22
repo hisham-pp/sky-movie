@@ -605,10 +605,8 @@
 
 .tile {
   position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(32px, auto) 16px;
-  align-content: start;
-  gap: 7px;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   border: 1px solid transparent;
   background: transparent;
@@ -618,9 +616,9 @@
   cursor: pointer;
   transition: transform 0.22s var(--ease-spring);
   /* Skip layout/paint for offscreen tiles — keeps large libraries scrolling smoothly.
-     The intrinsic size approximates poster (2:3) + caption so the scrollbar stays stable. */
+     The intrinsic size approximates poster (2:3) so the scrollbar stays stable. */
   content-visibility: auto;
-  contain-intrinsic-size: 150px 285px;
+  contain-intrinsic-size: 150px 225px;
 }
 
 .tile:hover {
@@ -680,11 +678,18 @@
 .poster::after {
   position: absolute;
   inset: auto 0 0;
-  height: 60%;
+  height: 65%;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.72) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.05) 15%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0.92) 100%
+  );
   content: "";
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  transition: opacity 0.22s var(--ease-fluid);
 }
 
 .show-poster {
@@ -715,82 +720,97 @@
 
 .tile-overlay {
   position: absolute;
-  inset: auto 10px 10px;
+  inset: auto 0 0 0;
+  padding: 10px;
   z-index: 2;
-  display: grid;
-  gap: 5px;
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 0.22s var(--ease-fluid),
-    transform 0.25s var(--ease-spring);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-.tile:hover .tile-overlay {
-  opacity: 1;
-  transform: translateY(0);
+.tile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
 }
 
-.tile-overlay strong,
-.tile-overlay small {
-  overflow: hidden;
-  color: white;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+.tile-meta strong,
 .tile-overlay strong {
-  font-size: 13.5px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
   font-weight: 700;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  line-height: 1.25;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.8);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-word;
 }
 
+.tile-meta small,
 .tile-overlay small {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Circular glass icon action, matching the player control buttons */
+/* Circular glass icon action in the bottom-right corner */
 .details-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: var(--overlay-bg);
   backdrop-filter: var(--glass-blur-control);
   -webkit-backdrop-filter: var(--glass-blur-control);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--control-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 var(--control-border);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
-  margin-top: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.85);
+  transition:
+    opacity 0.2s var(--ease-fluid),
+    transform 0.2s var(--ease-fluid),
+    background 0.15s ease,
+    border-color 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.tile:hover .details-button,
+.tile:focus-within .details-button {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
 }
 
 .details-button:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1) !important;
 }
 
-.tile>strong {
-  display: -webkit-box;
-  overflow: hidden;
-  min-height: 32px;
-  color: var(--ink);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.3;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
+.tile>strong,
 .tile>span {
-  font-size: 11px;
-  color: var(--muted);
+  display: none;
 }
 
 /* Favorite heart toggle — circular glass action on the poster's top-right.

@@ -79,8 +79,10 @@ export const MovieTile = memo(function MovieTile({
         )}
         <FavoriteButton favorite={movie.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
-          <strong>{movie.title}</strong>
-          <small>{movie.releaseYear ?? 'Unknown year'}</small>
+          <div className="tile-meta">
+            <strong title={movie.title}>{movie.title}</strong>
+            <small>{movie.releaseYear ?? 'Unknown year'}</small>
+          </div>
           <Tooltip content="View details">
             <button
               className="details-button"
@@ -95,8 +97,6 @@ export const MovieTile = memo(function MovieTile({
           </Tooltip>
         </span>
       </div>
-      <strong>{movie.title}</strong>
-      <span>{movie.releaseYear ?? 'Unknown year'}</span>
     </div>
   );
 });
@@ -150,8 +150,10 @@ export const ShowTile = memo(function ShowTile({
         </span>
         <FavoriteButton favorite={show.favorite} onToggle={handleFavorite} />
         <span className="tile-overlay">
-          <strong>{show.title}</strong>
-          <small>{show.firstAirYear ?? 'Unknown year'}</small>
+          <div className="tile-meta">
+            <strong title={show.title}>{show.title}</strong>
+            <small>{show.firstAirYear ?? 'Unknown year'}</small>
+          </div>
           <Tooltip content="View details">
             <button
               className="details-button"
@@ -166,8 +168,6 @@ export const ShowTile = memo(function ShowTile({
           </Tooltip>
         </span>
       </div>
-      <strong>{show.title}</strong>
-      <span>{show.firstAirYear ?? 'Unknown year'}</span>
     </div>
   );
 });

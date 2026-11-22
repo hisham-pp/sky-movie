@@ -104,12 +104,14 @@ const HistoryGridItem = memo(function HistoryGridItem({
         )}
 
         <span className="tile-overlay">
-          <strong>{item.title}</strong>
-          <small>
-            {item.completed
-              ? 'Completed'
-              : `${formatPosition(item.positionSeconds)}${item.durationSeconds > 0 ? ` / ${formatDuration(item.durationSeconds)}` : ''}`}
-          </small>
+          <div className="tile-meta">
+            <strong title={item.title}>{item.title}</strong>
+            <small>
+              {item.completed
+                ? 'Completed'
+                : `${formatPosition(item.positionSeconds)}${item.durationSeconds > 0 ? ` / ${formatDuration(item.durationSeconds)}` : ''}`} · {formatRelativeDate(item.lastWatchedAt)}
+            </small>
+          </div>
           <Tooltip content={item.completed ? 'Play again' : 'Resume playback'}>
             <button
               className="details-button"
@@ -124,8 +126,6 @@ const HistoryGridItem = memo(function HistoryGridItem({
           </Tooltip>
         </span>
       </div>
-      <strong>{item.title}</strong>
-      <span>{formatRelativeDate(item.lastWatchedAt)}</span>
     </div>
   );
 });

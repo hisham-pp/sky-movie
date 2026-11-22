@@ -65,12 +65,12 @@ export const BrowsePlaylistsPage = memo(function BrowsePlaylistsPage({
                     {playlist.itemCount} ITEM{playlist.itemCount !== 1 ? 'S' : ''}
                   </span>
                   <span className="tile-overlay">
-                    <strong>{playlist.name}</strong>
-                    <small>{playlist.description || `${playlist.itemCount} items`}</small>
+                    <div className="tile-meta">
+                      <strong title={playlist.name}>{playlist.name}</strong>
+                      <small>{playlist.description || `${playlist.itemCount} items`}</small>
+                    </div>
                   </span>
                 </div>
-                <strong>{playlist.name}</strong>
-                <span>{playlist.itemCount} item{playlist.itemCount !== 1 ? 's' : ''}</span>
               </div>
             ))}
           </div>
