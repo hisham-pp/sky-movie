@@ -93,10 +93,28 @@ export const SearchPill = memo(function SearchPill({
         setQuery('');
         setActiveIndex(-1);
         onActiveChange?.(false);
-      }, 210);
+      }, 230);
       return () => clearTimeout(timer);
     }
   }, [isOpen, rendered, onActiveChange]);
+
+  // Close when clicking outside the search modal container
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDownOutside = (e: MouseEvent | PointerEvent | TouchEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDownOutside, true);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDownOutside, true);
+    };
+  }, [isOpen, onClose]);
 
   const q = query.toLowerCase();
 

@@ -4,23 +4,23 @@
    ========================================================================== */
 
 /* Full-Screen Backdrop matching the exact modal wash & blur
-   Smooth CSS transitions precisely synchronized with pill open (0.25s) and close (0.2s) */
+   Smooth CSS transitions precisely synchronized with pill open (0.28s) and close (0.22s) */
 .search-pill-backdrop {
   position: fixed;
   inset: 0;
   z-index: 998;
-  background: rgba(6, 8, 12, 0.45);
+  background: rgba(4, 6, 10, 0.55);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  cursor: default;
+  cursor: pointer;
   -webkit-app-region: no-drag;
   will-change: opacity;
   transition:
-    opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    visibility 0s linear 0.2s;
+    opacity 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    visibility 0s linear 0.22s;
 }
 
 .search-pill-backdrop.is-active {
@@ -28,7 +28,7 @@
   visibility: visible;
   pointer-events: auto;
   transition:
-    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     visibility 0s linear 0s;
 }
 
@@ -37,8 +37,8 @@
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    visibility 0s linear 0.2s;
+    opacity 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    visibility 0s linear 0.22s;
 }
 
 /* Anchor container inside Toolbar that maintains layout position */
@@ -91,7 +91,7 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%) translateZ(0);
-  will-change: width, max-height, border-radius;
+  will-change: width, border-radius, background, border-color, box-shadow;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   width: 280px;
@@ -106,10 +106,11 @@
   cursor: pointer;
   -webkit-app-region: no-drag;
   transition:
-    width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    border-radius 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.2s ease,
-    border-color 0.2s ease;
+    width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .search-pill:hover:not(.is-expanded) {
@@ -128,9 +129,14 @@
   width: 620px;
   max-width: min(620px, calc(100vw - 48px));
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: none;
+  background: rgba(10, 14, 22, 0.82);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.75),
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
   cursor: default;
 }
 
@@ -142,10 +148,11 @@
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: none;
   transition:
-    width 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    border-radius 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    background 0.18s ease,
-    border-color 0.18s ease;
+    width 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    border-radius 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.22s ease;
 }
 
 /* Header / Pill Top Bar
@@ -271,38 +278,41 @@
   }
 }
 
-/* Smooth Expand-Down Dropdown Container (60fps GPU max-height + opacity) */
+/* Smooth Expand-Down Dropdown Container (60fps GPU grid-template-rows + opacity) */
 .search-pill-dropdown {
+  display: grid;
+  grid-template-rows: 0fr;
   width: 100%;
-  max-height: 0;
   opacity: 0;
   overflow: hidden;
   box-sizing: border-box;
-  will-change: max-height, opacity;
+  will-change: grid-template-rows, opacity;
   transition:
-    max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .search-pill.is-expanded .search-pill-dropdown {
-  max-height: 480px;
+  grid-template-rows: 1fr;
   opacity: 1;
 }
 
 .search-pill.is-closing .search-pill-dropdown {
-  max-height: 0;
+  grid-template-rows: 0fr;
   opacity: 0;
   transition:
-    max-height 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    opacity 0.14s ease-out;
+    grid-template-rows 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.16s ease-out;
 }
 
-/* Full-width container across the entire modal - no cutoffs or missing strips */
+/* Full-width container across the entire modal - min-height: 0 required for grid animation */
 .search-pill-dropdown-inner {
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 100%;
+  min-height: 0;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
