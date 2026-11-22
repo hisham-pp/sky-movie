@@ -81,7 +81,7 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
   }, []);
 
   const currentView = useMemo((): ViewMode => {
-    if (pathname === '/settings') return 'settings';
+    if (pathname.startsWith('/settings')) return 'settings';
     if (pathname === '/scan') return 'scan';
     if (pathname === '/history') return 'history';
     if (pathname.startsWith('/playlists')) return 'playlists';

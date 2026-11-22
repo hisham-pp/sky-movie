@@ -30,19 +30,20 @@ type AnyItem = NavResultItem | ResultItem;
 
 const ALL_NAV_RESULT_ITEMS: NavResultItem[] = [
   ...ALL_NAV_ITEMS.map((n) => ({ kind: 'nav' as const, label: n.label, path: n.path, icon: n.iconLg })),
-  // Downloads sub-tabs
-  { kind: 'nav', label: 'Downloads', sublabel: 'Search', path: '/downloads?tab=search',     icon: <Download size={18} /> },
-  { kind: 'nav', label: 'Downloads', sublabel: 'Active', path: '/downloads?tab=downloads',  icon: <Download size={18} /> },
-  { kind: 'nav', label: 'Downloads', sublabel: 'Completed', path: '/downloads?tab=downloaded', icon: <Download size={18} /> },
-  { kind: 'nav', label: 'Downloads', sublabel: 'Settings', path: '/downloads?tab=settings', icon: <Download size={18} /> },
-  // Settings sub-tabs
-  { kind: 'nav', label: 'Settings', sublabel: 'Appearance', path: '/settings?tab=appearance', icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Library',    path: '/settings?tab=library',    icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Metadata',   path: '/settings?tab=metadata',   icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Backups',    path: '/settings?tab=backups',     icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Downloads',  path: '/settings?tab=downloads',   icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Local Data', path: '/settings?tab=local-data',  icon: <Settings size={18} /> },
-  { kind: 'nav', label: 'Settings', sublabel: 'Updates',    path: '/settings?tab=updates',     icon: <Settings size={18} /> },
+  // Downloads sub-pages
+  { kind: 'nav', label: 'Downloads', sublabel: 'Search', path: '/downloads/search', icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Active', path: '/downloads/downloads', icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Completed', path: '/downloads/downloaded', icon: <Download size={18} /> },
+  { kind: 'nav', label: 'Downloads', sublabel: 'Settings', path: '/downloads/settings', icon: <Download size={18} /> },
+  // Settings sub-pages
+  { kind: 'nav', label: 'Settings', sublabel: 'Appearance', path: '/settings/appearance', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Library', path: '/settings/library', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Metadata', path: '/settings/library#metadata', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Backups', path: '/settings/library#backups', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Downloads', path: '/settings/library#downloads', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Local Data', path: '/settings/library#local-data', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Updates', path: '/settings/updates', icon: <Settings size={18} /> },
+  { kind: 'nav', label: 'Settings', sublabel: 'Help', path: '/settings/help', icon: <Settings size={18} /> },
 ];
 
 export const SearchPill = memo(function SearchPill({

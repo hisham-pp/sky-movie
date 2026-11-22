@@ -17,7 +17,7 @@ export function ScanRoute() {
       busy={library.busy}
       lastScan={library.lastScan}
       onScanLibraries={library.scanLibraries}
-      onOpenSettings={() => router.push('/settings')}
+      onOpenSettings={() => router.push('/settings/library')}
     />
   );
 }
