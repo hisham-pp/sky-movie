@@ -63,6 +63,8 @@
 .detail-nav-bar .nav-btn.nav-btn--back,
 .detail-nav-bar .nav-controls > :first-child .nav-btn,
 .detail-nav-bar .nav-controls > .nav-btn:first-child {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 9999px;
   border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
@@ -70,12 +72,16 @@
 }
 
 .detail-nav-bar .nav-btn.nav-btn--refresh {
+  width: 36px;
+  min-width: 36px;
   border-radius: 0 !important;
 }
 
 .detail-nav-bar .nav-btn.nav-btn--forward,
 .detail-nav-bar .nav-controls > :last-child .nav-btn,
 .detail-nav-bar .nav-controls > .nav-btn:last-child {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-top-right-radius: 9999px;

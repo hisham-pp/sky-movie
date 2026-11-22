@@ -157,7 +157,8 @@
   border-radius: 9999px;
 }
 
-/* Outer sides keep the pill radius; inner sides where they meet have NO border radius */
+/* Outer sides keep the pill radius; inner sides where they meet have NO border radius.
+   End buttons have increased width (46px) so the rounded pill cap has proper optical breathing room. */
 .pill-btn--first,
 .pill-btn--back,
 .pill-btn--minimize,
@@ -169,6 +170,8 @@
 .nav-controls > .nav-btn:first-child,
 .window-controls > :first-child .window-control,
 .window-controls > .window-control:first-child {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 9999px;
   border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
@@ -183,10 +186,13 @@
 .nav-btn--refresh,
 .window-control--maximize,
 .window-control--restore {
+  width: 36px;
+  min-width: 36px;
   border-radius: 0 !important;
 }
 
-/* Outer sides keep the pill radius; inner sides where they meet have NO border radius */
+/* Outer sides keep the pill radius; inner sides where they meet have NO border radius.
+   End buttons have increased width (46px) so the rounded pill cap has proper optical breathing room. */
 .pill-btn--last,
 .pill-btn--forward,
 .pill-btn--close,
@@ -198,6 +204,8 @@
 .nav-controls > .nav-btn:last-child,
 .window-controls > :last-child .window-control,
 .window-controls > .window-control:last-child {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-top-right-radius: 9999px;
