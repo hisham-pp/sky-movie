@@ -4,7 +4,7 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreVertical, Folder, FolderOpen, Trash2, X, Search } from 'lucide-react';
 import type { MediaFile } from '@shared/ipc';
-import { Modal, ModalFooter, PillButton, PillButtonPosition } from '../common';
+import { Modal, ModalFooter, Button, PillButton, PillButtonPosition } from '../common';
 
 interface MediaOptionsMenuProps {
   files: MediaFile[];

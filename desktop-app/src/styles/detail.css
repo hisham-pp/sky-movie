@@ -169,9 +169,10 @@
 }
 
 .detail-poster-section {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 16px;
-  justify-items: stretch;
   position: relative;
   overflow: visible;
 }
@@ -179,26 +180,27 @@
 .detail-poster-section .detail-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  width: 180px;
+  width: max-content;
   position: relative;
   overflow: visible;
 }
 
-.detail-poster-section .detail-actions .btn,
 .detail-poster-section .detail-actions .media-options-menu {
-  flex: 1;
-  min-width: 0;
+  display: inline-flex;
+  position: relative;
 }
 
+/* Fallback for legacy .btn in detail actions if any */
 .detail-poster-section .detail-actions .btn {
-  padding: 0;
-  width: 100%;
+  display: grid;
+  place-items: center;
+  width: 36px;
   height: 36px;
+  min-width: 36px;
   min-height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0;
   border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(0, 0, 0, 0.4);
@@ -225,14 +227,15 @@
   transform: scale(0.94);
 }
 
-/* First button (Play) - rounded on outer left, flat on right, KEEPING PREVIOUS PURPLE COLOR */
 .detail-poster-section .detail-actions > :first-child .btn,
 .detail-poster-section .detail-actions > .btn:first-child {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 9999px;
   border-bottom-left-radius: 9999px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  padding-left: 2px;
+  padding-left: 6px;
 }
 
 .detail-poster-section .detail-actions .btn-primary {
@@ -253,19 +256,21 @@
   color: var(--on-primary);
 }
 
-/* Middle buttons (Playlist, Favorite, Search) - 0 border-radius on all sides */
 .detail-poster-section .detail-actions > :not(:first-child):not(:last-child) .btn {
   border-radius: 0 !important;
+  width: 36px;
+  min-width: 36px;
 }
 
-/* Last button (More options) - flat on left, rounded on outer right */
 .detail-poster-section .detail-actions > :last-child .btn,
 .detail-poster-section .detail-actions > .media-options-menu:last-child .btn {
+  width: 46px;
+  min-width: 46px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-top-right-radius: 9999px;
   border-bottom-right-radius: 9999px;
-  padding-right: 2px;
+  padding-right: 6px;
 }
 
 .detail-poster-section .detail-actions .btn.favorite-active {
