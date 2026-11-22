@@ -516,7 +516,7 @@
   display: block;
 }
 
-.filter-row .glass-select .gs__control {
+.filter-row .glass-select:not(.glass-select--pill):not(.glass-select--sm) .gs__control {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -538,6 +538,11 @@
     border-color 0.22s var(--ease-fluid),
     background 0.22s var(--ease-fluid),
     color 0.22s var(--ease-fluid);
+}
+
+.filter-search-input--single {
+  border-radius: 9999px !important;
+  padding-right: 16px;
 }
 
 .filter-row .glass-select.has-icon .gs__control {

@@ -20,6 +20,7 @@ export function GlassSelect<T>({
   icon,
   ariaLabel,
   size = 'md',
+  pill,
   className
 }: {
   options: GlassSelectOption<T>[];
@@ -28,6 +29,7 @@ export function GlassSelect<T>({
   icon?: ReactNode;
   ariaLabel?: string;
   size?: 'sm' | 'md';
+  pill?: boolean;
   className?: string;
 }) {
   const [mounted, setMounted] = useState(false);
@@ -38,7 +40,7 @@ export function GlassSelect<T>({
   const selected = options.find((option) => Object.is(option.value, value)) ?? null;
 
   return (
-    <div className={`glass-select glass-select--${size}${icon ? ' has-icon' : ''}${className ? ` ${className}` : ''}`}>
+    <div className={`glass-select glass-select--${size}${pill ? ' glass-select--pill' : ''}${icon ? ' has-icon' : ''}${className ? ` ${className}` : ''}`}>
       {icon && <span className="glass-select-icon">{icon}</span>}
       <Select<GlassSelectOption<T>>
         classNamePrefix="gs"

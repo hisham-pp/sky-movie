@@ -37,12 +37,13 @@ export function DownloadedTab() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter completed downloads…"
-            className="filter-search-input w-full"
+            className="filter-search-input filter-search-input--single w-full"
           />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <GlassSelect
             size="sm"
+            pill
             ariaLabel="Sort downloads"
             options={[
               { value: 'date' as const, label: 'Recent first' },
@@ -52,9 +53,9 @@ export function DownloadedTab() {
             value={sortBy}
             onChange={setSortBy}
           />
-          <span className="section-badge">
-            <HardDrive size={13} className="inline mr-1 text-[var(--primary)]" />
-            {formatBytes(totalSize)}
+          <span className="torrent-stat-pill">
+            <HardDrive size={13} className="text-[var(--primary)]" />
+            <span>{formatBytes(totalSize)}</span>
           </span>
         </div>
       </div>

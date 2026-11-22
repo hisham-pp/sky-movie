@@ -314,6 +314,7 @@ export function SearchTab() {
               <span className="text-xs text-white/40">Quality</span>
               <GlassSelect
                 size="sm"
+                pill
                 ariaLabel="Filter by quality"
                 options={QUALITY_OPTIONS.map((q) => ({ value: q, label: q === 'all' ? 'Any' : q }))}
                 value={quality}
@@ -324,6 +325,7 @@ export function SearchTab() {
               <span className="text-xs text-white/40">Sort by</span>
               <GlassSelect
                 size="sm"
+                pill
                 ariaLabel="Sort results"
                 options={SORT_OPTIONS.map((s) => ({ value: s.value as SortBy, label: s.label }))}
                 value={sortBy}

@@ -193,18 +193,22 @@
   color: var(--primary, #89ceff);
 }
 
-/* Compact variant for dense toolbars (torrent tabs) */
+/* Compact variant for dense toolbars (torrent tabs) & Pill variant */
 .glass-select--sm {
   min-width: 104px;
 }
 
-.glass-select--sm .gs__control {
-  min-height: 30px;
-  border-radius: 9px;
+.glass-select--sm .gs__control,
+.glass-select--pill .gs__control {
+  min-height: 32px;
+  height: 32px;
+  border-radius: 9999px !important;
+  padding: 0 10px 0 14px;
   font-size: 12px;
 }
 
-.glass-select--sm .gs__option {
-  padding: 6px 9px;
+.glass-select--sm .gs__option,
+.glass-select--pill .gs__option {
+  padding: 6px 12px;
   font-size: 12px;
 }
