@@ -8,7 +8,13 @@ export { Tooltip } from './Tooltip';
 export type { TooltipPlacement } from './Tooltip';
 export { PillTabs } from './PillTabs';
 export type { PillTab, PillTabsOrientation, PillTabsVariant, PillTabsSize } from './PillTabs';
-export { PillButton, PillButtonGroup } from './PillButton';
-export type { PillButtonProps, PillButtonPosition, PillButtonGroupProps } from './PillButton';
+export { PillButton, PillButtonGroup, PillChip } from './PillButton';
+export type {
+  PillButtonProps,
+  PillButtonPosition,
+  PillButtonGroupProps,
+  PillChipProps,
+  PillChipPosition,
+} from './PillButton';
 export { NavControls, NavButton } from './NavControls';
 export type { NavControlsProps, NavButtonProps, NavButtonPosition } from './NavControls';

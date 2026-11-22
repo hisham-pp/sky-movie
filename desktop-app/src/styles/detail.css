@@ -177,9 +177,9 @@
 }
 
 .detail-poster-section .detail-actions {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 180px;
   position: relative;
   overflow: visible;
@@ -193,18 +193,79 @@
 
 .detail-poster-section .detail-actions .btn {
   padding: 0;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  color: var(--muted);
+  box-shadow: none;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    transform 0.08s ease;
 }
 
-.detail-poster-section .detail-actions .btn .btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.detail-poster-section .detail-actions .btn:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
+
+.detail-poster-section .detail-actions .btn:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.94);
+}
+
+/* First button (Play) - rounded on outer left, flat on right, KEEPING PREVIOUS PURPLE COLOR */
+.detail-poster-section .detail-actions > :first-child .btn,
+.detail-poster-section .detail-actions > .btn:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 2px;
+}
+
+.detail-poster-section .detail-actions .btn-primary {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.detail-poster-section .detail-actions .btn-primary:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.detail-poster-section .detail-actions .btn-primary:active {
+  background: color-mix(in srgb, var(--primary) 78%, black);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+/* Middle buttons (Playlist, Favorite, Search) - 0 border-radius on all sides */
+.detail-poster-section .detail-actions > :not(:first-child):not(:last-child) .btn {
+  border-radius: 0 !important;
+}
+
+/* Last button (More options) - flat on left, rounded on outer right */
+.detail-poster-section .detail-actions > :last-child .btn,
+.detail-poster-section .detail-actions > .media-options-menu:last-child .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-right: 2px;
 }
 
 .detail-poster-section .detail-actions .btn.favorite-active {
@@ -214,8 +275,8 @@
 }
 
 .detail-poster-section .detail-actions .btn.favorite-active:hover {
-  background: rgba(233, 69, 96, 0.24);
-  border-color: rgba(233, 69, 96, 0.6);
+  background: rgba(233, 69, 96, 0.26);
+  border-color: rgba(233, 69, 96, 0.65);
 }
 
 .detail-poster,
@@ -316,11 +377,11 @@
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: var(--glass-blur-light);
   -webkit-backdrop-filter: var(--glass-blur-light);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--soft);
   font-size: 13px;
   font-weight: 600;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
   box-shadow: none;
   transition:
     border-color 0.22s var(--ease-fluid),
@@ -332,6 +393,50 @@
   border-color: rgba(255, 255, 255, 0.22);
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
+}
+
+/* First chip (Year): rounded on outer left, flat on right, KEEPING PREVIOUS PURPLE COLOR */
+.hero-chips > span:first-child:not(:only-child) {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+  padding-left: 16px;
+  padding-right: 12px;
+}
+
+.hero-chips > span:first-child:not(:only-child):hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+/* Middle chips: 0 border radius on all sides */
+.hero-chips > span:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+/* Last chip: flat on left, rounded on outer right */
+.hero-chips > span:last-child:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-left: 12px;
+  padding-right: 16px;
+}
+
+/* Standalone single chip */
+.hero-chips > span:only-child {
+  border-radius: 9999px !important;
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
 }
 
 

@@ -10,6 +10,7 @@ import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
+import { PillChip } from '../common';
 import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 export const BrowseMoviesPage = memo(function BrowseMoviesPage({
@@ -134,11 +135,21 @@ export const BrowseMoviesPage = memo(function BrowseMoviesPage({
           badges={
             bannerMovie ? (
               <>
-                {bannerMovie.releaseYear && <span>{bannerMovie.releaseYear}</span>}
-                {bannerMovie.rating && <span>★ {bannerMovie.rating.toFixed(1)}</span>}
+                {bannerMovie.releaseYear && (
+                  <PillChip position={bannerMovie.rating ? 'middle' : 'last'}>
+                    {bannerMovie.releaseYear}
+                  </PillChip>
+                )}
+                {bannerMovie.rating && (
+                  <PillChip position="last">
+                    ★ {bannerMovie.rating.toFixed(1)}
+                  </PillChip>
+                )}
               </>
             ) : (
-              <span>{movies.length} movie{movies.length !== 1 ? 's' : ''}</span>
+              <PillChip position="single" variant="primary">
+                {movies.length} movie{movies.length !== 1 ? 's' : ''}
+              </PillChip>
             )
           }
           indicators={

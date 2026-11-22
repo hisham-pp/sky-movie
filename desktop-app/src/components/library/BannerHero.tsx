@@ -4,7 +4,7 @@ import { memo, useState, useEffect } from 'react';
 import { ReactNode } from 'react';
 import { Play } from 'lucide-react';
 import type { PlayMediaResult } from '@shared/ipc';
-import { Tooltip } from '../common';
+import { PillButton, PillButtonGroup } from '../common';
 import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 const BannerBackdrop = memo(function BannerBackdrop({ src }: { src: string | null }) {
@@ -91,16 +91,19 @@ export const BannerHero = memo(function BannerHero({
           <span>{label}</span>
           <h2 title={title}>{title}</h2>
           <p>{overview}</p>
-          <div className="hero-chips">
+          <PillButtonGroup className="hero-chips" aria-label="Featured media">
             {onPlay && (
-              <Tooltip content="Play">
-                <button className="hero-play-btn" onClick={onPlay} aria-label="Play">
-                  <Play size={15} fill="currentColor" />
-                </button>
-              </Tooltip>
+              <PillButton
+                position="first"
+                variant="primary"
+                tooltip="Play"
+                aria-label="Play"
+                icon={<Play size={15} fill="currentColor" />}
+                onClick={onPlay}
+              />
             )}
             {badges}
-          </div>
+          </PillButtonGroup>
           {actions}
         </div>
       </div>

@@ -217,13 +217,14 @@
   margin-bottom: 0;
 }
 
-.hero-chips span {
+.hero-chips span,
+.hero-chips .hero-play-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 36px;
   min-height: 36px;
-  border-radius: 9999px;
+  padding: 0 14px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: var(--glass-blur-light);
   -webkit-backdrop-filter: var(--glass-blur-light);
@@ -232,38 +233,7 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  padding: 0 14px;
-  box-shadow: none;
-  transition:
-    border-color 0.22s var(--ease-fluid),
-    background 0.22s var(--ease-fluid),
-    color 0.22s var(--ease-fluid);
-}
-
-.hero-chips span:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-}
-
-.hero-play-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 0;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0;
-  padding-left: 2px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: var(--glass-blur-light);
-  -webkit-backdrop-filter: var(--glass-blur-light);
-  color: var(--muted);
-  cursor: pointer;
+  border-radius: 0;
   box-shadow: none;
   transition:
     border-color 0.22s var(--ease-fluid),
@@ -272,17 +242,87 @@
     transform 0.08s ease;
 }
 
-.hero-play-btn:hover {
+.hero-chips span:hover {
   border-color: rgba(255, 255, 255, 0.22);
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
-  transform: scale(1.04);
-  box-shadow: none;
 }
 
-.hero-play-btn:active {
-  background: rgba(0, 0, 0, 0.6);
+.hero-chips .hero-play-btn {
+  width: 46px;
+  min-width: 46px;
+  padding: 0;
+  padding-left: 2px;
+  cursor: pointer;
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.hero-chips .hero-play-btn:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+  transform: scale(1.04);
+}
+
+.hero-chips .hero-play-btn:active {
+  background: color-mix(in srgb, var(--primary) 78%, black);
   transform: scale(0.94);
+}
+
+/* First item: rounded on outer left, flat on right (KEEPING PREVIOUS PURPLE COLOR) */
+.hero-chips > :first-child .hero-play-btn,
+.hero-chips > .hero-play-btn:first-child,
+.hero-chips > .tooltip-trigger:first-child .hero-play-btn,
+.hero-chips > span:first-child:not(:last-child) {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* When onPlay is not present, first span keeps previous purple color and left curve */
+.hero-chips:not(:has(.hero-play-btn)) > span:first-child:not(:only-child) {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+  padding-left: 16px;
+  padding-right: 12px;
+}
+
+.hero-chips:not(:has(.hero-play-btn)) > span:first-child:not(:only-child):hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+/* Middle items: 0 border radius on all sides */
+.hero-chips > :not(:first-child):not(:last-child),
+.hero-chips > span:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+/* Last item: flat on left, rounded on outer right */
+.hero-chips > :last-child,
+.hero-chips > span:last-child:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-left: 12px;
+  padding-right: 16px;
+}
+
+/* Single child */
+.hero-chips > :only-child,
+.hero-chips > span:only-child {
+  border-radius: 9999px !important;
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
 }
 
 .banner-indicators {

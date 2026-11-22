@@ -4,20 +4,22 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreVertical, Folder, FolderOpen, Trash2, X, Search } from 'lucide-react';
 import type { MediaFile } from '@shared/ipc';
-import { Modal, ModalFooter, Button, Tooltip } from '../common';
+import { Modal, ModalFooter, PillButton, PillButtonPosition } from '../common';
 
 interface MediaOptionsMenuProps {
   files: MediaFile[];
   onShowInFolder: (file: MediaFile) => void;
   onDeleteSomeFiles: () => void;
   onSearchGoogle?: () => void;
+  position?: PillButtonPosition;
 }
 
 export const MediaOptionsMenu = memo(function MediaOptionsMenu({
   files,
   onShowInFolder,
   onDeleteSomeFiles,
-  onSearchGoogle
+  onSearchGoogle,
+  position = 'last',
 }: MediaOptionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -80,14 +82,13 @@ export const MediaOptionsMenu = memo(function MediaOptionsMenu({
     <>
       <div className="media-options-menu" ref={menuRef}>
         <div ref={buttonRef}>
-          <Tooltip content="More options">
-            <Button
-              variant="secondary"
-              size="small"
-              icon={<MoreVertical size={14} />}
-              onClick={() => setIsOpen(!isOpen)}
-            />
-          </Tooltip>
+          <PillButton
+            position={position}
+            tooltip="More options"
+            aria-label="More options"
+            icon={<MoreVertical size={15} />}
+            onClick={() => setIsOpen(!isOpen)}
+          />
         </div>
 
         {isOpen && typeof document !== 'undefined' && createPortal(

@@ -10,6 +10,7 @@ import { BannerHero, BannerIndicators } from './BannerHero';
 import { EmptyLibraryState } from './EmptyLibraryState';
 import { LibraryFilters, type SortBy } from './LibraryFilters';
 import { SectionTitle } from './SectionTitle';
+import { PillChip } from '../common';
 import { toDisplayImageUrl } from '../../utils/imageUrl';
 
 export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
@@ -134,11 +135,21 @@ export const BrowseTvShowsPage = memo(function BrowseTvShowsPage({
           badges={
             bannerShow ? (
               <>
-                {bannerShow.firstAirYear && <span>{bannerShow.firstAirYear}</span>}
-                {bannerShow.rating && <span>★ {bannerShow.rating.toFixed(1)}</span>}
+                {bannerShow.firstAirYear && (
+                  <PillChip position={bannerShow.rating ? 'middle' : 'last'}>
+                    {bannerShow.firstAirYear}
+                  </PillChip>
+                )}
+                {bannerShow.rating && (
+                  <PillChip position="last">
+                    ★ {bannerShow.rating.toFixed(1)}
+                  </PillChip>
+                )}
               </>
             ) : (
-              <span>{shows.length} show{shows.length !== 1 ? 's' : ''}</span>
+              <PillChip position="single" variant="primary">
+                {shows.length} show{shows.length !== 1 ? 's' : ''}
+              </PillChip>
             )
           }
           indicators={

@@ -239,6 +239,40 @@
   pointer-events: none;
 }
 
+/* Primary variant (Play button & featured items) - brand purple preserving previous colors */
+.pill-btn--primary {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.pill-btn--primary:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+  transform: scale(1.04);
+}
+
+.pill-btn--primary:active {
+  background: color-mix(in srgb, var(--primary) 78%, black);
+  border-color: transparent;
+  color: var(--on-primary);
+  transform: scale(0.94);
+}
+
+/* Favorite button active highlight */
+.pill-btn.favorite-active {
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.5);
+  background: rgba(233, 69, 96, 0.18);
+}
+
+.pill-btn.favorite-active:hover {
+  background: rgba(233, 69, 96, 0.26);
+  border-color: rgba(233, 69, 96, 0.65);
+  color: #ff5c77;
+}
+
 /* Danger variant (Close button hover & active) - translucent ruby glass matching the dark glass pill effect */
 .pill-btn--danger:hover,
 .window-control--close:hover {
@@ -254,6 +288,84 @@
   border-color: rgba(239, 68, 68, 0.5);
   color: #ff9999;
   transform: scale(0.94);
+}
+
+/* ── Split-Pill Metadata Chip Styles ── */
+.pill-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 0;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    transform 0.08s ease;
+}
+
+.pill-chip:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.pill-chip--single,
+.pill-group > .pill-chip:only-child {
+  border-radius: 9999px !important;
+}
+
+.pill-chip--first,
+.pill-group > :first-child .pill-chip,
+.pill-group > .pill-chip:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 16px;
+  padding-right: 12px;
+}
+
+.pill-chip--middle,
+.pill-group > :not(:first-child):not(:last-child) .pill-chip,
+.pill-group > .pill-chip:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+.pill-chip--last,
+.pill-group > :last-child .pill-chip,
+.pill-group > .pill-chip:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-left: 12px;
+  padding-right: 16px;
+}
+
+.pill-chip--primary {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+}
+
+.pill-chip--primary:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
 }
 
 @keyframes navRefreshSpin {

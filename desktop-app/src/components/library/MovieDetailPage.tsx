@@ -7,7 +7,7 @@ import { PlaylistSelectorDialog } from '../playlist/PlaylistSelectorDialog';
 import { MetadataSearchDialog } from './MetadataSearchDialog';
 import { MediaOptionsMenu, DeleteFilesDialog } from './MediaOptionsMenu';
 import { MediaRelationsAndRecommendations } from './MediaRelationsAndRecommendations';
-import { Button, Tooltip } from '../common';
+import { PillButton, PillButtonGroup, PillChip } from '../common';
 import { openExternalUrl } from '@/queries';
 
 type MetadataResult = MovieMetadataSearchResult | TvMetadataSearchResult;
@@ -102,71 +102,85 @@ export const MovieDetailPage = memo(function MovieDetailPage({
             <div className="detail-poster">
               {movie.posterPath ? <img src={movie.posterPath} alt={movie.title} /> : <Clapperboard size={38} />}
             </div>
-            <div className="detail-actions">
+            <PillButtonGroup className="detail-actions" aria-label="Movie actions">
               {files.length > 0 ? (
-                <Tooltip content={playingFile ? 'Playing' : 'Play'}>
-                  <Button
-                    variant="primary"
-                    size="small"
-                    icon={<Play size={14} />}
-                    onClick={() => onPlay(files[0])}
-                    disabled={busy}
-                  />
-                </Tooltip>
+                <PillButton
+                  position="first"
+                  variant="primary"
+                  tooltip={playingFile ? 'Playing' : 'Play'}
+                  aria-label="Play"
+                  icon={<Play size={15} fill="currentColor" />}
+                  onClick={() => onPlay(files[0])}
+                  disabled={busy}
+                />
               ) : (
-                <Tooltip content="No files available">
-                  <Button
-                    variant="primary"
-                    size="small"
-                    icon={<Play size={14} />}
-                    disabled
-                  />
-                </Tooltip>
+                <PillButton
+                  position="first"
+                  variant="primary"
+                  tooltip="No files available"
+                  aria-label="Play"
+                  icon={<Play size={15} fill="currentColor" />}
+                  disabled
+                />
               )}
-              <Tooltip content={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}>
-                <Button
-                  variant="secondary"
-                  size="small"
-                  icon={<ListMusic size={14} />}
-                  onClick={handleOpenPlaylistDialog}
-                  disabled={busy || playlists.length === 0}
-                />
-              </Tooltip>
-              <Tooltip content={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}>
-                <Button
-                  variant="secondary"
-                  size="small"
-                  icon={<Heart size={14} fill={movie.favorite ? 'currentColor' : 'none'} />}
-                  onClick={() => onToggleFavorite('movie', movie.id, !movie.favorite)}
-                  disabled={busy}
-                  className={movie.favorite ? 'favorite-active' : ''}
-                />
-              </Tooltip>
-              <Tooltip content="Search metadata">
-                <Button
-                  variant="secondary"
-                  size="small"
-                  icon={<Search size={14} />}
-                  onClick={handleOpenMetadataDialog}
-                  disabled={busy}
-                />
-              </Tooltip>
+              <PillButton
+                position="middle"
+                tooltip={playlists.length === 0 ? 'Create a playlist first' : 'Add to playlist'}
+                aria-label="Add to playlist"
+                icon={<ListMusic size={15} />}
+                onClick={handleOpenPlaylistDialog}
+                disabled={busy || playlists.length === 0}
+              />
+              <PillButton
+                position="middle"
+                tooltip={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={movie.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                icon={<Heart size={15} fill={movie.favorite ? 'currentColor' : 'none'} />}
+                onClick={() => onToggleFavorite('movie', movie.id, !movie.favorite)}
+                disabled={busy}
+                className={movie.favorite ? 'favorite-active' : ''}
+              />
+              <PillButton
+                position="middle"
+                tooltip="Search metadata"
+                aria-label="Search metadata"
+                icon={<Search size={15} />}
+                onClick={handleOpenMetadataDialog}
+                disabled={busy}
+              />
               <MediaOptionsMenu
                 files={files}
                 onShowInFolder={onShowInFolder}
                 onDeleteSomeFiles={handleOpenDeleteDialog}
                 onSearchGoogle={handleSearchGoogle}
+                position="last"
               />
-            </div>
+            </PillButtonGroup>
           </div>
           <div className="detail-copy">
             <h2>{movie.title}</h2>
 
-            <div className="hero-chips">
-              {meta.map((item) => (
-                <span key={String(item)}>{item}</span>
-              ))}
-            </div>
+            <PillButtonGroup className="hero-chips" aria-label="Movie metadata">
+              {meta.map((item, idx) => {
+                const pos =
+                  meta.length === 1
+                    ? 'single'
+                    : idx === 0
+                    ? 'first'
+                    : idx === meta.length - 1
+                    ? 'last'
+                    : 'middle';
+                return (
+                  <PillChip
+                    key={String(item)}
+                    position={pos}
+                    variant={idx === 0 ? 'primary' : 'default'}
+                  >
+                    {item}
+                  </PillChip>
+                );
+              })}
+            </PillButtonGroup>
             <p className="detail-overview">{movie.overview ?? 'No overview stored yet. Load TMDB metadata to enrich this movie.'}</p>
           </div>
         </div>

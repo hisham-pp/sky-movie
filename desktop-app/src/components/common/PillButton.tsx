@@ -29,8 +29,8 @@ export interface PillButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   icon?: ReactNode;
   /** Hover tooltip content */
   tooltip?: ReactNode;
-  /** Visual variant: 'default' (glass hover) or 'danger' (red accent hover for close) */
-  variant?: 'default' | 'danger';
+  /** Visual variant: 'default' (glass hover), 'primary' (brand purple), or 'danger' (red accent hover for close) */
+  variant?: 'default' | 'primary' | 'danger';
 }
 
 /**
@@ -55,7 +55,8 @@ export const PillButton = memo(function PillButton({
     posClass = 'pill-btn--last';
   }
 
-  const variantClass = variant === 'danger' ? 'pill-btn--danger' : '';
+  const variantClass =
+    variant === 'primary' ? 'pill-btn--primary' : variant === 'danger' ? 'pill-btn--danger' : '';
   const fullClassName = `pill-btn ${posClass} ${variantClass} ${className}`.trim();
 
   const button = (
@@ -70,6 +71,44 @@ export const PillButton = memo(function PillButton({
   }
 
   return button;
+});
+
+export type PillChipPosition = 'first' | 'middle' | 'last' | 'single';
+
+export interface PillChipProps extends React.HTMLAttributes<HTMLSpanElement> {
+  position?: PillChipPosition;
+  variant?: 'default' | 'primary';
+  children: ReactNode;
+}
+
+/**
+ * Reusable metadata chip matching the split-pill design.
+ * Used for movie/show details (Year, Runtime, Rating) with flat meeting borders.
+ */
+export const PillChip = memo(function PillChip({
+  position = 'middle',
+  variant = 'default',
+  className = '',
+  children,
+  ...props
+}: PillChipProps) {
+  let posClass = 'pill-chip--single';
+  if (position === 'first') {
+    posClass = 'pill-chip--first';
+  } else if (position === 'middle') {
+    posClass = 'pill-chip--middle';
+  } else if (position === 'last') {
+    posClass = 'pill-chip--last';
+  }
+
+  const variantClass = variant === 'primary' ? 'pill-chip--primary' : '';
+  const fullClassName = `pill-chip ${posClass} ${variantClass} ${className}`.trim();
+
+  return (
+    <span className={fullClassName} {...props}>
+      {children}
+    </span>
+  );
 });
 
 export interface PillButtonGroupProps {
