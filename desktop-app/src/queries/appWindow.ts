@@ -3,6 +3,7 @@ interface ElectronWindowAPI {
   maximize: () => Promise<void>;
   close: () => Promise<void>;
   isMaximized?: () => Promise<boolean>;
+  moveBy?: (deltaX: number, deltaY: number) => void;
   onMaximizeChange?: (callback: (isMaximized: boolean) => void) => () => void;
 }
 
@@ -50,6 +51,12 @@ export async function windowIsMaximized(): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+export function windowMoveBy(deltaX: number, deltaY: number): void {
+  if (typeof window !== 'undefined' && window.electronWindow?.moveBy) {
+    window.electronWindow.moveBy(deltaX, deltaY);
+  }
 }
 
 export function onWindowMaximizeChange(callback: (isMaximized: boolean) => void): () => void {

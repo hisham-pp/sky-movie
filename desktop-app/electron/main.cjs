@@ -137,6 +137,15 @@ ipcMain.handle('window:isMaximized', () => {
   return mainWindow?.isMaximized() ?? false;
 });
 
+ipcMain.on('window:move-by', (_event, { deltaX, deltaY }) => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  }
+  const [x, y] = mainWindow.getPosition();
+  mainWindow.setPosition(Math.round(x + deltaX), Math.round(y + deltaY));
+});
+
 app.whenReady().then(async () => {
   try {
     process.env.SKY_MOVIE_DATA_DIR = app.getPath('userData');
