@@ -761,7 +761,6 @@
   text-align: left;
   box-shadow: none;
   cursor: pointer;
-  transition: transform 0.22s var(--ease-spring);
   /* Skip layout/paint for offscreen tiles — keeps large libraries scrolling smoothly.
      The intrinsic size approximates poster (2:3) so the scrollbar stays stable. */
   content-visibility: auto;
@@ -772,12 +771,11 @@
   background: transparent;
   border-color: transparent;
   box-shadow: none;
-  transform: translateY(-5px);
 }
 
 .tile:active {
-  transform: translateY(-2px) scale(0.98);
-  transition-duration: 0.08s;
+  transform: scale(0.98);
+  transition: transform 0.08s ease;
 }
 
 .tile.tile-selected .poster {
