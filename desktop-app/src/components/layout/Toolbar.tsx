@@ -1,26 +1,59 @@
 'use client';
 
-import { memo } from 'react';
-import { Search, AlertTriangle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { memo, useState, useEffect } from 'react';
+import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Tooltip } from '../common';
+import { SearchPill } from './SearchPill';
+import type { Movie, TvShow, Playlist } from '@shared/ipc';
 
-export const Toolbar = memo(function Toolbar({
-  onOpenSearch,
-  unmatchedCount,
-  onOpenUnrecognized,
-  onBack,
-  onForward
-}: {
-  onOpenSearch: () => void;
+export interface ToolbarProps {
   unmatchedCount?: number;
   onOpenUnrecognized?: () => void;
   onBack?: () => void;
   onForward?: () => void;
-}) {
+  // Search capabilities
+  isSearchOpen: boolean;
+  onOpenSearch: () => void;
+  onCloseSearch: () => void;
+  movies: Movie[];
+  shows: TvShow[];
+  playlists: Playlist[];
+  onSelectMovie: (movie: Movie) => void;
+  onSelectShow: (show: TvShow) => void;
+  onSelectPlaylist: (playlist: Playlist) => void;
+  onNavigate: (path: string) => void;
+}
+
+export const Toolbar = memo(function Toolbar({
+  unmatchedCount,
+  onOpenUnrecognized,
+  onBack,
+  onForward,
+  isSearchOpen,
+  onOpenSearch,
+  onCloseSearch,
+  movies,
+  shows,
+  playlists,
+  onSelectMovie,
+  onSelectShow,
+  onSelectPlaylist,
+  onNavigate,
+}: ToolbarProps) {
+  const [searchActive, setSearchActive] = useState(isSearchOpen);
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      setSearchActive(true);
+    }
+  }, [isSearchOpen]);
+
+  const isBarOpen = isSearchOpen || searchActive;
+
   return (
     <>
       <div className="topbar-feather-blur" aria-hidden="true" />
-      <header className="toolbar">
+      <header className={`toolbar${isBarOpen ? ' toolbar--search-open' : ''}`}>
         <div className="toolbar-spacer">
           <div className="nav-controls">
             <Tooltip content="Go back (Alt+←)">
@@ -36,32 +69,19 @@ export const Toolbar = memo(function Toolbar({
           </div>
         </div>
 
-        <div
-          className="search"
-          role="button"
-          tabIndex={0}
-          onMouseDown={(e) => {
-            // Prevent browser from focusing the readOnly toolbar input on mousedown,
-            // avoiding focus theft from the search modal
-            e.preventDefault();
-          }}
-          onClick={onOpenSearch}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onOpenSearch();
-            }
-          }}
-        >
-          <Search size={18} />
-          <input
-            placeholder="Search library"
-            readOnly
-            tabIndex={-1}
-            style={{ pointerEvents: 'none' }}
-          />
-          <kbd className="search-shortcut">Ctrl+K</kbd>
-        </div>
+        <SearchPill
+          isOpen={isSearchOpen}
+          onOpen={onOpenSearch}
+          onClose={onCloseSearch}
+          onActiveChange={setSearchActive}
+          movies={movies}
+          shows={shows}
+          playlists={playlists}
+          onSelectMovie={onSelectMovie}
+          onSelectShow={onSelectShow}
+          onSelectPlaylist={onSelectPlaylist}
+          onNavigate={onNavigate}
+        />
 
         <div className="toolbar-spacer">
           {unmatchedCount && unmatchedCount > 0 && onOpenUnrecognized ? (

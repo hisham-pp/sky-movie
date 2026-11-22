@@ -5,7 +5,6 @@ import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } fro
 import { useRouter, usePathname } from 'next/navigation';
 import { MetadataMatchDialog } from '../scan/MetadataMatchDialog';
 import { KeyboardShortcutsOverlay } from './KeyboardShortcutsOverlay';
-import { SearchModal } from './SearchModal';
 import { UnrecognizedDrawer } from '../scan/UnrecognizedDrawer';
 import { Sidebar } from './Sidebar';
 import { Toolbar } from './Toolbar';
@@ -206,7 +205,16 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
 
         <section className="workspace">
           <Toolbar
+            isSearchOpen={isSearchOpen}
             onOpenSearch={handleSearchToggle}
+            onCloseSearch={handleSearchClose}
+            movies={library.movies}
+            shows={library.shows}
+            playlists={library.playlists}
+            onSelectMovie={handleSelectMovie}
+            onSelectShow={handleSelectShow}
+            onSelectPlaylist={handleSelectPlaylist}
+            onNavigate={handleNavigate}
             unmatchedCount={library.unmatchedFiles.length}
             onOpenUnrecognized={handleUnrecognizedOpen}
             onBack={handleBack}
@@ -263,18 +271,6 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
               onClose={handleOnboardingClose}
             />
           )}
-
-          <SearchModal
-            isOpen={isSearchOpen}
-            onClose={handleSearchClose}
-            movies={library.movies}
-            shows={library.shows}
-            playlists={library.playlists}
-            onSelectMovie={handleSelectMovie}
-            onSelectShow={handleSelectShow}
-            onSelectPlaylist={handleSelectPlaylist}
-            onNavigate={handleNavigate}
-          />
         </section>
       </main>
     </>
