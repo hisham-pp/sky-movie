@@ -829,45 +829,11 @@
   gap: 0;
 }
 
-.add-to-playlist-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 0 24px;
-  border-bottom: 1px solid var(--line);
-}
-
-.add-to-playlist-tabs button {
+.add-to-playlist-tabs-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: transparent;
-  color: var(--soft);
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    color 0.14s var(--ease-fluid),
-    border-bottom-color 0.14s var(--ease-fluid),
-    background 0.14s var(--ease-fluid),
-    transform 0.1s var(--ease-spring);
-}
-
-.add-to-playlist-tabs button:hover {
-  color: var(--ink);
-  background: var(--surface-low);
-}
-
-.add-to-playlist-tabs button:active {
-  transform: scale(0.96);
-  transition-duration: 0.08s;
-}
-
-.add-to-playlist-tabs button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
 }
 
 .add-to-playlist-search {
