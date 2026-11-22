@@ -91,14 +91,16 @@ export const BannerHero = memo(function BannerHero({
           <span>{label}</span>
           <h2 title={title}>{title}</h2>
           <p>{overview}</p>
-          <div className="hero-chips">{badges}</div>
-          {onPlay && (
-            <Tooltip content="Play">
-              <button className="hero-play-btn" onClick={onPlay} aria-label="Play">
-                <Play size={16} fill="currentColor" />
-              </button>
-            </Tooltip>
-          )}
+          <div className="hero-chips">
+            {onPlay && (
+              <Tooltip content="Play">
+                <button className="hero-play-btn" onClick={onPlay} aria-label="Play">
+                  <Play size={15} fill="currentColor" />
+                </button>
+              </Tooltip>
+            )}
+            {badges}
+          </div>
           {actions}
         </div>
       </div>

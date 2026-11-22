@@ -300,19 +300,28 @@
 
 .hero-chips {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .hero-chips span {
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
   color: var(--soft);
   font-size: 13px;
   font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
 }
 
 
