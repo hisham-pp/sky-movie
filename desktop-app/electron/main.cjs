@@ -96,6 +96,14 @@ async function createWindow(url) {
     return { action: 'deny' };
   });
 
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents?.send('window:maximized-change', true);
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents?.send('window:maximized-change', false);
+  });
+
   if (!app.isPackaged) {
     mainWindow.webContents.on('before-input-event', (event, input) => {
       if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
@@ -123,6 +131,10 @@ ipcMain.handle('window:maximize', () => {
 
 ipcMain.handle('window:close', () => {
   mainWindow?.close();
+});
+
+ipcMain.handle('window:isMaximized', () => {
+  return mainWindow?.isMaximized() ?? false;
 });
 
 app.whenReady().then(async () => {

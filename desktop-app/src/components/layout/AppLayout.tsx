@@ -11,7 +11,6 @@ import { Toolbar } from './Toolbar';
 import { LibraryControllerProvider, useLibraryControllerContext } from '@/hooks/LibraryControllerContext';
 import { useGlobalKeyboardShortcuts } from '@/hooks/useGlobalKeyboardShortcuts';
 import { LoadingScreen } from './LoadingScreen';
-import { WindowControls } from './WindowControls';
 import { LastWatchedButton } from '../library/LastWatchedButton';
 import { FloatingPlayer } from '../player/FloatingPlayer';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
@@ -191,7 +190,6 @@ function AppLayoutInner({ children }: { children: ReactNode }) {
   return (
     <>
       <LoadingScreen visible={library.settings === null} />
-      <WindowControls />
       <main className={`app-shell${sidebarExpanded ? ' sidebar-expanded' : ''}${hideSidebar ? ' sidebar-hidden' : ''}`} data-theme={theme}>
         {!hideSidebar && (
           <Sidebar

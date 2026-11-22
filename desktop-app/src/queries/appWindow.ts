@@ -2,6 +2,8 @@ interface ElectronWindowAPI {
   minimize: () => Promise<void>;
   maximize: () => Promise<void>;
   close: () => Promise<void>;
+  isMaximized?: () => Promise<boolean>;
+  onMaximizeChange?: (callback: (isMaximized: boolean) => void) => () => void;
 }
 
 declare global {
@@ -40,3 +42,30 @@ export async function windowClose(): Promise<void> {
   }
 }
 
+export async function windowIsMaximized(): Promise<boolean> {
+  if (typeof window !== 'undefined' && window.electronWindow?.isMaximized) {
+    return await window.electronWindow.isMaximized();
+  }
+  if (typeof document !== 'undefined' && document.fullscreenElement) {
+    return true;
+  }
+  return false;
+}
+
+export function onWindowMaximizeChange(callback: (isMaximized: boolean) => void): () => void {
+  if (typeof window !== 'undefined' && window.electronWindow?.onMaximizeChange) {
+    return window.electronWindow.onMaximizeChange(callback);
+  }
+  if (typeof window !== 'undefined') {
+    const handler = () => {
+      callback(Boolean(document.fullscreenElement));
+    };
+    window.addEventListener('resize', handler);
+    document.addEventListener('fullscreenchange', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+      document.removeEventListener('fullscreenchange', handler);
+    };
+  }
+  return () => {};
+}

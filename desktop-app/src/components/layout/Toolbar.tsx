@@ -4,6 +4,7 @@ import { memo, useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { NavControls } from '../common';
 import { SearchPill } from './SearchPill';
+import { WindowControls } from './WindowControls';
 import type { Movie, TvShow, Playlist } from '@shared/ipc';
 
 export interface ToolbarProps {
@@ -56,7 +57,7 @@ export const Toolbar = memo(function Toolbar({
     <>
       <div className="topbar-feather-blur" aria-hidden="true" />
       <header className={`toolbar${isBarOpen ? ' toolbar--search-open' : ''}`}>
-        <div className="toolbar-spacer">
+        <div className="toolbar-spacer toolbar-spacer--left">
           <NavControls onBack={onBack} onForward={onForward} onRefresh={onRefresh} />
         </div>
 
@@ -74,7 +75,7 @@ export const Toolbar = memo(function Toolbar({
           onNavigate={onNavigate}
         />
 
-        <div className="toolbar-spacer">
+        <div className="toolbar-spacer toolbar-spacer--right">
           {unmatchedCount && unmatchedCount > 0 && onOpenUnrecognized ? (
             <button className="toolbar-badge" onClick={onOpenUnrecognized}>
               <AlertTriangle size={18} />
@@ -82,6 +83,7 @@ export const Toolbar = memo(function Toolbar({
               <span className="badge-count">{unmatchedCount}</span>
             </button>
           ) : null}
+          <WindowControls />
         </div>
       </header>
     </>
