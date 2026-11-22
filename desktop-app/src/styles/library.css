@@ -490,9 +490,36 @@
 /* Middle items: GlassSelects (0 border-radius on all sides) */
 .filter-row .glass-select {
   min-width: 125px;
+  height: 36px;
+  min-height: 36px;
+}
+
+.filter-row .glass-select > div:not(.glass-select-icon) {
+  height: 100%;
+}
+
+.filter-row .glass-select-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.filter-row .glass-select-icon svg {
+  display: block;
 }
 
 .filter-row .glass-select .gs__control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   height: 36px;
   min-height: 36px;
   padding: 0 8px 0 12px;
@@ -504,6 +531,8 @@
   color: var(--soft);
   font-size: 13px;
   font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
   box-shadow: none;
   transition:
     border-color 0.22s var(--ease-fluid),
@@ -513,11 +542,6 @@
 
 .filter-row .glass-select.has-icon .gs__control {
   padding-left: 32px;
-}
-
-.filter-row .glass-select-icon {
-  left: 12px;
-  color: var(--muted);
 }
 
 .filter-row .glass-select .gs__control:hover {
@@ -532,6 +556,41 @@
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   box-shadow: none;
+}
+
+.filter-row .glass-select .gs__value-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-row .glass-select .gs__single-value {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-row .glass-select .gs__indicators {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.filter-row .glass-select .gs__indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.filter-row .glass-select .gs__indicator svg {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
 /* Favorites toggle button */

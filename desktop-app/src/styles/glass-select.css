@@ -5,7 +5,7 @@
 
 .glass-select {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   min-width: 120px;
 }
@@ -13,17 +13,31 @@
 .glass-select-icon {
   position: absolute;
   left: 11px;
-  z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   color: var(--soft, rgba(255, 255, 255, 0.55));
   pointer-events: none;
 }
 
+.glass-select-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 .glass-select > div:not(.glass-select-icon) {
   width: 100%;
+  height: 100%;
 }
 
 .gs__control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   min-height: 38px;
   padding: 0 6px 0 12px;
   border-radius: var(--radius-md);
@@ -35,6 +49,8 @@
   color: var(--ink, #fff);
   font-size: 13px;
   font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
@@ -56,18 +72,53 @@
 }
 
 .gs__value-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   padding: 0;
+  margin: 0;
 }
 
 .gs__single-value {
+  display: inline-flex;
+  align-items: center;
   color: inherit;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs__input-container {
+  margin: 0;
+  padding: 0;
+}
+
+.gs__indicators {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .gs__indicator {
   display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 4px;
   color: rgba(255, 255, 255, 0.45);
   transition: transform 0.18s, color 0.15s;
+}
+
+.gs__indicator svg {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
 .gs__control--menu-is-open .gs__dropdown-indicator {
