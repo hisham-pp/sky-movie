@@ -1,7 +1,7 @@
 'use client';
 
 import { Search, Star, Heart, ArrowUpDown, Calendar, X } from 'lucide-react';
-import { GlassSelect, Tooltip } from '../common';
+import { GlassSelect, Tooltip, PillButtonGroup } from '../common';
 import type { GlassSelectOption } from '../common';
 
 export type SortBy = 'default' | 'title' | 'year' | 'rating';
@@ -57,7 +57,7 @@ export function LibraryFilters({
   ];
 
   return (
-    <div className="filter-row">
+    <PillButtonGroup className="filter-row" aria-label="Library filters">
       <div className="filter-search">
         <Search size={14} className="filter-search-icon" />
         <input
@@ -95,7 +95,7 @@ export function LibraryFilters({
 
       <Tooltip content="Show favorites only">
         <button
-          className={`filter-toggle-btn${favoritesOnly ? ' active' : ''}`}
+          className={`filter-toggle-btn${favoritesOnly ? ' active' : ''}${isFiltered ? ' filter-toggle-btn--middle' : ' filter-toggle-btn--last'}`}
           onClick={() => onFavoritesChange(!favoritesOnly)}
         >
           <Heart size={14} fill={favoritesOnly ? 'currentColor' : 'none'} />
@@ -111,6 +111,6 @@ export function LibraryFilters({
           </button>
         </Tooltip>
       )}
-    </div>
+    </PillButtonGroup>
   );
 }
