@@ -62,17 +62,18 @@ export function TorrentShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="torrent-header-stats">
-            <span className="section-badge">
-              <ArrowDownToLine size={13} className="text-emerald-400 mr-1 inline" />
-              {formatSpeed(stats.downloadSpeed)}
+            <span className="torrent-stat-pill">
+              <ArrowDownToLine size={13} className="text-emerald-400" />
+              <span>{formatSpeed(stats.downloadSpeed)}</span>
             </span>
-            <span className="section-badge">
-              <ArrowUpFromLine size={13} className="text-blue-400 mr-1 inline" />
-              {formatSpeed(stats.uploadSpeed)}
+            <span className="torrent-stat-pill">
+              <ArrowUpFromLine size={13} className="text-blue-400" />
+              <span>{formatSpeed(stats.uploadSpeed)}</span>
             </span>
             {stats.activeTorrents > 0 && (
-              <span className="section-badge">
-                {stats.activeTorrents} active
+              <span className="torrent-stat-pill torrent-stat-pill--active">
+                <span className="torrent-stat-active-dot" />
+                <span>{stats.activeTorrents} active</span>
               </span>
             )}
           </div>
