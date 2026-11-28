@@ -94,55 +94,11 @@ jobs:
           cache: pnpm
 
       # ── Platform deps ────────────────────────────────────────────────────────
-      - name: Cache apt packages
-        if: runner.os == 'Linux'
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: apt-${{ runner.arch }}-libmpv-${{ hashFiles('.github/workflows/release.yml') }}
-          restore-keys: apt-${{ runner.arch }}-libmpv-
-
       - name: Install Linux system deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          # dpkg-sig removed: not available in Ubuntu 24.04 (DEB signing step is disabled)
-          sudo apt-get install -y --no-install-recommends libarchive-tools libmpv-dev
-
-      - name: Cache Homebrew Cellar
-        if: runner.os == 'macOS'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew
-            /opt/homebrew/Cellar/mpv
-            /opt/homebrew/Cellar/ffmpeg
-            /opt/homebrew/Cellar/libass
-            /opt/homebrew/Cellar/libplacebo
-          key: brew-mpv-${{ runner.arch }}-${{ hashFiles('.github/workflows/release.yml') }}
-          restore-keys: brew-mpv-${{ runner.arch }}-
-
-      - name: Install macOS system deps
-        if: runner.os == 'macOS'
-        run: brew install mpv || true
-
-      - name: Check VS C++ workload (Windows)
-        if: runner.os == 'Windows'
-        id: vs-check
-        shell: powershell
-        run: |
-          $vsWhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-          $has = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
-          echo "has_vc=$( if ($has) { 'true' } else { 'false' } )" >> $env:GITHUB_OUTPUT
-
-      - name: Add VS C++ workload (Windows)
-        if: runner.os == 'Windows' && steps.vs-check.outputs.has_vc == 'false'
-        shell: powershell
-        run: |
-          $vsWhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-          $installer = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-          $vsInstallPath = & $vsWhere -latest -property installationPath
-          Start-Process $installer -ArgumentList "modify --installPath `"$vsInstallPath`" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet --norestart" -Wait
+          sudo apt-get install -y --no-install-recommends libarchive-tools
       # ────────────────────────────────────────────────────────────────────────
 
       - name: Install dependencies
@@ -161,31 +117,21 @@ jobs:
           key: electron-cache-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: electron-cache-${{ runner.os }}-${{ matrix.arch }}-
 
-      - name: Cache libmpv artifacts
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            desktop-app/resources/mpv
-            desktop-app/native/mpv-player/lib
-            desktop-app/native/mpv-player/include
-          key: libmpv-${{ runner.arch }}-${{ hashFiles('scripts/download-libmpv.mjs') }}
-
-      - name: Prepare libmpv
-        if: runner.os == 'Windows'
-        run: pnpm --filter @sky-movie/desktop-app run prepare:libmpv
-
-      - name: Build mpv native addon
-        run: pnpm --filter @sky-movie/desktop-app run build:native
-
       - name: Build app bundles
         run: pnpm --filter @sky-movie/desktop-app run build:ci
         env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          NEXT_PUBLIC_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           VITE_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+
+      - name: Prepare standalone bundle
+        run: node desktop-app/scripts/prepare-standalone.mjs --arch ${{ matrix.arch }}
 
       - name: Package app
         run: ${{ matrix.packageCommand }}
         env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          NEXT_PUBLIC_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           VITE_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 

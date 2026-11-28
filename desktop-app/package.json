@@ -9,6 +9,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:web": "next dev -p 3000",
     "build": "next build",
+    "build:ci": "tsc --noEmit && next build",
     "start": "node scripts/start.mjs",
     "start:web": "next start",
     "typecheck": "tsc --noEmit",
@@ -18,15 +19,19 @@
     "package:win": "pnpm build && pnpm package:prepare && electron-builder --win",
     "package:win:dir": "pnpm package:dir",
     "package:win:installer": "pnpm package:win",
-    "package:current": "pnpm package:win",
-    "package:all": "pnpm package:win",
+    "package:win:builder:ci": "electron-builder --win nsis dir --publish never",
+    "package:current": "pnpm build && pnpm package:prepare && electron-builder",
+    "package:all": "pnpm build && pnpm package:prepare && electron-builder --win --mac --linux",
     "package:mac": "pnpm build && pnpm package:prepare && electron-builder --mac",
+    "package:mac:ci": "electron-builder --mac --publish never",
     "package:linux": "pnpm build && pnpm package:prepare && electron-builder --linux",
+    "package:linux:ci": "electron-builder --linux --publish never",
     "package": "pnpm package:win"
   },
   "author": "Sky Movie",
   "desktopName": "sky-movie",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@vitejs/plugin-react": "^5.0.0",
     "artplayer": "^5.4.0",
     "better-sqlite3": "^12.2.0",
@@ -42,9 +47,7 @@
     "react-router-dom": "^7.18.0",
     "react-select": "^5.10.2",
     "tailwind-merge": "^2.6.0",
-    "webtorrent": "^3.0.0"
-  },
-  "devDependencies": {
+    "webtorrent": "^3.0.0",
     "@electron/rebuild": "^4.0.4",
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^22.10.2",

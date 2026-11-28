@@ -2,6 +2,7 @@ appId: com.skymovie.desktop
 productName: Sky Movie
 copyright: Copyright 2026 Sky Movie
 executableName: sky-movie
+electronVersion: 37.10.3
 
 directories:
   output: dist
@@ -11,6 +12,8 @@ files:
   - electron/**
   - package.json
   - build/**
+  - '!node_modules/**'
+  - '!**/node_modules/**'
 
 extraResources:
   - from: .next/standalone
