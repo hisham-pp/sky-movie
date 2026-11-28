@@ -109,7 +109,7 @@ export function AppShowcase() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`relative overflow-hidden inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              className={`relative overflow-hidden inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95 whitespace-nowrap ${
                 tab === t.id
                   ? 'bg-primary/15 text-primary'
                   : 'text-secondary hover:text-white hover:bg-white/10'
@@ -143,7 +143,7 @@ export function AppShowcase() {
           quality={90}
           priority={tab === 'movies' && safeSlide === 0}
           className="w-full h-auto block rounded-[20px] cursor-zoom-in"
-          style={{ animation: 'showcaseSlideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1)' }}
+          style={{ animation: 'showcaseSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1)' }}
           onClick={() => setModal(true)}
           draggable={false}
         />
@@ -201,8 +201,8 @@ export function AppShowcase() {
 
       <style>{`
         @keyframes showcaseSlideIn {
-          from { opacity: 0; transform: translateX(28px); }
-          to   { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; transform: translateX(18px) scale(0.98); }
+          to   { opacity: 1; transform: translateX(0) scale(1); }
         }
         @keyframes tabProgress {
           from { transform: scaleX(0); }

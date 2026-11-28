@@ -22,6 +22,12 @@
   --on-primary-container: #003751;
   --secondary: #c4c6ce;
   --on-secondary: #2d3037;
+  /* fluid motion curves — decelerating glide + gentle overshoot (ux-motion standard) */
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.28, 0.44, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   color-scheme: dark;
 }
 
@@ -98,6 +104,53 @@ a {
 .scroll-reveal.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+button:active:not(:disabled),
+a.btn:active,
+a[role="button"]:active {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
+}
+
+.image-modal-backdrop {
+  animation: modalFadeIn 0.2s var(--ease-fluid);
+}
+
+.image-modal-content {
+  animation: modalZoomIn 0.22s var(--ease-spring);
+  transform-origin: center center;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes spin {

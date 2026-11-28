@@ -1,0 +1,526 @@
+/* ==========================================================================
+   Search Pill & Expand-Down Animation Styles
+   Silky 60fps GPU-accelerated motion with exact color, design, and blur match
+   ========================================================================== */
+
+/* Full-Screen Backdrop matching the exact modal wash & blur
+   Smooth CSS transitions precisely synchronized with pill open (0.28s) and close (0.22s) */
+.search-pill-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(4, 6, 10, 0.55);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  will-change: opacity;
+  transition:
+    opacity 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    visibility 0s linear 0.22s;
+}
+
+.search-pill-backdrop.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 0s;
+}
+
+.search-pill-backdrop.is-closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    visibility 0s linear 0.22s;
+}
+
+/* Anchor container inside Toolbar that maintains layout position */
+.search-pill-anchor {
+  position: relative;
+  width: 280px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 10;
+  -webkit-app-region: no-drag;
+}
+
+.search-pill-anchor--active {
+  z-index: 1000;
+}
+
+/* Toolbar search-open elevation & dimming of side controls */
+.toolbar.toolbar--search-open {
+  z-index: 1000;
+}
+
+.toolbar.toolbar--search-open .toolbar-spacer {
+  opacity: 0.2;
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toolbar.toolbar--search-open .window-controls {
+  opacity: 0.7;
+  pointer-events: auto;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toolbar.toolbar--search-open .window-controls:hover {
+  opacity: 1;
+}
+
+.toolbar:not(.toolbar--search-open) .toolbar-spacer {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The Animated Search Pill Component
+   Exact neutral dark glass color & blur of the search box, no green tint
+   GPU hardware-accelerated with translateZ(0) to prevent any frame drops */
+.search-pill {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateZ(0);
+  will-change: width, border-radius, background, border-color, box-shadow;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  width: 280px;
+  height: auto;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition:
+    width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-pill:hover:not(.is-expanded) {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-pill:focus-within:not(.is-expanded) {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: none;
+}
+
+/* Expanded State: Smooth width expansion & pill card styling matching search field */
+.search-pill.is-expanded {
+  width: 620px;
+  max-width: min(620px, calc(100vw - 48px));
+  border-radius: 20px;
+  background: rgba(10, 14, 22, 0.82);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.75),
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  cursor: default;
+}
+
+/* Closing State: Smooth natural contraction back into collapsed pill */
+.search-pill.is-closing {
+  width: 280px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  transition:
+    width 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    border-radius 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.22s ease;
+}
+
+/* Header / Pill Top Bar
+   Keeps consistent 44px height so content never jumps */
+.search-pill-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+}
+
+.search-pill-icon {
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.search-pill.is-expanded .search-pill-icon {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Pure frameless input - overrides all base.css & focus ring styling */
+.search-pill-input,
+.search-pill-input:focus,
+.search-pill-input:focus-visible,
+.search-pill-input:hover,
+.search-pill-input:active {
+  flex: 1 !important;
+  min-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  height: 38px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  font-size: 14.5px !important;
+  font-family: inherit !important;
+  line-height: normal !important;
+  -webkit-app-region: no-drag !important;
+}
+
+.search-pill:not(.is-expanded) .search-pill-input {
+  cursor: pointer;
+  color: var(--soft) !important;
+}
+
+.search-pill-input::placeholder {
+  color: var(--muted) !important;
+}
+
+/* Right-side actions in pill */
+.search-pill-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  transition: opacity 0.12s ease;
+}
+
+.search-pill-actions.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-pill-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.search-pill-btn--clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.search-pill-kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.search-pill-kbd:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.search-shortcut {
+  animation: shortcutFadeIn 0.18s ease;
+}
+
+@keyframes shortcutFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Smooth Expand-Down Dropdown Container (60fps GPU grid-template-rows + opacity) */
+.search-pill-dropdown {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  opacity: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  will-change: grid-template-rows, opacity;
+  transition:
+    grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-pill.is-expanded .search-pill-dropdown {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.search-pill.is-closing .search-pill-dropdown {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.16s ease-out;
+}
+
+/* Full-width container across the entire modal - min-height: 0 required for grid animation */
+.search-pill-dropdown-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.search-pill-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Results Content */
+.search-pill-results {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-pill-results::-webkit-scrollbar {
+  width: 5px;
+}
+
+.search-pill-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.search-pill-results::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.search-pill-results::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.search-modal-section {
+  margin-bottom: 14px;
+}
+
+.search-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.search-modal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0 0 6px 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.search-modal-items {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+}
+
+.search-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+  box-shadow: none;
+}
+
+.search-modal-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+.search-modal-item--active {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.search-modal-item:focus,
+.search-modal-item:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-modal-item-playlist-icon {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.search-modal-item-poster {
+  width: 42px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.search-modal-item-poster-placeholder {
+  width: 42px;
+  height: 62px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.search-modal-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-modal-item-title {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13.5px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-modal-item-meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-modal-empty {
+  padding: 36px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 14px;
+}
+
+/* Nav items rendered as list rows */
+.search-modal-item--nav {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.search-modal-item-nav-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.search-modal-item--nav .search-modal-item-title {
+  font-weight: 500;
+  font-size: 13.5px;
+}
+
+/* Footer with keyboard guidance - spans 100% full width */
+.search-pill-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.45);
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.search-pill-footer kbd {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .search-pill,
+  .search-pill-dropdown,
+  .search-pill-backdrop {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

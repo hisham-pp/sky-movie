@@ -1,0 +1,578 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 100vh;
+  overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 72% -8%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 48%),
+    radial-gradient(ellipse at 4% 98%, color-mix(in srgb, var(--primary-strong) 10%, transparent), transparent 46%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+}
+
+.workspace {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Progressive Feathered Blur for Top Bar ── */
+.topbar-feather-blur {
+  position: fixed;
+  top: 0;
+  left: 60px;
+  right: 0;
+  height: 110px;
+  pointer-events: none;
+  z-index: 9;
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 35%,
+      rgba(0, 0, 0, 0.75) 55%,
+      rgba(0, 0, 0, 0.4) 72%,
+      rgba(0, 0, 0, 0.15) 86%,
+      transparent 100%);
+  mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 35%,
+      rgba(0, 0, 0, 0.75) 55%,
+      rgba(0, 0, 0, 0.4) 72%,
+      rgba(0, 0, 0, 0.15) 86%,
+      transparent 100%);
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.sidebar-expanded .topbar-feather-blur {
+  left: 210px;
+}
+
+.app-shell.sidebar-hidden .topbar-feather-blur {
+  left: 0;
+}
+
+.toolbar {
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 0;
+  height: 60px;
+  padding: 10px 24px 0 24px;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  user-select: none;
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.sidebar-expanded .toolbar {
+  left: 210px;
+}
+
+.app-shell.sidebar-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.sidebar-hidden .toolbar {
+  left: 0;
+}
+
+.toolbar-spacer {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.toolbar-spacer--left {
+  justify-content: flex-start;
+}
+
+.toolbar-spacer--right {
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Navigation, Window controls & Badges: only visible when hovering anywhere on the topbar section */
+.toolbar .nav-controls,
+.toolbar .window-controls,
+.toolbar .toolbar-badge {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition:
+    opacity 0.22s var(--ease-fluid),
+    transform 0.22s var(--ease-fluid);
+}
+
+.toolbar:hover .nav-controls,
+.toolbar:hover .window-controls,
+.toolbar:hover .toolbar-badge,
+.toolbar:focus-within .nav-controls,
+.toolbar:focus-within .window-controls,
+.toolbar:focus-within .toolbar-badge,
+.toolbar.toolbar--search-open .window-controls,
+.toolbar.toolbar--hovered .nav-controls,
+.toolbar.toolbar--hovered .window-controls,
+.toolbar.toolbar--hovered .toolbar-badge {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* ── Reusable Split-Pill Button & Group Styles ── */
+.pill-group,
+.nav-controls,
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.pill-btn,
+.nav-btn,
+.window-control {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  box-shadow: none;
+  color: var(--soft, rgba(255, 255, 255, 0.85));
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    transform 0.08s ease;
+}
+
+.pill-btn svg,
+.nav-btn svg,
+.window-control svg {
+  display: block;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.nav-controls .pill-btn,
+.nav-controls .nav-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.nav-controls .pill-btn:hover,
+.nav-controls .nav-btn:hover {
+  color: #ffffff;
+}
+
+.nav-controls .pill-btn:disabled,
+.nav-controls .nav-btn:disabled {
+  opacity: 0.35;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Single standalone button has full pill radius on all 4 corners */
+.pill-btn--single,
+.nav-btn--single {
+  border-radius: 9999px;
+}
+
+/* Outer sides keep the pill radius; inner sides where they meet have NO border radius.
+   End buttons have increased width (46px) so the rounded pill cap has proper optical breathing room. */
+.pill-btn--first,
+.pill-btn--back,
+.pill-btn--minimize,
+.nav-btn--back,
+.window-control--minimize,
+.pill-group> :first-child .pill-btn,
+.pill-group>.pill-btn:first-child,
+.nav-controls> :first-child .nav-btn,
+.nav-controls>.nav-btn:first-child,
+.window-controls> :first-child .window-control,
+.window-controls>.window-control:first-child {
+  width: 46px;
+  min-width: 46px;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 6px;
+  padding-right: 0;
+}
+
+/* Middle button in between: 0 border-radius on all sides */
+.pill-btn--middle,
+.pill-btn--refresh,
+.pill-btn--maximize,
+.pill-btn--restore,
+.nav-btn--refresh,
+.window-control--maximize,
+.window-control--restore {
+  width: 36px;
+  min-width: 36px;
+  border-radius: 0 !important;
+}
+
+/* Outer sides keep the pill radius; inner sides where they meet have NO border radius.
+   End buttons have increased width (46px) so the rounded pill cap has proper optical breathing room. */
+.pill-btn--last,
+.pill-btn--forward,
+.pill-btn--close,
+.nav-btn--forward,
+.window-control--close,
+.pill-group> :last-child .pill-btn,
+.pill-group>.pill-btn:last-child,
+.nav-controls> :last-child .nav-btn,
+.nav-controls>.nav-btn:last-child,
+.window-controls> :last-child .window-control,
+.window-controls>.window-control:last-child {
+  width: 46px;
+  min-width: 46px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-left: 0;
+  padding-right: 6px;
+}
+
+.pill-btn:hover,
+.nav-btn:hover,
+.window-control:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
+
+.pill-btn:active,
+.nav-btn:active,
+.window-control:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.94);
+}
+
+.pill-btn:disabled,
+.nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Primary variant (Play button & featured items) - brand purple preserving previous colors */
+.pill-btn--primary {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.pill-btn--primary:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+.pill-btn--primary:active {
+  background: color-mix(in srgb, var(--primary) 78%, black);
+  border-color: transparent;
+  color: var(--on-primary);
+  transform: scale(0.94);
+}
+
+/* Favorite button active highlight */
+.pill-btn.favorite-active {
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.5);
+  background: rgba(233, 69, 96, 0.18);
+}
+
+.pill-btn.favorite-active:hover {
+  background: rgba(233, 69, 96, 0.26);
+  border-color: rgba(233, 69, 96, 0.65);
+  color: #ff5c77;
+}
+
+/* Danger variant (Close button hover & active) - translucent ruby glass matching the dark glass pill effect */
+.pill-btn--danger:hover,
+.window-control--close:hover {
+  background: rgba(220, 38, 38, 0.22);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #ff7878;
+  box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.12);
+}
+
+.pill-btn--danger:active,
+.window-control--close:active {
+  background: rgba(220, 38, 38, 0.35);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ff9999;
+  transform: scale(0.94);
+}
+
+/* ── Split-Pill Metadata Chip Styles ── */
+.pill-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 0;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid),
+    color 0.22s var(--ease-fluid),
+    transform 0.08s ease;
+}
+
+.pill-chip:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.pill-chip--single,
+.pill-group>.pill-chip:only-child {
+  border-radius: 9999px !important;
+}
+
+.pill-chip--first,
+.pill-group> :first-child .pill-chip,
+.pill-group>.pill-chip:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 16px;
+  padding-right: 12px;
+}
+
+.pill-chip--middle,
+.pill-group> :not(:first-child):not(:last-child) .pill-chip,
+.pill-group>.pill-chip:not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+.pill-chip--last,
+.pill-group> :last-child .pill-chip,
+.pill-group>.pill-chip:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  padding-left: 12px;
+  padding-right: 16px;
+}
+
+.pill-chip--primary {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--on-primary);
+  font-weight: 700;
+}
+
+.pill-chip--primary:hover {
+  background: color-mix(in srgb, var(--primary) 88%, white);
+  border-color: transparent;
+  color: var(--on-primary);
+}
+
+@keyframes navRefreshSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nav-btn-icon--spin {
+  animation: navRefreshSpin 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.toolbar-title span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.toolbar-title strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 24px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  width: 280px;
+  -webkit-app-region: no-drag;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: var(--glass-blur-light);
+  -webkit-backdrop-filter: var(--glass-blur-light);
+  box-shadow: none;
+  color: var(--muted);
+  padding: 0 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.22s var(--ease-fluid),
+    background 0.22s var(--ease-fluid);
+}
+
+.search:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.search:focus-within {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: none;
+}
+
+.search input {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.search-shortcut {
+  background: var(--hover);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.toolbar button,
+.toolbar-badge,
+.toolbar input {
+  -webkit-app-region: no-drag;
+}
+
+.toolbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 193, 7, 0.15);
+  backdrop-filter: blur(10px);
+  color: #ffc107;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.toolbar-badge:hover {
+  background: rgba(255, 193, 7, 0.25);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+.toolbar-badge svg {
+  color: #ffc107;
+}
+
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.browse-grid,
+.content-grid {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.browse-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.content-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+}
+
+.detail-panel {
+  min-width: 0;
+  border-left: 1px solid var(--glass-border);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  padding: 30px 26px;
+  backdrop-filter: var(--glass-blur);
+  box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

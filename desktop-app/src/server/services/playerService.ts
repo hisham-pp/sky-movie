@@ -1,0 +1,389 @@
+import { createReadStream, readdirSync } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { dirname, extname, basename, join } from 'node:path';
+import { Readable } from 'node:stream';
+import { pathToFileURL } from 'node:url';
+import type { LastWatchedInfo, WatchHistoryItem, PlayMediaResult, WatchProgressSnapshot, WatchProgressUpdate, SidecarSubtitle } from '@/types';
+import type { SqliteDatabase } from '@/lib/db/client';
+import { CatalogService } from './catalogService';
+import { toImageUrl } from './rowMappers';
+
+interface ByteRange {
+  start: number;
+  end: number;
+}
+
+const SUBTITLE_EXTS = new Set(['.srt', '.vtt', '.ass', '.ssa']);
+
+function scanSidecarSubtitles(mediaPath: string): SidecarSubtitle[] {
+  try {
+    const dir = dirname(mediaPath);
+    const stem = basename(mediaPath, extname(mediaPath)).toLowerCase();
+    const results: SidecarSubtitle[] = [];
+
+    const dirsToScan = [dir];
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          dirsToScan.push(join(dir, entry.name));
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    for (const scanDir of dirsToScan) {
+      try {
+        const files = readdirSync(scanDir, { withFileTypes: true });
+        for (const file of files) {
+          if (file.isDirectory()) continue;
+          const ext = extname(file.name).toLowerCase() as '.srt' | '.vtt' | '.ass' | '.ssa';
+          if (!SUBTITLE_EXTS.has(ext)) continue;
+          
+          const fileStem = basename(file.name, ext).toLowerCase();
+          let label = 'Default';
+          
+          if (scanDir === dir) {
+            // In main folder, require stem match to avoid loading subtitles for other movies
+            if (!fileStem.startsWith(stem)) continue;
+            const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
+            label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+          } else {
+            // In a subfolder, accept all subtitles (usually dedicated to this movie)
+            if (fileStem.startsWith(stem)) {
+              const suffix = fileStem.slice(stem.length).replace(/^[._-]/, '') || 'Default';
+              label = suffix.charAt(0).toUpperCase() + suffix.slice(1);
+              if (label === 'Default') {
+                label = `${basename(scanDir)}`;
+              }
+            } else {
+              label = `${basename(scanDir)} - ${fileStem}`;
+            }
+          }
+          
+          const url = pathToFileURL(join(scanDir, file.name)).toString();
+          results.push({ label, url, type: ext === '.ssa' ? 'ass' : ext.slice(1) as 'srt' | 'vtt' | 'ass' });
+        }
+      } catch {
+        // ignore read errors for specific dirs
+      }
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+export class PlayerService {
+  private readonly catalog: CatalogService;
+
+  constructor(private readonly db: SqliteDatabase) {
+    this.catalog = new CatalogService(db);
+  }
+
+
+
+  async playMedia(mediaFileId: number): Promise<PlayMediaResult> {
+    const mediaFile = this.catalog.getMediaFile(mediaFileId);
+    if (!mediaFile) {
+      throw new Error(`Media file ${mediaFileId} was not found.`);
+    }
+
+    console.log('[PlayerService] playMedia called', { mediaFileId, path: mediaFile.absolutePath });
+
+    // mpv plays absolutePath directly; the Artplayer fallback streams
+    // browser-compatible formats through the sky-media:// protocol.
+    const mediaUrl = `/api/media/${mediaFileId}`;
+    const sidecarSubtitles = scanSidecarSubtitles(mediaFile.absolutePath);
+
+    // Build metadata if the file is matched to a movie or show
+    let metadata: PlayMediaResult['metadata'];
+    if (mediaFile.matchedMovieId) {
+      const movieDetail = this.catalog.getMovieById(mediaFile.matchedMovieId);
+      if (movieDetail.item) {
+        metadata = {
+          mediaKind: 'movie',
+          title: movieDetail.item.title,
+          releaseYear: movieDetail.item.releaseYear,
+        };
+      }
+    } else if (mediaFile.matchedShowId && mediaFile.matchedEpisodeId) {
+      const showDetail = this.catalog.getShowById(mediaFile.matchedShowId);
+      if (showDetail.item && showDetail.episodes) {
+        const episode = showDetail.episodes.find(e => e.id === mediaFile.matchedEpisodeId);
+        if (episode) {
+          metadata = {
+            mediaKind: 'show',
+            title: showDetail.item.title,
+            seasonNumber: episode.seasonNumber,
+            episodeNumber: episode.episodeNumber,
+            episodeTitle: episode.title,
+            releaseYear: showDetail.item.firstAirYear,
+          };
+        }
+      }
+    }
+
+    return {
+      mediaFileId,
+      mediaUrl,
+      absolutePath: mediaFile.absolutePath,
+      title: mediaFile.fileName,
+      fileName: mediaFile.fileName,
+      watchProgress: this.getWatchProgress(mediaFileId),
+      sidecarSubtitles,
+      metadata,
+    };
+  }
+
+  async openExternally(mediaFileId: number): Promise<void> {
+    const mediaFile = this.catalog.getMediaFile(mediaFileId);
+    if (!mediaFile) {
+      throw new Error(`Media file ${mediaFileId} was not found.`);
+    }
+
+    try {
+      const { exec } = await import('node:child_process');
+      const platform = process.platform;
+      if (platform === 'win32') {
+        exec(`start "" "${mediaFile.absolutePath.replace(/"/g, '\\"')}"`);
+      } else if (platform === 'darwin') {
+        exec(`open "${mediaFile.absolutePath.replace(/"/g, '\\"')}"`);
+      } else {
+        exec(`xdg-open "${mediaFile.absolutePath.replace(/"/g, '\\"')}"`);
+      }
+    } catch (err) {
+      console.warn('Could not open file externally:', err);
+    }
+  }
+
+  updateWatchProgress(update: WatchProgressUpdate): void {
+    const now = new Date().toISOString();
+    const previousProgress = this.getWatchProgress(update.mediaFileId);
+    this.db
+      .prepare(
+        `INSERT INTO watch_progress (media_file_id, position_seconds, duration_seconds, completed, updated_at, media_kind, title, poster_path)
+         SELECT 
+           ?, ?, ?, ?, ?, 
+           mf.media_kind,
+           COALESCE(m.title, s.title, mf.file_name),
+           COALESCE(m.poster_path, s.poster_path)
+         FROM media_files mf
+         LEFT JOIN movies m ON m.id = mf.matched_movie_id
+         LEFT JOIN tv_shows s ON s.id = mf.matched_show_id
+         WHERE mf.id = ?
+         ON CONFLICT(media_file_id) DO UPDATE SET
+          position_seconds = excluded.position_seconds,
+          duration_seconds = excluded.duration_seconds,
+          completed = excluded.completed,
+          updated_at = excluded.updated_at,
+          media_kind = excluded.media_kind,
+          title = excluded.title,
+          poster_path = excluded.poster_path`
+      )
+      .run(update.mediaFileId, update.positionSeconds, update.durationSeconds, Number(update.completed ?? false), now, update.mediaFileId);
+
+    if (update.completed && !previousProgress?.completed) {
+      this.db
+        .prepare('INSERT INTO watch_history (media_file_id, watched_at, position_seconds) VALUES (?, ?, ?)')
+        .run(update.mediaFileId, now, update.positionSeconds);
+      // Keep only the 10 most-recent completion events per file to bound table growth.
+      this.db
+        .prepare(
+          `DELETE FROM watch_history
+           WHERE media_file_id = ?
+             AND id NOT IN (
+               SELECT id FROM watch_history
+               WHERE media_file_id = ?
+               ORDER BY watched_at DESC
+               LIMIT 10
+             )`
+        )
+        .run(update.mediaFileId, update.mediaFileId);
+    }
+  }
+
+  getLastWatched(): LastWatchedInfo | null {
+    const row = this.db
+      .prepare(
+        `SELECT
+           wp.media_file_id,
+           wp.position_seconds,
+           wp.duration_seconds,
+           wp.completed,
+           wp.updated_at,
+           mf.matched_movie_id,
+           mf.matched_show_id,
+           COALESCE(m.title, s.title, mf.file_name, wp.title) AS title
+         FROM watch_progress wp
+         LEFT JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN movies m ON m.id = mf.matched_movie_id
+         LEFT JOIN tv_shows s ON s.id = mf.matched_show_id
+         ORDER BY wp.updated_at DESC
+         LIMIT 1`
+      )
+      .get() as
+      | {
+          media_file_id: number;
+          position_seconds: number;
+          duration_seconds: number;
+          completed: number;
+          updated_at: string;
+          matched_movie_id: number | null;
+          matched_show_id: number | null;
+          title: string;
+        }
+      | undefined;
+
+    if (!row) return null;
+
+    return {
+      mediaFileId: row.media_file_id,
+      matchedMovieId: row.matched_movie_id,
+      matchedShowId: row.matched_show_id,
+      title: row.title,
+      positionSeconds: row.position_seconds,
+      durationSeconds: row.duration_seconds,
+      completed: Boolean(row.completed),
+      updatedAt: row.updated_at
+    };
+  }
+
+  getWatchHistory(): WatchHistoryItem[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+           wp.media_file_id,
+           wp.position_seconds,
+           wp.duration_seconds,
+           wp.completed,
+           wp.updated_at AS last_watched_at,
+           COALESCE(mf.media_kind, wp.media_kind) AS media_kind,
+           mf.matched_movie_id,
+           mf.matched_show_id,
+           COALESCE(m.title, s.title, mf.file_name, wp.title) AS title,
+           COALESCE(m.poster_path, s.poster_path, wp.poster_path) AS poster_path,
+           COUNT(wh.id) AS watch_count
+         FROM watch_progress wp
+         LEFT JOIN media_files mf ON mf.id = wp.media_file_id
+         LEFT JOIN movies   m  ON m.id  = mf.matched_movie_id
+         LEFT JOIN tv_shows s  ON s.id  = mf.matched_show_id
+         LEFT JOIN watch_history wh ON wh.media_file_id = wp.media_file_id
+         GROUP BY wp.media_file_id
+         ORDER BY wp.updated_at DESC`
+      )
+      .all() as {
+        media_file_id: number;
+        position_seconds: number;
+        duration_seconds: number;
+        completed: number;
+        last_watched_at: string;
+        media_kind: string;
+        matched_movie_id: number | null;
+        matched_show_id: number | null;
+        title: string;
+        poster_path: string | null;
+        watch_count: number;
+      }[];
+
+    return rows.map((r) => ({
+      mediaFileId: r.media_file_id,
+      matchedMovieId: r.matched_movie_id,
+      matchedShowId: r.matched_show_id,
+      title: r.title,
+      mediaKind: r.media_kind as 'movie' | 'show',
+      posterPath: toImageUrl(r.poster_path),
+      positionSeconds: r.position_seconds,
+      durationSeconds: r.duration_seconds,
+      completed: Boolean(r.completed),
+      lastWatchedAt: r.last_watched_at,
+      watchCount: r.watch_count
+    }));
+  }
+
+  clearWatchHistory(): void {
+    this.db.prepare('DELETE FROM watch_history').run();
+    this.db.prepare('DELETE FROM watch_progress').run();
+  }
+
+  deleteWatchHistoryItem(mediaFileId: number): void {
+    this.db.prepare('DELETE FROM watch_history WHERE media_file_id = ?').run(mediaFileId);
+    this.db.prepare('DELETE FROM watch_progress WHERE media_file_id = ?').run(mediaFileId);
+  }
+
+  private getWatchProgress(mediaFileId: number): WatchProgressSnapshot | null {
+    const row = this.db
+      .prepare(
+        `SELECT position_seconds, duration_seconds, completed, updated_at
+         FROM watch_progress
+         WHERE media_file_id = ?`
+      )
+      .get(mediaFileId) as
+      | {
+          position_seconds: number;
+          duration_seconds: number;
+          completed: number;
+          updated_at: string;
+        }
+      | undefined;
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      positionSeconds: row.position_seconds,
+      durationSeconds: row.duration_seconds,
+      completed: Boolean(row.completed),
+      updatedAt: row.updated_at
+    };
+  }
+}
+
+function parseByteRange(rangeHeader: string | null, fileSize: number): ByteRange | null {
+  if (!rangeHeader?.startsWith('bytes=')) {
+    return null;
+  }
+
+  const range = rangeHeader.slice('bytes='.length).split(',')[0];
+  const [rawStart, rawEnd] = range.split('-');
+  const start = rawStart ? Number(rawStart) : Math.max(fileSize - Number(rawEnd), 0);
+  const end = rawEnd ? Number(rawEnd) : fileSize - 1;
+
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= fileSize) {
+    return null;
+  }
+
+  return {
+    start,
+    end: Math.min(end, fileSize - 1)
+  };
+}
+
+function getVideoContentType(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case '.mp4':
+    case '.m4v':
+      return 'video/mp4';
+    case '.mov':
+      return 'video/quicktime';
+    case '.webm':
+      return 'video/webm';
+    case '.mkv':
+      return 'video/x-matroska';
+    case '.avi':
+      return 'video/x-msvideo';
+    case '.wmv':
+      return 'video/x-ms-wmv';
+    case '.ogv':
+    case '.ogg':
+      return 'video/ogg';
+    case '.ts':
+    case '.m2ts':
+      return 'video/mp2t';
+    default:
+      return 'application/octet-stream';
+  }
+}

@@ -10,7 +10,7 @@ import plugin from 'tailwindcss/plugin';
  * or a one-off arbitrary value instead.
  */
 export default {
-  content: ['./src/renderer/index.html', './src/renderer/src/**/*.{ts,tsx}'],
+  content: ['./src/**/*.{ts,tsx,html}'],
   theme: {
     extend: {
       colors: {

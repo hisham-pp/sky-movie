@@ -1,0 +1,367 @@
+/* ── Library Scanner Page ─────────────────────────────────── */
+
+.scan-page-scroller {
+  padding: 76px 40px 80px;
+  animation: routeFadeIn 0.28s var(--ease-fluid);
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.scan-header-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.scan-header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.scan-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(126, 168, 255, 0.12);
+  border: 1px solid rgba(126, 168, 255, 0.2);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.scan-header-title h1 {
+  margin: 0 0 4px;
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.scan-header-title p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.scan-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Configuration Status Strip ───────────────────────────── */
+.scan-config-strip {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  border-radius: 14px;
+  background: var(--glass-sheen), var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur-light);
+  box-shadow: var(--glass-shine), var(--shadow);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.scan-config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scan-config-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.scan-config-val {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.scan-config-sep {
+  width: 1px;
+  height: 28px;
+  background: var(--line);
+}
+
+.scan-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.scan-status-pill.idle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.scan-status-pill.ready {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: #10b981;
+}
+
+.scan-status-pill.scanning {
+  background: rgba(126, 168, 255, 0.15);
+  border: 1px solid rgba(126, 168, 255, 0.35);
+  color: var(--primary);
+}
+
+/* ── Content Main Grid ────────────────────────────────────── */
+.scan-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .scan-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.scan-panel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--glass-sheen), var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur-light);
+  box-shadow: var(--glass-shine), var(--shadow);
+}
+
+.scan-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+
+.scan-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+}
+
+.scan-card-title h2 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.scan-count-pill {
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.scan-result-status-pill {
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.scan-result-status-pill.done {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: #10b981;
+}
+
+.scan-result-status-pill.none {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+/* ── Folders Container ────────────────────────────────────── */
+.scan-folders-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scan-folder-row-clean {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.scan-folder-row-clean:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line-strong);
+}
+
+.folder-row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(126, 168, 255, 0.12);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.folder-row-path {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-active-pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+/* ── Scan Metrics Grid ────────────────────────────────────── */
+.scan-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.scan-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  transition: transform 0.18s var(--ease-spring), border-color 0.18s var(--ease-fluid), box-shadow 0.18s var(--ease-fluid);
+}
+
+.scan-metric-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.metric-emerald {
+  color: #34d399;
+}
+
+.metric-sky {
+  color: #38bdf8;
+}
+
+.metric-indigo {
+  color: #818cf8;
+}
+
+.metric-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.scan-metric-card.metric-warning {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.scan-metric-card.metric-warning .metric-header {
+  color: #fbbf24;
+}
+
+/* ── Empty State ──────────────────────────────────────────── */
+.scan-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.scan-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  margin-bottom: 4px;
+}
+
+.scan-empty-state h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.scan-empty-state p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 280px;
+  line-height: 1.5;
+}

@@ -51,7 +51,7 @@ export function ExpandableImage({
 export function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10"
+      className="image-modal-backdrop fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10"
       style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
@@ -68,7 +68,7 @@ export function ImageModal({ src, alt, onClose }: { src: string; alt: string; on
         alt={alt}
         width={1920}
         height={1080}
-        className="max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
+        className="image-modal-content max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
         style={{ maxHeight: 'calc(100vh - 80px)', width: 'auto', height: 'auto' }}
         onClick={e => e.stopPropagation()}
         draggable={false}

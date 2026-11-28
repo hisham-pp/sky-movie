@@ -1,0 +1,145 @@
+/* ===== Button Base Styles ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.14s var(--ease-fluid),
+    border-color 0.14s var(--ease-fluid),
+    transform 0.14s var(--ease-spring),
+    box-shadow 0.14s var(--ease-fluid);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text {
+  line-height: 1;
+}
+
+/* ===== Button Sizes ===== */
+.btn-small {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.btn-small .btn-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-medium {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.btn-medium .btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-large {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 16px;
+}
+
+.btn-large .btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== Button Variants ===== */
+
+/* Primary Button */
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);
+  transition-duration: 0.08s;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: var(--surface-low);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-high);
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
+}
+
+/* Danger Button */
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-danger:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--soft);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-low);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-ghost:active:not(:disabled) {
+  background: var(--surface-high);
+  transform: scale(0.97);
+  transition-duration: 0.08s;
+}

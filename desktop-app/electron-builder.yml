@@ -8,15 +8,21 @@ directories:
   buildResources: build
 
 files:
-  - out/**
+  - electron/**
   - package.json
-  - resources/**
+  - build/**
+
+extraResources:
+  - from: .next/standalone
+    to: standalone
+    filter:
+      - '**/*'
 
 asar: true
 asarUnpack:
   - '**/*.node'
 
-npmRebuild: true
+npmRebuild: false
 buildDependenciesFromSource: false
 
 win:
